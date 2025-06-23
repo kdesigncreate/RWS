@@ -1,0 +1,337 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# プロジェクトルール：シンプルブログサイト開発
+
+このドキュメントは、シンプルなブログサイトを開発する際のプロジェクト全体の方針、技術スタック、アーキテクチャ、ディレクトリ構造、ガイドラインをまとめたものです。CursorなどのAIアシスタントを活用して開発を進めることを前提としています。
+
+## 1. プロジェクトの概要と目的
+
+### 目的
+必要最小限の機能を持つシンプルなブログサイトの構築
+
+### 主な機能
+**公開側：**
+- TOPページの記事一覧表示
+- 個別記事表示
+- 記事の検索機能
+
+**管理者側:**
+- ログイン認証
+- 記事の作成・編集・削除
+- 公開/非公開設定
+- 記事の検索・フィルタリング
+
+### 非対象機能
+- カテゴリ・タグ機能
+- コメント機能
+- ユーザー管理
+- サイト設定変更機能
+- 画像・メディアアップロード機能
+
+## 2. 技術スタック
+
+### フロントエンド
+- **TypeScript**
+- **Next.js** (App Router, バージョン15)
+- **Tailwind CSS** (v3.4.13)
+- **shadcn/ui**
+- **axios** (API通信ライブラリ)
+- **Zod** (スキーマ定義・バリデーションライブラリ)
+- **SWR** または **TanStack Query** (データフェッチング・キャッシュ)
+
+### バックエンド
+- **PHP** (8.2)
+- **Laravel** (12.6.2)
+- **Sanctum認証** (SPA認証用)
+
+### ビルドツール
+- **Vite**
+- **Node.js** 22.14.0
+- **npm** 10.9.2
+
+### インフラ
+- **フロントエンド**: Vercel
+- **バックエンド**: Supabase (データベース、認証)
+- **バージョン管理**: Git (v2.44.0.windows.1)
+
+### テストツール
+- **PHPUnit** (PHP/Laravel ユニットテスト)
+- **Jest** (フロントエンドユニットテスト)
+- **Playwright** (E2Eテスト)
+- **OWASP ZAP** (セキュリティテスト)
+
+### 開発ツール
+- **Prettier** (コードフォーマッター)
+- **ESLint** (JavaScript/TypeScript リンター)
+- **PHP-CS-Fixer** または **Laravel Pint** (PHP フォーマッター)
+- **PHPStan** (PHP 静的解析)
+
+## 3. ページ構成 (Next.js App Router)
+
+- **トップページ**: `/page.tsx`
+- **ブログページ (個別記事)**: `/info/[id]/page.tsx`
+- **管理者ログイン画面**: `/admin/page.tsx`
+- **管理者ブログ管理画面 (記事一覧)**: `/admin/dashboard/page.tsx`
+- **管理者ブログ個別管理画面**: `/admin/dashboard/info/[id]/page.tsx`
+
+## 4. APIエンドポイント（Laravel）
+
+### 4.1. 認証 (Auth)
+- `POST /api/login`: 管理者ログイン
+- `POST /api/logout`: 管理者ログアウト
+- `GET /api/user`: 現在認証されている管理者情報の取得
+
+### 4.2. 記事 (Posts)
+
+**公開側 (認証不要)**
+- `GET /api/posts`: 公開されている記事の一覧 (クエリパラメータ: page, limit, search をサポート)
+- `GET /api/posts/{id}`: 特定の公開記事の詳細取得
+
+**管理者側（認証必須）**
+- `GET /api/admin/posts`: 全ての記事の一覧取得 (クエリパラメータ: page, limit, status, search をサポート)
+- `POST /api/admin/posts`: 新しい記事の作成
+- `GET /api/admin/posts/{id}`: 特定の記事の詳細取得 (編集画面用)
+- `PUT /api/admin/posts/{id}`: 特定の記事の更新
+- `DELETE /api/admin/posts/{id}`: 特定の記事の削除
+
+## 5. ディレクトリ構造
+
+### 5.1. バックエンド (Laravel)
+
+```
+├── app/
+│   ├── Console/
+│   ├── Exceptions/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Auth/
+│   │   │   │   └── AuthController.php
+│   │   │   └── PostController.php
+│   │   ├── Middleware/
+│   │   ├── Requests/
+│   │   │   ├── Auth/
+│   │   │   │   └── LoginRequest.php
+│   │   │   └── Post/
+│   │   │       ├── CreatePostRequest.php
+│   │   │       ├── UpdatePostRequest.php
+│   │   │       └── SearchPostRequest.php
+│   │   └── Resources/
+│   │       ├── PostResource.php
+│   │       └── UserResource.php
+│   ├── Models/
+│   │   ├── Post.php
+│   │   └── User.php
+│   ├── Providers/
+│   └── Services/                     # ビジネスロジックを分離する場合 (オプション)
+│       └── PostService.php
+├── bootstrap/
+├── config/
+│   ├── auth.php
+│   ├── cors.php
+│   └── sanctum.php
+├── database/
+│   └── migrations/
+│       ├── 2024_xx_xx_create_posts_table.php
+│       └── 2014_10_12_000000_create_users_table.php
+├── public/
+├── routes/
+│   ├── api.php
+│   └── web.php
+├── storage/
+├── tests/
+│   ├── Feature/
+│   │   ├── AuthTest.php
+│   │   └── PostApiTest.php
+│   └── Unit/
+├── vendor/
+├── .env
+├── composer.json
+└── phpunit.xml
+```
+
+### 5.2. フロントエンド (Next.js App Router)
+
+```
+├── app/
+│   ├── (admin)/
+│   │   ├── page.tsx
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx
+│   │   │   ├── info/
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   └── loading.tsx
+│   │   └── layout.tsx
+│   ├── info/
+│   │   ├── [id]/
+│   │   │   └── page.tsx
+│   │   └── loading.tsx
+│   ├── page.tsx
+│   ├── layout.tsx
+│   ├── loading.tsx
+│   └── global.css
+├── components/
+│   ├── ui/                           # Shadcn/ui のコンポーネント
+│   ├── common/                       # アプリケーション全体で使う汎用コンポーネント
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   ├── LoadingSpinner.tsx
+│   │   └── ErrorDisplay.tsx
+│   ├── posts/                        # 記事表示に関するコンポーネント
+│   │   ├── PostCard.tsx
+│   │   ├── PostDetail.tsx
+│   │   └── SearchBar.tsx
+│   ├── admin/                        # 管理画面専用コンポーネント
+│   │   ├── AdminLayout.tsx
+│   │   ├── PostForm.tsx
+│   │   ├── PostTable.tsx
+│   │   └── AdminNav.tsx
+│   └── providers/                    # グローバルに状態を提供するプロバイダー
+│       └── AuthProvider.tsx
+├── hooks/
+│   ├── useAuth.ts
+│   ├── usePosts.ts
+│   └── useDebounce.ts
+├── lib/
+│   ├── api.ts
+│   ├── auth.ts
+│   ├── utils.ts
+│   └── validation/
+│       ├── postSchema.ts
+│       └── authSchema.ts
+├── types/
+│   ├── post.ts
+│   ├── auth.ts
+│   └── api.ts
+├── public/
+├── styles/
+│   └── tailwind.config.ts
+├── tests/
+│   ├── components/
+│   │   └── PostCard.test.tsx
+│   ├── e2e/
+│   │   ├── auth.spec.ts
+│   │   └── posts.spec.ts
+│   └── setup.ts
+├── next.config.mjs
+├── package.json
+├── postcss.config.js
+└── tsconfig.json
+```
+
+## 6. 開発ガイドライン
+
+### 6.1. 全体共通のプロトコル
+
+**フォーマッター:**
+- フロントエンド: Prettier
+- バックエンド: PHP-CS-Fixer または Laravel Pint
+- IDE (VS Code など) と連携させ、保存時に自動フォーマットされるように設定
+
+**リンター:**
+- フロントエンド: ESLint
+- バックエンド: PHPStan (静的解析)
+
+**コメント:**
+- 複雑なロジックや非自明な処理には、処理の意図を説明するコメントを記述
+- JSDoc (TypeScript/JavaScript) または PHPDoc (PHP) 形式でのコメントを推奨
+
+**命名規則:**
+- 変数、関数、プロパティ: `camelCase` (例: `userName`, `getPostsList`)
+- クラス、コンポーネント: `PascalCase` (例: `User`, `PostCard`)
+- 定数: `UPPER_SNAKE_CASE` (例: `MAX_ITEMS`, `API_BASE_URL`)
+- ファイル名 (Next.js): Next.js の慣習に従い、PascalCase (`PostCard.tsx`) または camelCase (`usePosts.ts`, `api.ts`)
+- データベースのテーブル名: 複数形の `snake_case` (例: `posts`, `users`)
+- データベースのカラム名: 単数形の `snake_case` (例: `id`, `user_id`, `created_at`)
+
+**コードの可読性:**
+- インデントはスペース2文字または4文字のどちらかに統一 (フォーマッターで自動化)
+- 1行のコードは短く、最大100～120文字程度を推奨
+- 論理的なブロック間は空行を適切に入れる
+
+### 6.2. フロントエンド (Next.js / TypeScript / React)
+
+**TypeScriptの活用:**
+- 全ての変数、関数引数、戻り値には、可能な限り明示的に型を定義
+- `any` の使用は極力避け、不明な型には `unknown` を使用
+- `types/` ディレクトリで API レスポンスやデータの共通型を定義し、再利用
+- Zod を使用して、API リクエスト/レスポンスやフォームのランタイムバリデーションと型推論を行う
+
+**React コンポーネント:**
+- コンポーネントの分離: `components/common/`, `components/posts/`, `components/admin/` で責務が単一になるように分割
+- Props の型定義: コンポーネントの Props は TypeScript で厳密に型を定義
+- 状態管理: ローカルは `useState`。グローバルやサーバーキャッシュには SWR/React Query などのライブラリを検討し、`hooks/` や `providers/` で管理
+
+**Next.js App Router 固有の規約:**
+- サーバーコンポーネントとクライアントコンポーネントの使い分け: データを取得する部分や機密情報を扱う部分はサーバーコンポーネントを優先。インタラクティブな UI はクライアントコンポーネント (`'use client';`)
+- データフェッチ: Next.js が推奨するデータフェッチ方法 (fetch API の拡張など) を活用
+
+**Tailwind CSS:**
+- ユーティリティファースト: ほとんどのスタイルはユーティリティクラスを直接 HTML/JSX に適用
+- カスタム CSS の最小化: `global.css` や `tailwind.config.ts` を用いたカスタム CSS は、Tailwind で表現できない部分に限定
+
+**API 通信 (axios):**
+- `lib/api.ts` に Axios インスタンスを作成し、ベース URL や共通ヘッダーを設定
+- API エラーハンドリング (HTTP ステータスコードに基づく処理) を一元化
+- 認証が必要なリクエストには、適切にトークンを付与
+
+### 6.3. バックエンド (Laravel / PHP)
+
+**Laravel の機能活用:**
+- データベース操作には Eloquent ORM を積極的に利用
+- データベースのスキーマ変更はマイグレーションファイルで行う
+- フォームリクエスト (`app/Http/Requests/`) を使ってバリデーションを行い、責務を分離
+- API リソース (`app/Http/Resources/`) を使用して API レスポンスの構造を整形
+
+**PHP のコーディングスタイル:**
+- PSR-1、PSR-12 に準拠 (PHP-CS-Fixer や Laravel Pint で自動適用)
+- 型ヒンティングを積極的に使用し、引数や戻り値の型を明確にする
+
+**コントローラーとビジネスロジック:**
+- コントローラーはリクエストの受け取り、バリデーションの委譲、サービスの呼び出し、レスポンスの返却に専念
+- 複雑なビジネスロジックや複数のモデルにまたがる操作は、`app/Services/` に切り出してテストのしやすさを高める
+
+**認証（Sanctum）:**
+- SPA 認証フローに従い、フロントエンドとバックエンド間で XSRF-TOKEN の受け渡しやセッションクッキーの管理を正しく行う
+- API ルートには `auth:sanctum` ミドルウェアを適用し、認証済みユーザーのみがアクセスできるようにする
+
+## 7. 重要な設計方針
+
+### アーキテクチャ
+- **責務分離**: フロントエンドとバックエンドの責務を明確に分離
+- **API ファースト**: バックエンドは API として設計し、フロントエンドから REST API で通信
+- **型安全性**: TypeScript と Zod を活用したランタイムバリデーション
+
+### セキュリティ
+- Sanctum による SPA 認証
+- CSRF 保護
+- 入力値のバリデーション
+- SQL インジェクション対策 (Eloquent ORM 使用)
+
+### パフォーマンス
+- Next.js のサーバーコンポーネントを活用したパフォーマンス最適化
+- 適切なキャッシュ戦略
+- 画像最適化 (Next.js の Image コンポーネント)
+
+## 8. 環境設定とデプロイ
+
+### 8.1. 環境変数
+- フロントエンド: `.env.local` で API エンドポイントや認証設定を管理
+- バックエンド: `.env` でデータベース接続やアプリケーション設定を管理
+- 本番環境では適切な環境変数管理サービスを利用
+
+### 8.2. デプロイメント
+- フロントエンド: Vercel での自動デプロイ
+- バックエンド: Supabase でのデプロイ
+- CI/CD パイプラインの構築を推奨
+
+### 8.3. 監視とログ
+- エラーログの収集と監視
+- パフォーマンス監視
+- セキュリティ監視
+
+このプロジェクトルールに従って、一貫性のある高品質なコードを作成してください。
