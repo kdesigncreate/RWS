@@ -9,6 +9,34 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 if (typeof window !== 'undefined') {
   console.log('DEBUG: API_BASE_URL =', API_BASE_URL);
   console.log('DEBUG: NEXT_PUBLIC_API_BASE_URL =', process.env.NEXT_PUBLIC_API_BASE_URL);
+  
+  // グローバルfetchインターセプト（緊急対応）
+  const originalFetch = window.fetch;
+  window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
+    let url: string;
+    
+    if (typeof input === 'string') {
+      url = input;
+    } else if (input instanceof URL) {
+      url = input.href;
+    } else {
+      url = input.url;
+    }
+    
+    if (url.includes('ixrwzaasrxoshjnpxnme.supabase.co/rest/v1/login')) {
+      console.warn('GLOBAL INTERCEPTED: Redirecting Supabase login to our API');
+      url = '/api/login';
+      input = url;
+      
+      // Supabase API keyをヘッダーに追加
+      if (!init) init = {};
+      if (!init.headers) init.headers = {};
+      const headers = init.headers as Record<string, string>;
+      headers['apikey'] = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    }
+    
+    return originalFetch.call(this, input, init);
+  };
 }
 
 // API エンドポイント定義
@@ -82,6 +110,15 @@ api.interceptors.request.use(
     // デバッグ: 実際のリクエストURL確認
     console.log('DEBUG: Full request URL =', (config.baseURL || '') + (config.url || ''));
     console.log('DEBUG: Request config =', config);
+    
+    // 緊急対応: Supabase直接アクセスを我々のAPIに強制リダイレクト
+    if (config.url && config.url.includes('ixrwzaasrxoshjnpxnme.supabase.co')) {
+      console.warn('INTERCEPTED: Supabase direct access detected, redirecting to our API');
+      config.baseURL = '/api';
+      if (config.url.includes('/rest/v1/login')) {
+        config.url = '/login';
+      }
+    }
     
     return config;
   },
