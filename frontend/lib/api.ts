@@ -78,7 +78,7 @@ api.interceptors.request.use(
     }
     
     // デバッグ: 実際のリクエストURL確認
-    console.log('DEBUG: Full request URL =', config.baseURL + config.url);
+    console.log('DEBUG: Full request URL =', (config.baseURL || '') + (config.url || ''));
     console.log('DEBUG: Request config =', config);
     
     return config;
