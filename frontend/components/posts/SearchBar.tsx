@@ -158,7 +158,7 @@ export function SearchBar({
                   <label className="text-sm font-medium mb-2 block">ステータス</label>
                   <Select
                     value={searchParams.status}
-                    onValueChange={(value) => updateSearchParams({ status: value as any })}
+                    onValueChange={(value) => updateSearchParams({ status: value as 'published' | 'draft' | 'all' })}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue />
@@ -179,7 +179,7 @@ export function SearchBar({
                     <label className="text-sm font-medium mb-2 block">並び順</label>
                     <Select
                       value={searchParams.sort}
-                      onValueChange={(value) => updateSearchParams({ sort: value as any })}
+                      onValueChange={(value) => updateSearchParams({ sort: value as 'created_at' | 'published_at' | 'title' })}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
@@ -241,7 +241,7 @@ export function SearchBar({
         <div className="flex flex-wrap gap-2">
           {query && query.trim() !== '' && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              検索: "{query}"
+              検索: &quot;{query}&quot;
               <Button
                 variant="ghost"
                 size="sm"

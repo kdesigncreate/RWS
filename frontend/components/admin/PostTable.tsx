@@ -7,7 +7,7 @@ import {
   Edit, 
   Trash2, 
   MoreHorizontal, 
-  Calendar,
+  // Calendar, // 将来の拡張用にコメントアウト
   Clock,
   User,
   ArrowUpDown,
@@ -34,7 +34,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableRowSkeleton } from '@/components/common/LoadingSpinner';
 import type { 
-  Post, 
+  // Post, // 将来の拡張用にコメントアウト 
   PostTableProps, 
   PostTableActionsProps, 
   SortableField 
@@ -47,9 +47,9 @@ export function PostTable({
   loading = false,
   selectedPosts = [],
   onSelectionChange,
-  onEdit,
+  onEdit: _onEdit, // 将来の拡張用
   onDelete,
-  onView,
+  onView: _onView, // 将来の拡張用
   onSort,
   sortField,
   sortDirection,

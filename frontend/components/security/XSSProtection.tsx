@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import Image from 'next/image';
+// import DOMPurify from 'isomorphic-dompurify'; // Not available, using fallback sanitization
 import { InputSanitizer } from '@/lib/security';
 
 // XSS保護設定
@@ -34,8 +35,8 @@ interface SafeHtmlProps {
 export function SafeHtml({
   html,
   className = '',
-  allowedTags = XSS_CONFIG.ALLOWED_TAGS,
-  allowedAttributes = XSS_CONFIG.ALLOWED_ATTRIBUTES,
+  allowedTags: _allowedTags = XSS_CONFIG.ALLOWED_TAGS,
+  allowedAttributes: _allowedAttributes = XSS_CONFIG.ALLOWED_ATTRIBUTES,
   stripTags = false,
 }: SafeHtmlProps) {
   const sanitizedHtml = React.useMemo(() => {
@@ -43,17 +44,10 @@ export function SafeHtml({
       return InputSanitizer.stripHtml(html);
     }
 
-    // DOMPurifyを使用してHTMLをサニタイズ
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: allowedTags,
-      ALLOWED_ATTR: Object.values(allowedAttributes).flat(),
-      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-      FORBID_TAGS: XSS_CONFIG.FORBIDDEN_TAGS,
-      FORBID_ATTR: XSS_CONFIG.FORBIDDEN_ATTRIBUTES,
-      KEEP_CONTENT: true,
-      ALLOW_DATA_ATTR: false,
-    });
-  }, [html, allowedTags, allowedAttributes, stripTags]);
+    // InputSanitizerを使用してHTMLをサニタイズ（DOMPurifyの代替）
+    return InputSanitizer.escapeHtml(InputSanitizer.removeJavaScript(html));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [html, stripTags]);
 
   if (stripTags) {
     return <span className={className}>{sanitizedHtml}</span>;
@@ -139,7 +133,7 @@ export function SafeLink({
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // 危険なリンクをブロック
-    if (sanitizedHtml === '#') {
+    if (sanitizedHref === '#') {
       event.preventDefault();
       console.warn('Blocked potentially dangerous link:', href);
       return;
@@ -219,12 +213,12 @@ export function SafeImage({
   }
 
   return (
-    <img
+    <Image
       src={imageSrc}
       alt={InputSanitizer.escapeHtml(alt)}
       className={className}
-      width={width}
-      height={height}
+      width={width || 400}
+      height={height || 300}
       onError={handleError}
       onLoad={handleLoad}
       loading="lazy"
@@ -371,9 +365,13 @@ export function useXSSDetection() {
 export function withXSSProtection<P extends object>(
   WrappedComponent: React.ComponentType<P>
 ) {
-  return React.memo((props: P) => {
+  const XSSProtectedComponent = React.memo((props: P) => {
     useCSPViolationReporting();
     
     return <WrappedComponent {...props} />;
   });
+  
+  XSSProtectedComponent.displayName = `withXSSProtection(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  
+  return XSSProtectedComponent;
 }

@@ -23,7 +23,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (credentials: LoginCredentials) => {
     try {
       const response = await api.post('/login', credentials);
-      const { user: userData, token: authToken } = response.data;
+      const { user: userData, token: authToken } = response.data as { user: AuthUser; token: string; };
       
       setUser(userData);
       setToken(authToken);
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       
       const response = await api.get('/user');
-      const userData = response.data;
+      const userData = response.data as AuthUser;
       
       setUser(userData);
       setToken(storedToken);

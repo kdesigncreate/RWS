@@ -64,7 +64,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   };
 
   const isRetryable = ErrorUtils.isRetryable(appError);
-  const recoveryActions = ErrorUtils.getRecoveryActions(appError);
+  // const recoveryActions = ErrorUtils.getRecoveryActions(appError); // 将来の拡張用にコメントアウト
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -1,56 +1,100 @@
-# Backend (Laravel)
-backend/.env
-backend/.env.backup
-backend/.env.production
-backend/.env.local
-backend/.env.testing
-backend/node_modules/
-backend/public/hot
-backend/public/storage
-backend/storage/*.key
-backend/storage/app/public/*
-backend/storage/framework/cache/*
-backend/storage/framework/sessions/*
-backend/storage/framework/views/*
-backend/storage/logs/*
-backend/storage/debugbar/*
-backend/bootstrap/cache/*
-backend/vendor/
-backend/phpunit.xml
-backend/phpunit.xml.dist
-backend/.phpunit.result.cache
-backend/Homestead.json
-backend/Homestead.yaml
-backend/npm-debug.log
-backend/yarn-error.log
-backend/_ide_helper.php
-backend/_ide_helper_models.php
-backend/.phpstorm.meta.php
+# Dependencies
+node_modules/
+vendor/
 
-# Frontend (Next.js)
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/dist/
-frontend/build/
-frontend/.nuxt/
-frontend/.vscode/
-frontend/.DS_Store
-frontend/Thumbs.db
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/.pnpm-debug.log*
+# Production builds
+.next/
+dist/
+build/
 
-# General
-.DS_Store
-.vscode/
-.idea/
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.sqlite
+*.sqlite3
+database/database.sqlite
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+storage/logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+.nyc_output/
+*.lcov
+coverage-clover.xml
+coverage-html/
+
+# Test results
+test-results/
+playwright-report/
+.jest-cache/
+
+# Temporary files
+.tmp/
+.temp/
 *.tmp
 *.temp
+
+# Cache directories
+.cache/
+.parcel-cache/
+.nuxt/
+.vuepress/dist/
+
+# Laravel specific
+bootstrap/cache/
+storage/app/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/testing/
+storage/framework/views/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Docker
+docker-compose.override.yml
+
+# Large assets (use CDN instead)
+*.mov
+*.mp4
+*.avi
+public/images/IMG_*.jpeg
+
+# Supabase
+.supabase/

@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import type { ApiResponse, ApiError, ApiEndpoints } from '@/types/api';
+import type { ApiError, ApiEndpoints } from '@/types/api';
 import { AppError, ErrorUtils, ErrorType } from '@/lib/errors';
 
 // 環境変数から設定を取得
@@ -109,21 +109,31 @@ export const handleApiError = (error: unknown): ApiError => {
   if (error instanceof AppError) {
     return {
       message: error.userMessage,
-      errors: error.context?.errors,
+      errors: error.context?.errors as Record<string, string[]> | undefined,
       error: error.technicalMessage,
     };
   }
   
   if (axios.isAxiosError(error)) {
-    if (error.response?.data) {
-      return {
-        message: error.response.data.message || 'エラーが発生しました',
-        errors: error.response.data.errors,
-        error: error.response.data.error,
-      };
+    const data: unknown = error.response?.data;
+    let message: string | undefined;
+    let errors: Record<string, string[]> | undefined;
+    let err: string | undefined;
+    if (typeof data === 'object' && data !== null) {
+      if ('message' in data && typeof (data as { message?: unknown }).message === 'string') {
+        message = (data as { message: string }).message;
+      }
+      if ('errors' in data && typeof (data as { errors?: unknown }).errors === 'object') {
+        errors = (data as { errors: Record<string, string[]> }).errors;
+      }
+      if ('error' in data && typeof (data as { error?: unknown }).error === 'string') {
+        err = (data as { error: string }).error;
+      }
     }
     return {
-      message: error.message || 'ネットワークエラーが発生しました',
+      message: message || error.message || 'エラーが発生しました',
+      errors,
+      error: err,
     };
   }
   
@@ -133,12 +143,12 @@ export const handleApiError = (error: unknown): ApiError => {
 };
 
 // 再試行機能付きAPI呼び出しヘルパー
-export const apiCall = async <T = any>(
+export const apiCall = async <T = unknown>(
   endpoint: string,
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    data?: any;
-    params?: any;
+    data?: unknown;
+    params?: unknown;
     retry?: number;
     retryDelay?: number;
   } = {}
@@ -156,7 +166,7 @@ export const apiCall = async <T = any>(
         params: requestOptions.params,
       });
       
-      return response.data;
+      return response.data as T;
     } catch (error) {
       if (error instanceof AppError) {
         lastError = error;
@@ -183,28 +193,28 @@ export const apiCall = async <T = any>(
 };
 
 // 型安全な API 呼び出し関数（再試行オプション付き）
-export const get = <T = any>(
+export const get = <T = unknown>(
   endpoint: string, 
-  params?: any, 
+  params?: unknown, 
   options?: { retry?: number; retryDelay?: number }
 ): Promise<T> =>
   apiCall<T>(endpoint, { method: 'GET', params, ...options });
 
-export const post = <T = any>(
+export const post = <T = unknown>(
   endpoint: string, 
-  data?: any, 
+  data?: unknown, 
   options?: { retry?: number; retryDelay?: number }
 ): Promise<T> =>
   apiCall<T>(endpoint, { method: 'POST', data, ...options });
 
-export const put = <T = any>(
+export const put = <T = unknown>(
   endpoint: string, 
-  data?: any, 
+  data?: unknown, 
   options?: { retry?: number; retryDelay?: number }
 ): Promise<T> =>
   apiCall<T>(endpoint, { method: 'PUT', data, ...options });
 
-export const del = <T = any>(
+export const del = <T = unknown>(
   endpoint: string, 
   options?: { retry?: number; retryDelay?: number }
 ): Promise<T> =>

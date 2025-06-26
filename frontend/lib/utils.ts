@@ -186,7 +186,7 @@ export const validators = {
   /**
    * 空文字・null・undefinedの検証
    */
-  isEmpty: (value: any): boolean => {
+  isEmpty: (value: unknown): boolean => {
     if (value == null) return true;
     if (typeof value === 'string') return value.trim() === '';
     if (Array.isArray(value)) return value.length === 0;
@@ -220,7 +220,7 @@ export const storage = {
     
     try {
       const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : (defaultValue || null);
+      return item ? JSON.parse(item) as T : (defaultValue || null);
     } catch (error) {
       console.warn('LocalStorage get error:', error);
       return defaultValue || null;
@@ -257,22 +257,28 @@ export const storage = {
 /**
  * デバウンス関数
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
   func: T,
-  wait: number
+  wait: number,
+  immediate: boolean = false
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
+  let timeout: NodeJS.Timeout | undefined;
   
   return (...args: Parameters<T>) => {
+    const callNow = immediate && !timeout;
     clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    timeout = setTimeout(() => {
+      timeout = undefined;
+      if (!immediate) func(...args);
+    }, wait);
+    if (callNow) func(...args);
   };
 }
 
 /**
  * スロットル関数
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: never[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
@@ -329,3 +335,69 @@ export const env = {
   isClient: typeof window !== 'undefined',
   isServer: typeof window === 'undefined',
 };
+
+/**
+ * テスト用エクスポート関数 - simpleFormatDate
+ */
+export function simpleFormatDate(date: Date | string, format?: string): string {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    if (isNaN(dateObj.getTime())) {
+      return '日付不明';
+    }
+    
+    if (format === 'YYYY-MM-DD') {
+      return dateObj.toISOString().split('T')[0];
+    }
+    
+    return dateObj.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return '日付不明';
+  }
+}
+
+// テスト用エイリアス（テストファイルでのみ使用）
+export { simpleFormatDate as formatDateSimple };
+
+/**
+ * テスト用エクスポート関数 - truncateText
+ */
+export function truncateText(text: string | null | undefined, maxLength: number = 100): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  
+  // 単語境界で切り詰める
+  const truncated = text.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  
+  if (lastSpace > 0 && lastSpace > maxLength - 10) {
+    return text.slice(0, lastSpace) + '...';
+  }
+  
+  return text.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * テスト用エクスポート関数 - generateSlug
+ */
+export function generateSlug(text: string): string {
+  if (!text) return '';
+  
+  // 日本語の場合はそのまま返す
+  if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text)) {
+    return text.trim();
+  }
+  
+  // 英語の場合は小文字にして特殊文字を除去
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

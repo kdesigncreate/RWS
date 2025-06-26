@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge'; // 将来の拡張用にコメントアウト
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { Header } from '@/components/common/Header';
@@ -16,6 +16,10 @@ import type { Post } from '@/types/post';
 
 interface PostDetailPageProps {
   params: { id: string };
+}
+
+interface ApiResponse {
+  data: Post;
 }
 
 export default function PostDetailPage({ params }: PostDetailPageProps) {
@@ -31,11 +35,14 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         setLoading(true);
         setError(null);
         
-        const response = await api.get(`/posts/${postId}`);
+        const response = await api.get<ApiResponse>(`/posts/${postId}`);
         setPost(response.data.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('記事の取得に失敗しました:', err);
-        setError(err.response?.data?.message || '記事の取得に失敗しました');
+        const errorMessage = err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : '記事の取得に失敗しました';
+        setError(errorMessage || '記事の取得に失敗しました');
       } finally {
         setLoading(false);
       }
@@ -47,7 +54,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   }, [postId]);
 
   // 構造化データの生成
-  const structuredData = post ? generateStructuredData({
+  const structuredData: Record<string, unknown> | null = post ? generateStructuredData({
     type: 'Article',
     data: {
       title: post.title,

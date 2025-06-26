@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
+    use HasFactory;
+
     /**
      * 記事のステータス
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PUBLISHED = 'published';
 
     /**
@@ -41,22 +45,16 @@ class Post extends Model
 
     /**
      * 公開済み記事のみを取得するスコープ
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_PUBLISHED)
-                    ->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 
     /**
      * 下書き記事のみを取得するスコープ
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeDraft(Builder $query): Builder
     {
@@ -64,9 +62,18 @@ class Post extends Model
     }
 
     /**
+     * タイトルまたはコンテンツで記事を検索するスコープ
+     */
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function ($query) use ($search) {
+            $query->where('title', 'ILIKE', '%'.$search.'%')
+                ->orWhere('content', 'ILIKE', '%'.$search.'%');
+        });
+    }
+
+    /**
      * 記事の作成者とのリレーション
-     *
-     * @return BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -75,20 +82,16 @@ class Post extends Model
 
     /**
      * 記事が公開されているかどうかを判定
-     *
-     * @return bool
      */
     public function isPublished(): bool
     {
-        return $this->status === self::STATUS_PUBLISHED 
-            && $this->published_at !== null 
+        return $this->status === self::STATUS_PUBLISHED
+            && $this->published_at !== null
             && $this->published_at->isPast();
     }
 
     /**
      * 記事が下書きかどうかを判定
-     *
-     * @return bool
      */
     public function isDraft(): bool
     {
@@ -97,8 +100,6 @@ class Post extends Model
 
     /**
      * 記事を公開状態にする
-     *
-     * @return void
      */
     public function publish(): void
     {
@@ -110,8 +111,6 @@ class Post extends Model
 
     /**
      * 記事を下書き状態にする
-     *
-     * @return void
      */
     public function unpublish(): void
     {

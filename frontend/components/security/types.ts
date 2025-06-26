@@ -50,7 +50,7 @@ export interface SecurityEvent {
   type: SecurityEventType;
   severity: SecuritySeverity;
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: string;
   userAgent?: string;
   ipAddress?: string;
@@ -128,7 +128,7 @@ export interface User {
 export interface ValidationResult {
   isValid: boolean;
   errors: Record<string, string[]>;
-  sanitizedData?: any;
+  sanitizedData?: unknown;
 }
 
 export interface RateLimitInfo {
@@ -171,7 +171,7 @@ export interface SecurityAuditLog {
   ipAddress: string;
   userAgent: string;
   success: boolean;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -205,7 +205,7 @@ export type DeepPartial<T> = {
 
 export type SecurityConfigPartial = DeepPartial<SecurityConfig>;
 
-export type EventHandler<T = any> = (event: T) => void | Promise<void>;
+export type EventHandler<T = unknown> = (event: T) => void | Promise<void>;
 
 export type SecurityEventHandler = EventHandler<SecurityEvent>;
 
@@ -267,7 +267,7 @@ export class SecurityError extends Error {
     message: string,
     public code: string,
     public severity: SecuritySeverity = 'medium',
-    public context?: Record<string, any>
+    public context?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'SecurityError';
@@ -275,21 +275,21 @@ export class SecurityError extends Error {
 }
 
 export class AuthenticationError extends SecurityError {
-  constructor(message: string, context?: Record<string, any>) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, 'AUTH_ERROR', 'high', context);
     this.name = 'AuthenticationError';
   }
 }
 
 export class AuthorizationError extends SecurityError {
-  constructor(message: string, context?: Record<string, any>) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, 'AUTHZ_ERROR', 'high', context);
     this.name = 'AuthorizationError';
   }
 }
 
 export class RateLimitError extends SecurityError {
-  constructor(message: string, public retryAfter: number, context?: Record<string, any>) {
+  constructor(message: string, public retryAfter: number, context?: Record<string, unknown>) {
     super(message, 'RATE_LIMIT_ERROR', 'medium', context);
     this.name = 'RateLimitError';
   }
@@ -299,7 +299,7 @@ export class ValidationError extends SecurityError {
   constructor(
     message: string,
     public errors: Record<string, string[]>,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ) {
     super(message, 'VALIDATION_ERROR', 'low', context);
     this.name = 'ValidationError';
@@ -307,14 +307,14 @@ export class ValidationError extends SecurityError {
 }
 
 export class XSSError extends SecurityError {
-  constructor(message: string, public input: string, context?: Record<string, any>) {
+  constructor(message: string, public input: string, context?: Record<string, unknown>) {
     super(message, 'XSS_ERROR', 'high', context);
     this.name = 'XSSError';
   }
 }
 
 export class CSRFError extends SecurityError {
-  constructor(message: string, context?: Record<string, any>) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, 'CSRF_ERROR', 'high', context);
     this.name = 'CSRFError';
   }

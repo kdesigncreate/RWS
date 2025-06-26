@@ -20,7 +20,7 @@ interface CacheConfig {
 }
 
 // キャッシュマネージャークラス
-export class CacheManager<T = any> {
+export class CacheManager<T = unknown> {
   private cache = new Map<string, CacheEntry<T>>();
   private config: CacheConfig;
 
@@ -214,7 +214,7 @@ export class CacheManager<T = any> {
 
     try {
       const serialized = storage.getItem(this.getStorageKey(key));
-      return serialized ? JSON.parse(serialized) : null;
+      return serialized ? (JSON.parse(serialized) as CacheEntry<T>) : null;
     } catch (error) {
       console.warn('Failed to load from storage:', error);
       return null;
@@ -270,7 +270,7 @@ export class CacheManager<T = any> {
         if (key.startsWith(prefix || '')) {
           const serialized = storage.getItem(key);
           if (serialized) {
-            const entry: CacheEntry<T> = JSON.parse(serialized);
+            const entry = JSON.parse(serialized) as CacheEntry<T>;
             if (entry.tags?.includes(tag)) {
               storage.removeItem(key);
             }
@@ -297,7 +297,7 @@ export class CacheManager<T = any> {
         if (key.startsWith(prefix || '')) {
           const serialized = storage.getItem(key);
           if (serialized) {
-            const entry: CacheEntry<T> = JSON.parse(serialized);
+            const entry = JSON.parse(serialized) as CacheEntry<T>;
             if (now - entry.timestamp > entry.ttl) {
               storage.removeItem(key);
             }
@@ -367,10 +367,10 @@ export async function cachedApiCall<T>(
   apiCall: () => Promise<T>,
   ttl?: number,
   tags?: string[]
-): Promise<T> {
+): Promise<T | null> {
   // キャッシュから取得を試行
-  const cached = apiCache.get(key);
-  if (cached) {
+  const cached = apiCache.get(key) as T | null;
+  if (cached !== null) {
     return cached;
   }
 
@@ -404,7 +404,13 @@ export function useCachedData<T>(
       setError(null);
       
       const result = await cachedApiCall(key, fetcher, options.ttl, options.tags);
-      setData(result);
+      if (result !== null) {
+        setData(result);
+      } else {
+        // キャッシュがnullの場合はAPIを直接呼び出し
+        const freshData = await fetcher();
+        setData(freshData);
+      }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
@@ -460,7 +466,7 @@ export const swCache = {
     }
   },
 
-  async preloadData(key: string, data: any): Promise<void> {
+  async preloadData(key: string, data: unknown): Promise<void> {
     if ('serviceWorker' in navigator && 'caches' in window) {
       try {
         const cache = await caches.open('data-v1');

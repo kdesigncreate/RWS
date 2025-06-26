@@ -1,0 +1,378 @@
+# OWASP ZAP Baseline Security Test Configuration
+# This configuration file defines security testing rules for the RWS application
+
+env:
+  contexts:
+    - name: "RWS Application"
+      urls:
+        - "http://localhost:3000"
+        - "http://localhost:8000/api"
+      includePaths:
+        - "http://localhost:3000/*"
+        - "http://localhost:8000/api/*"
+      excludePaths:
+        - "http://localhost:3000/_next/*"
+        - "http://localhost:3000/static/*"
+        - "http://localhost:8000/storage/*"
+      authentication:
+        method: "form"
+        loginUrl: "http://localhost:8000/api/login"
+        loginRequestData: "email=test@example.com&password=password"
+        usernameParameter: "email"
+        passwordParameter: "password"
+      sessionManagement:
+        method: "cookie"
+        sessionTokens:
+          - "laravel_session"
+          - "XSRF-TOKEN"
+
+  globalExclusions:
+    - "*.css"
+    - "*.js"
+    - "*.gif"
+    - "*.jpeg"
+    - "*.jpg"
+    - "*.png"
+    - "*.ico"
+    - "*.woff"
+    - "*.woff2"
+    - "*.ttf"
+    - "*.eot"
+    - "*.svg"
+
+rules:
+  # Enable passive scan rules
+  - id: 2
+    name: "Private IP Disclosure"
+    threshold: "off"
+  
+  - id: 10015
+    name: "Incomplete or No Cache-control and Pragma HTTP Header Set"
+    threshold: "low"
+    
+  - id: 10016
+    name: "Web Browser XSS Protection Not Enabled"
+    threshold: "low"
+    
+  - id: 10017
+    name: "Cross-Domain JavaScript Source File Inclusion"
+    threshold: "medium"
+    
+  - id: 10019
+    name: "Content-Type Header Missing"
+    threshold: "low"
+    
+  - id: 10020
+    name: "Anti-clickjacking Header"
+    threshold: "medium"
+    
+  - id: 10021
+    name: "X-Content-Type-Options Header Missing"
+    threshold: "low"
+    
+  - id: 10023
+    name: "Information Disclosure - Debug Error Messages"
+    threshold: "low"
+    
+  - id: 10024
+    name: "Information Disclosure - Sensitive Information in URL"
+    threshold: "medium"
+    
+  - id: 10025
+    name: "Information Disclosure - Sensitive Information in HTTP Referrer Header"
+    threshold: "medium"
+    
+  - id: 10026
+    name: "HTTP Parameter Override"
+    threshold: "medium"
+    
+  - id: 10027
+    name: "Information Disclosure - Suspicious Comments"
+    threshold: "low"
+    
+  - id: 10028
+    name: "Open Redirect"
+    threshold: "medium"
+    
+  - id: 10029
+    name: "Cookie Poisoning"
+    threshold: "medium"
+    
+  - id: 10030
+    name: "User Controllable Charset"
+    threshold: "medium"
+    
+  - id: 10031
+    name: "User Controllable HTML Element Attribute (Potential XSS)"
+    threshold: "medium"
+    
+  - id: 10032
+    name: "Viewstate"
+    threshold: "medium"
+    
+  - id: 10033
+    name: "Directory Browsing"
+    threshold: "medium"
+    
+  - id: 10034
+    name: "Heartbleed OpenSSL Vulnerability (Indicative)"
+    threshold: "high"
+    
+  - id: 10035
+    name: "Strict-Transport-Security Header"
+    threshold: "low"
+    
+  - id: 10036
+    name: "HTTP Server Response Header"
+    threshold: "low"
+    
+  - id: 10037
+    name: "Server Leaks Information via 'X-Powered-By' HTTP Response Header Field(s)"
+    threshold: "low"
+    
+  - id: 10038
+    name: "Content Security Policy (CSP) Header Not Set"
+    threshold: "medium"
+    
+  - id: 10039
+    name: "X-Backend-Server Header Information Leak"
+    threshold: "low"
+    
+  - id: 10040
+    name: "Secure Pages Include Mixed Content"
+    threshold: "medium"
+    
+  - id: 10041
+    name: "HTTP to HTTPS Insecure Transition in Form Post"
+    threshold: "medium"
+    
+  - id: 10042
+    name: "HTTPS to HTTP Insecure Transition in Form Post"
+    threshold: "medium"
+    
+  - id: 10043
+    name: "User Controllable JavaScript Event (XSS)"
+    threshold: "medium"
+    
+  - id: 10044
+    name: "Big Redirect Detected (Potential Sensitive Information Leak)"
+    threshold: "medium"
+    
+  - id: 10045
+    name: "Source Code Disclosure - /WEB-INF folder"
+    threshold: "high"
+    
+  - id: 10046
+    name: "Source Code Disclosure - Git"
+    threshold: "medium"
+    
+  - id: 10047
+    name: "Source Code Disclosure - SVN"
+    threshold: "medium"
+    
+  - id: 10048
+    name: "Remote Code Execution - Shell Shock"
+    threshold: "high"
+    
+  - id: 10049
+    name: "Content Cacheability"
+    threshold: "low"
+    
+  - id: 10050
+    name: "Retrieved from Cache"
+    threshold: "low"
+    
+  - id: 10051
+    name: "Relative Path Confusion"
+    threshold: "medium"
+    
+  - id: 10052
+    name: "X-ChromeLogger-Data (XCOLD) Header Information Leak"
+    threshold: "medium"
+    
+  - id: 10053
+    name: "Apache Range Header DoS (CVE-2011-3192)"
+    threshold: "medium"
+    
+  - id: 10054
+    name: "Cookie Without SameSite Attribute"
+    threshold: "low"
+    
+  - id: 10055
+    name: "CSP"
+    threshold: "medium"
+    
+  - id: 10056
+    name: "X-Debug-Token Information Leak"
+    threshold: "medium"
+    
+  - id: 10057
+    name: "Username Hash Found"
+    threshold: "low"
+    
+  - id: 10061
+    name: "X-AspNet-Version Response Header"
+    threshold: "low"
+    
+  - id: 10062
+    name: "PII Disclosure"
+    threshold: "high"
+    
+  - id: 10063
+    name: "Feature Policy Header Not Set"
+    threshold: "low"
+    
+  - id: 10094
+    name: "Base64 Disclosure"
+    threshold: "medium"
+    
+  - id: 10095
+    name: "Backup File Disclosure"
+    threshold: "medium"
+    
+  - id: 10096
+    name: "Timestamp Disclosure"
+    threshold: "low"
+    
+  - id: 10097
+    name: "Hash Disclosure"
+    threshold: "low"
+    
+  - id: 10098
+    name: "Cross-Domain Misconfiguration"
+    threshold: "medium"
+    
+  - id: 10104
+    name: "User Agent Fuzzer"
+    threshold: "medium"
+    
+  - id: 10105
+    name: "Weak Authentication Method"
+    threshold: "medium"
+    
+  - id: 10106
+    name: "HTTP Only Site"
+    threshold: "medium"
+    
+  - id: 10107
+    name: "Httpoxy - Proxy Header Misuse"
+    threshold: "medium"
+    
+  - id: 10108
+    name: "Reverse Tabnabbing"
+    threshold: "medium"
+    
+  - id: 10109
+    name: "Modern Web Application"
+    threshold: "low"
+    
+  - id: 10110
+    name: "Dangerous JS Functions"
+    threshold: "low"
+    
+  - id: 10111
+    name: "Authentication Request Identified"
+    threshold: "low"
+
+# Active scan rules (more intensive)
+activeScan:
+  - id: 40003
+    name: "CRLF Injection"
+    threshold: "medium"
+    
+  - id: 40008
+    name: "Parameter Tampering"
+    threshold: "medium"
+    
+  - id: 40009
+    name: "Server Side Include"
+    threshold: "medium"
+    
+  - id: 40012
+    name: "Cross Site Scripting (Reflected)"
+    threshold: "medium"
+    
+  - id: 40013
+    name: "Session Fixation"
+    threshold: "medium"
+    
+  - id: 40014
+    name: "Cross Site Scripting (Persistent)"
+    threshold: "medium"
+    
+  - id: 40016
+    name: "Cross Site Scripting (Persistent) - Prime"
+    threshold: "medium"
+    
+  - id: 40017
+    name: "Cross Site Scripting (Persistent) - Spider"
+    threshold: "medium"
+    
+  - id: 40018
+    name: "SQL Injection"
+    threshold: "medium"
+    
+  - id: 40019
+    name: "SQL Injection - MySQL"
+    threshold: "medium"
+    
+  - id: 40020
+    name: "SQL Injection - Hypersonic SQL"
+    threshold: "medium"
+    
+  - id: 40021
+    name: "SQL Injection - Oracle"
+    threshold: "medium"
+    
+  - id: 40022
+    name: "SQL Injection - PostgreSQL"
+    threshold: "medium"
+    
+  - id: 40023
+    name: "Possible Username Enumeration"
+    threshold: "medium"
+    
+  - id: 40024
+    name: "SQL Injection - SQLite"
+    threshold: "medium"
+    
+  - id: 40025
+    name: "Proxy Disclosure"
+    threshold: "medium"
+    
+  - id: 40026
+    name: "Cross Site Scripting (DOM Based)"
+    threshold: "medium"
+    
+  - id: 40027
+    name: "SQL Injection - MsSQL"
+    threshold: "medium"
+    
+  - id: 40028
+    name: "LDAP Injection"
+    threshold: "medium"
+    
+  - id: 40029
+    name: "XPATH Injection"
+    threshold: "medium"
+
+# Reporting configuration
+reporting:
+  format: 
+    - "html"
+    - "json"
+    - "xml"
+  outputDir: "./zap-reports"
+  
+# Performance settings
+performance:
+  maxRuleDurationInMins: 0
+  maxScanDurationInMins: 60
+  threadPerHost: 5
+
+# Custom headers for testing
+headers:
+  - name: "X-Forwarded-For"
+    value: "127.0.0.1"
+  - name: "User-Agent"
+    value: "OWASP ZAP Security Scanner"

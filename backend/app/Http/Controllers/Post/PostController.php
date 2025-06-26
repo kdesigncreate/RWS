@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Post;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
 use App\Http\Requests\Post\CreatePostRequest;
-use App\Http\Requests\Post\UpdatePostRequest;
 use App\Http\Requests\Post\SearchPostRequest;
+use App\Http\Requests\Post\UpdatePostRequest;
 use App\Http\Resources\PostResource;
-use Illuminate\Http\Request;
+use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -22,11 +21,11 @@ class PostController extends Controller
         $query = Post::published()->with('user')->latest('published_at');
 
         // 検索機能
-        if($search = $request->input('search')){
-            $query->where(function($query) use ($search){
-                $query->where('title','like','%'.$search.'%')   
-                ->orWhere('content','like','%'.$search.'%')
-                ->orWhere('excerpt','like','%'.$search.'%');
+        if ($search = $request->input('search')) {
+            $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('content', 'like', '%'.$search.'%')
+                    ->orWhere('excerpt', 'like', '%'.$search.'%');
             });
         }
 
@@ -47,7 +46,7 @@ class PostController extends Controller
     {
         $post = Post::published()->with('user')->find($id);
 
-        if(!$post){
+        if (! $post) {
             return response()->json([
                 'message' => '記事が見つかりません',
             ], 404);
@@ -64,20 +63,20 @@ class PostController extends Controller
         $query = Post::with('user')->latest();
 
         // ステータスフィルター
-        if($status = $request->input('status')){
-            if($status === 'published'){
+        if ($status = $request->input('status')) {
+            if ($status === 'published') {
                 $query->published();
-            }elseif($status === 'draft'){
+            } elseif ($status === 'draft') {
                 $query->draft();
             }
         }
 
         // 検索機能
-        if($search = $request->input('search')){
-            $query->where(function($query) use ($search){
-                $query->where('title','like','%'.$search.'%')
-                ->orWhere('content','like','%'.$search.'%')
-                ->orWhere('excerpt','like','%'.$search.'%');
+        if ($search = $request->input('search')) {
+            $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('content', 'like', '%'.$search.'%')
+                    ->orWhere('excerpt', 'like', '%'.$search.'%');
             });
         }
 
@@ -98,7 +97,7 @@ class PostController extends Controller
     {
         $post = Post::with('user')->find($id);
 
-        if(!$post){
+        if (! $post) {
             return response()->json([
                 'message' => '記事が見つかりません',
             ], 404);
@@ -112,7 +111,7 @@ class PostController extends Controller
      */
     public function store(CreatePostRequest $request): PostResource
     {
-        try{
+        try {
             $post = Post::create([
                 'title' => $request->title,
                 'content' => $request->content,
@@ -123,7 +122,7 @@ class PostController extends Controller
             ]);
 
             return new PostResource($post->load('user'));
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => '記事の作成に失敗しました',
                 'error' => $e->getMessage(),
@@ -138,27 +137,30 @@ class PostController extends Controller
     {
         $post = Post::find($id);
 
-        if (!$post) {
+        if (! $post) {
             return response()->json([
-                'message' => 'Record not found.'
+                'message' => '記事が見つかりません',
             ], 404);
         }
 
+        // バリデーションはここで実行される
+        $validated = $request->validated();
+
         try {
             $updateData = [
-                'title' => $request->title,
-                'content' => $request->content,
-                'excerpt' => $request->excerpt,
-                'status' => $request->status,
+                'title' => $validated['title'],
+                'content' => $validated['content'],
+                'excerpt' => $validated['excerpt'] ?? null,
+                'status' => $validated['status'],
             ];
 
             // ステータスが公開に変更された場合
-            if ($request->status === Post::STATUS_PUBLISHED && $post->status !== Post::STATUS_PUBLISHED) {
-                $updateData['published_at'] = $request->published_at ?? now();
+            if ($validated['status'] === Post::STATUS_PUBLISHED && $post->status !== Post::STATUS_PUBLISHED) {
+                $updateData['published_at'] = $validated['published_at'] ?? now();
             }
 
             // ステータスが下書きに変更された場合
-            if ($request->status === Post::STATUS_DRAFT) {
+            if ($validated['status'] === Post::STATUS_DRAFT) {
                 $updateData['published_at'] = null;
             }
 
@@ -168,7 +170,7 @@ class PostController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update post.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -180,9 +182,9 @@ class PostController extends Controller
     {
         $post = Post::find($id);
 
-        if (!$post) {
+        if (! $post) {
             return response()->json([
-                'message' => 'Record not found.'
+                'message' => '記事が見つかりません',
             ], 404);
         }
 
@@ -190,12 +192,12 @@ class PostController extends Controller
             $post->delete();
 
             return response()->json([
-                'message' => 'Post deleted successfully.'
+                'message' => 'Post deleted successfully.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to delete post.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

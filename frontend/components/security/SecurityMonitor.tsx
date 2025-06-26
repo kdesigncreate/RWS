@@ -2,14 +2,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { SecurityLogger } from '@/lib/security';
-import { securityApi } from '@/lib/api/endpoints';
+import { securityApi, type CSPViolation, type XSSAttempt } from '@/lib/api/endpoints';
 
 interface SecurityEvent {
   id: string;
   type: 'rate_limit' | 'xss_attempt' | 'csp_violation' | 'auth_failure' | 'suspicious_activity';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: string;
   userAgent?: string;
   ipAddress?: string;
@@ -105,9 +105,29 @@ export function SecurityMonitorProvider({
   const reportToServer = async (event: SecurityEvent) => {
     try {
       if (event.type === 'csp_violation') {
-        await securityApi.reportCSPViolation(event);
+        // SecurityEventからCSPViolationに変換
+        const cspViolation: CSPViolation = {
+          documentUri: event.details.documentUri as string,
+          referrer: event.details.referrer as string,
+          blockedUri: event.details.blockedUri as string,
+          violatedDirective: event.details.violatedDirective as string,
+          originalPolicy: event.details.originalPolicy as string,
+          sourceFile: event.details.sourceFile as string,
+          lineNumber: event.details.lineNumber as number,
+          columnNumber: event.details.columnNumber as number,
+          statusCode: event.details.statusCode as number,
+        };
+        await securityApi.reportCSPViolation(cspViolation);
       } else if (event.type === 'xss_attempt') {
-        await securityApi.reportXSSAttempt(event);
+        // SecurityEventからXSSAttemptに変換
+        const xssAttempt: XSSAttempt = {
+          url: event.details.url as string,
+          payload: event.details.payload as string,
+          userAgent: event.userAgent,
+          ipAddress: event.ipAddress,
+          timestamp: event.timestamp,
+        };
+        await securityApi.reportXSSAttempt(xssAttempt);
       }
     } catch (error) {
       console.error('Failed to report to server:', error);

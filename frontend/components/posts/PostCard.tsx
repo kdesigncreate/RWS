@@ -40,7 +40,7 @@ export function PostCard({
   className,
 }: PostCardProps) {
   const isPublished = post.is_published;
-  const isDraft = post.is_draft;
+  // const isDraft = post.is_draft; // 将来の拡張用にコメントアウト
 
   // コンパクト表示
   if (variant === 'compact') {

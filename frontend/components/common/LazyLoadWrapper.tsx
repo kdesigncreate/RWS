@@ -1,8 +1,9 @@
 'use client';
 
-import React, { Suspense, lazy, ComponentType } from 'react';
+import React, { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SectionErrorBoundary } from '@/components/common/ErrorBoundary';
+import Image from 'next/image';
 
 // 汎用的なLazy Loading ラッパー
 interface LazyLoadWrapperProps {
@@ -14,10 +15,10 @@ interface LazyLoadWrapperProps {
 export function LazyLoadWrapper({ 
   children, 
   fallback = <LoadingSpinner />,
-  errorFallback 
+  errorFallback: _errorFallback 
 }: LazyLoadWrapperProps) {
   return (
-    <SectionErrorBoundary fallback={errorFallback}>
+    <SectionErrorBoundary>
       <Suspense fallback={fallback}>
         {children}
       </Suspense>
@@ -25,35 +26,38 @@ export function LazyLoadWrapper({
   );
 }
 
-// コンポーネント用のLazy Loading ヘルパー
-export function createLazyComponent<T extends ComponentType<any>>(
+// コンポーネント用のLazy Loading ヘルパー（将来の拡張用に保持）
+/*
+export function createLazyComponent<T extends ComponentType<Record<string, unknown>>>(
   importFunc: () => Promise<{ default: T }>,
   fallback?: React.ReactNode
 ) {
   const LazyComponent = lazy(importFunc);
   
-  return function LazyWrappedComponent(props: React.ComponentProps<T>) {
-    return (
-      <LazyLoadWrapper fallback={fallback}>
-        <LazyComponent {...props} />
-      </LazyLoadWrapper>
-    );
-  };
+  const LazyWrappedComponent: React.FC<React.ComponentProps<T>> = (props) => (
+    <LazyLoadWrapper fallback={fallback}>
+      <LazyComponent {...(props as React.ComponentProps<T>)} />
+    </LazyLoadWrapper>
+  );
+
+  const componentRef = LazyComponent as unknown as { displayName?: string; name?: string };
+  LazyWrappedComponent.displayName = `LazyWrapped(${componentRef.displayName || componentRef.name || 'Component'})`;
+  
+  return LazyWrappedComponent;
 }
+*/
 
 // セクション用のLazy Loading（視覚的に重要でない部分用）
 interface LazySectionProps {
   children: React.ReactNode;
   height?: number | string;
   className?: string;
-  placeholder?: React.ReactNode;
 }
 
 export function LazySection({ 
   children, 
   height = 200, 
-  className = '',
-  placeholder 
+  className = ''
 }: LazySectionProps) {
   const defaultPlaceholder = (
     <div 
@@ -65,7 +69,7 @@ export function LazySection({
   );
 
   return (
-    <LazyLoadWrapper fallback={placeholder || defaultPlaceholder}>
+    <LazyLoadWrapper fallback={defaultPlaceholder}>
       {children}
     </LazyLoadWrapper>
   );
@@ -131,7 +135,7 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export function LazyImage({
   src,
   alt,
-  placeholder = '/images/placeholder.jpg',
+  placeholder: _placeholder = '/images/placeholder.jpg',
   blurDataURL,
   className = '',
   onLoad,
@@ -141,7 +145,7 @@ export function LazyImage({
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
-  const imgRef = React.useRef<HTMLImageElement>(null);
+  const imgRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const observer = new IntersectionObserver(
@@ -171,15 +175,22 @@ export function LazyImage({
     onError?.();
   };
 
+  // width/heightはImageに渡さない（Next.js Imageは自動でfillを使用）
+  const { width, height, ...rest } = props;
+  // widthとheightは除外（Next.js Imageはfillを使用）
+  void width;
+  void height;
+
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {/* プレースホルダー */}
       {!isLoaded && !hasError && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
           {blurDataURL ? (
-            <img
+            <Image
               src={blurDataURL}
               alt=""
+              fill
               className="w-full h-full object-cover filter blur-sm scale-110"
             />
           ) : (
@@ -199,15 +210,16 @@ export function LazyImage({
 
       {/* 実際の画像 */}
       {isVisible && (
-        <img
+        <Image
           src={src}
           alt={alt}
           onLoad={handleLoad}
           onError={handleError}
+          fill
           className={`transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           } ${className}`}
-          {...props}
+          {...rest}
         />
       )}
     </div>
@@ -262,7 +274,8 @@ export function LazyDataLoader<T>({
     return () => {
       isCancelled = true;
     };
-  }, dependencies);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadData, ...dependencies]);
 
   if (loading) return <>{fallback}</>;
   if (error) return <>{errorFallback ? errorFallback(error) : <div>エラーが発生しました</div>}</>;

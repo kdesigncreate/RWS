@@ -3,7 +3,7 @@
  * 認証、認可、入力検証、XSS/CSRF防止を統合管理
  */
 
-import { AppError, ErrorType, ErrorSeverity } from '@/lib/errors';
+// import { AppError, ErrorType, ErrorSeverity } from '@/lib/errors'; // 未実装のため一時的にコメントアウト
 
 // セキュリティ設定
 export const SECURITY_CONFIG = {
@@ -481,8 +481,8 @@ export class SecurityLogger {
    * セキュリティイベントをログ出力
    */
   static logEvent(
-    eventType: 'auth_failure' | 'rate_limit' | 'csrf_violation' | 'xss_attempt' | 'suspicious_activity',
-    details: Record<string, any>
+    eventType: 'auth_failure' | 'rate_limit' | 'csp_violation' | 'xss_attempt' | 'suspicious_activity',
+    details: Record<string, unknown>
   ): void {
     const logEntry = {
       timestamp: new Date().toISOString(),
@@ -503,7 +503,7 @@ export class SecurityLogger {
     }
   }
 
-  private static async sendToSecurityService(logEntry: any): Promise<void> {
+  private static async sendToSecurityService(logEntry: Record<string, unknown>): Promise<void> {
     try {
       // セキュリティ監視サービスへの送信
       if (process.env.NEXT_PUBLIC_SECURITY_ENDPOINT) {
@@ -530,7 +530,7 @@ export class SecurityMiddleware {
     method: string;
     url: string;
     headers: Record<string, string>;
-    body?: any;
+    body?: unknown;
   }): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 

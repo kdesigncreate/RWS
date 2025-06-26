@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { PostForm } from '@/components/admin/PostForm';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+// import { LoadingSpinner } from '@/components/common/LoadingSpinner'; // 将来の拡張用にコメントアウト
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { usePosts } from '@/hooks/usePosts';
 import { 

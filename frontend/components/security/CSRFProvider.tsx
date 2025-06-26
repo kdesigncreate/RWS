@@ -66,7 +66,7 @@ export function CSRFProvider({ children }: CSRFProviderProps) {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [token]);
 
   const contextValue: CSRFContextType = {
     token,
@@ -90,7 +90,7 @@ export function useCSRF(): CSRFContextType {
 }
 
 // CSRFトークンを自動的に含むフォームコンポーネント
-interface SecureFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
+interface SecureFormProps extends Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit'> {
   children: React.ReactNode;
   onSubmit: (event: React.FormEvent<HTMLFormElement>, csrfToken: string) => void;
 }

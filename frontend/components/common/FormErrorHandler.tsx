@@ -58,7 +58,15 @@ export function FormErrorSummary({
                       {getFieldDisplayName(fieldName)}
                     </Badge>
                   )}
-                  <span>{error?.message}</span>
+                  <span>
+                    {(() => {
+                      if (typeof error === 'string') return error;
+                      if (error && typeof error === 'object' && 'message' in error) {
+                        return (error as FieldError).message;
+                      }
+                      return 'エラーが発生しました';
+                    })()}
+                  </span>
                 </div>
               </li>
             ))}
@@ -282,19 +290,19 @@ export function FormSubmissionStatus({
 // リアルタイムバリデーション表示コンポーネント
 interface RealTimeValidationProps {
   field: string;
-  value: any;
+  value: unknown;
   rules: ValidationRule[];
   className?: string;
 }
 
 interface ValidationRule {
-  test: (value: any) => boolean;
+  test: (value: unknown) => boolean;
   message: string;
   type?: 'error' | 'warning' | 'info';
 }
 
 export function RealTimeValidation({
-  field,
+  field: _field,
   value,
   rules,
   className = ''
@@ -361,23 +369,23 @@ function getErrorTypeDisplayName(errorType: ErrorType): string {
 // パスワード強度チェック用のバリデーションルール
 export const passwordStrengthRules: ValidationRule[] = [
   {
-    test: (value: string) => value && value.length >= 8,
+    test: (value: unknown) => Boolean(typeof value === 'string' && value.length >= 8),
     message: '8文字以上',
   },
   {
-    test: (value: string) => /[A-Z]/.test(value),
+    test: (value: unknown) => typeof value === 'string' && /[A-Z]/.test(value),
     message: '大文字を含む',
   },
   {
-    test: (value: string) => /[a-z]/.test(value),
+    test: (value: unknown) => typeof value === 'string' && /[a-z]/.test(value),
     message: '小文字を含む',
   },
   {
-    test: (value: string) => /[0-9]/.test(value),
+    test: (value: unknown) => typeof value === 'string' && /[0-9]/.test(value),
     message: '数字を含む',
   },
   {
-    test: (value: string) => /[!@#$%^&*(),.?":{}|<>]/.test(value),
+    test: (value: unknown) => typeof value === 'string' && /[!@#$%^&*(),.?":{}|<>]/.test(value),
     message: '特殊文字を含む',
   },
 ];
@@ -385,7 +393,7 @@ export const passwordStrengthRules: ValidationRule[] = [
 // メールアドレス形式チェック用のバリデーションルール
 export const emailValidationRules: ValidationRule[] = [
   {
-    test: (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+    test: (value: unknown) => typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
     message: '有効なメールアドレス形式',
   },
 ];

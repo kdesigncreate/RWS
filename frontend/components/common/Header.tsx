@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -54,13 +55,16 @@ export function Header({ navigationItems = [] }: HeaderProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1>
-            <a href="/" className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider">
-              <img 
+            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider">
+              <Image 
                 src="/images/logo_black_removebg.png" 
                 alt="R.W.S ドリブル塾" 
-                className="h-8 sm:h-10 lg:h-12"
+                width={192}
+                height={48}
+                className="h-8 sm:h-10 lg:h-12 w-auto"
+                priority
               />
-            </a>
+            </Link>
           </h1>
           
           {/* デスクトップナビゲーション */}

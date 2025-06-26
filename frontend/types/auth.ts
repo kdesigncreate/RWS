@@ -62,12 +62,16 @@ export interface LoginFormData {
     remember: boolean;
   }
 
-  export interface AuthContextType {
-    user: AuthUser | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    login: (credentials: LoginCredentials) => Promise<void>;
-    logout: () => Promise<void>;
-    checkAuth: () => Promise<void>;
-  }
+// 追加の認証関連型
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
+export interface ExtendedAuthContextType extends AuthContextType {
+  updateProfile: (data: Partial<AuthUser>) => Promise<void>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
+}

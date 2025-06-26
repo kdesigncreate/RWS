@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 
 class UserSeeder extends Seeder
 {
@@ -16,6 +16,7 @@ class UserSeeder extends Seeder
         // 管理者ユーザーが既に存在する場合はスキップ
         if (User::where('email', 'admin@example.com')->exists()) {
             $this->command->info('Admin user already exists.');
+
             return;
         }
 

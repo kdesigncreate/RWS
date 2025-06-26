@@ -138,11 +138,39 @@ export function generatePostMetadata({
   });
 }
 
+// 構造化データの型定義
+interface OrganizationData {
+  sameAs?: string[];
+  address?: {
+    '@type': string;
+    addressCountry?: string;
+    addressRegion?: string;
+  };
+  areaServed?: string;
+  serviceType?: string;
+}
+
+interface ArticleData {
+  title: string;
+  description: string;
+  author?: string;
+  publishedTime?: string | null;
+  modifiedTime?: string;
+  url: string;
+  image?: string;
+}
+
+interface WebSiteData {
+  [key: string]: unknown;
+}
+
+type StructuredDataConfig = 
+  | { type: 'Organization'; data: OrganizationData }
+  | { type: 'Article'; data: ArticleData }
+  | { type: 'WebSite'; data: WebSiteData };
+
 // 構造化データの生成
-export function generateStructuredData(config: {
-  type: 'Organization' | 'Article' | 'WebSite';
-  data: any;
-}) {
+export function generateStructuredData(config: StructuredDataConfig) {
   const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
   
   switch (config.type) {
@@ -167,7 +195,6 @@ export function generateStructuredData(config: {
         '@context': 'https://schema.org',
         '@type': 'Article',
         headline: config.data.title,
-        description: config.data.description,
         author: {
           '@type': 'Person',
           name: config.data.author || DEFAULT_METADATA.siteName,

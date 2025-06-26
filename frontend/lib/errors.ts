@@ -31,7 +31,7 @@ export class AppError extends Error {
   public readonly userMessage: string;
   public readonly technicalMessage: string;
   public readonly timestamp: Date;
-  public readonly context?: Record<string, any>;
+  public readonly context?: Record<string, unknown>;
 
   constructor({
     type,
@@ -46,7 +46,7 @@ export class AppError extends Error {
     statusCode?: number;
     userMessage: string;
     technicalMessage: string;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
   }) {
     super(technicalMessage);
     
@@ -114,15 +114,28 @@ export class ErrorUtils {
    * APIエラーレスポンスからAppErrorを作成
    */
   static fromApiError(
-    error: any,
+    error: unknown,
     defaultMessage: string = 'エラーが発生しました'
   ): AppError {
-    const response = error.response;
-    const data = response?.data as ApiErrorResponse;
+    const errorObj = error as {
+      response?: {
+        status?: number;
+        data?: ApiErrorResponse;
+      };
+      message?: string;
+      config?: {
+        url?: string;
+        method?: string;
+        data?: unknown;
+      };
+    };
+    
+    const response = errorObj.response;
+    const data = response?.data;
     
     let type: ErrorType;
     let userMessage: string;
-    let statusCode = response?.status;
+    const statusCode = response?.status;
 
     // ステータスコードに基づいてエラータイプを決定
     switch (statusCode) {
@@ -169,14 +182,14 @@ export class ErrorUtils {
 
     return new AppError({
       type,
-      severity: statusCode >= 500 ? ErrorSeverity.HIGH : ErrorSeverity.MEDIUM,
+      severity: (statusCode && statusCode >= 500) ? ErrorSeverity.HIGH : ErrorSeverity.MEDIUM,
       statusCode,
       userMessage,
-      technicalMessage: data?.message || error.message || 'Unknown error',
+      technicalMessage: data?.message || errorObj.message || 'Unknown error',
       context: {
-        url: response?.config?.url,
-        method: response?.config?.method,
-        data: response?.config?.data,
+        url: errorObj.config?.url,
+        method: errorObj.config?.method,
+        data: errorObj.config?.data,
         errors: data?.errors,
       },
     });
@@ -246,7 +259,7 @@ export class ErrorUtils {
   /**
    * エラーをログに記録
    */
-  static logError(error: AppError | Error, context?: Record<string, any>) {
+  static logError(error: AppError | Error, context?: Record<string, unknown>) {
     const errorData = error instanceof AppError 
       ? error.toLogObject() 
       : {
@@ -280,7 +293,7 @@ export class ErrorUtils {
 
     const retryableStatusCodes = [500, 502, 503, 504, 408, 429];
 
-    return (
+    return Boolean(
       retryableTypes.includes(error.type) ||
       (error.statusCode && retryableStatusCodes.includes(error.statusCode))
     );
@@ -322,7 +335,7 @@ export class ErrorUtils {
       case ErrorType.AUTHENTICATION:
         actions.push({
           label: 'ログイン',
-          action: () => window.location.href = '/admin',
+          action: () => { window.location.href = '/admin'; },
           type: 'primary',
         });
         break;
@@ -330,7 +343,7 @@ export class ErrorUtils {
       case ErrorType.NOT_FOUND:
         actions.push({
           label: 'ホームに戻る',
-          action: () => window.location.href = '/',
+          action: () => { window.location.href = '/'; },
           type: 'primary',
         });
         break;
@@ -349,7 +362,7 @@ export class ErrorUtils {
     // 共通アクション
     actions.push({
       label: 'ホームに戻る',
-      action: () => window.location.href = '/',
+      action: () => { window.location.href = '/'; },
       type: 'secondary',
     });
 

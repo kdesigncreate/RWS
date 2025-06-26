@@ -6,26 +6,26 @@
 import { z } from 'zod';
 import { InputSanitizer, PasswordValidator } from '@/lib/security';
 
-// 基本的なバリデーション関数
-const sanitizedString = (maxLength: number = 255) =>
-  z.string()
-    .max(maxLength, `${maxLength}文字以内で入力してください`)
-    .transform((val) => InputSanitizer.escapeHtml(val.trim()));
+// 基本的なバリデーション関数（現在未使用だが将来の拡張用に保持）
+// const sanitizedString = (maxLength: number = 255) =>
+//   z.string()
+//     .max(maxLength, `${maxLength}文字以内で入力してください`)
+//     .transform((val) => InputSanitizer.escapeHtml(val.trim()));
 
-const sanitizedText = (maxLength: number = 10000) =>
-  z.string()
-    .max(maxLength, `${maxLength}文字以内で入力してください`)
-    .transform((val) => InputSanitizer.stripHtml(val.trim()));
+// const sanitizedText = (maxLength: number = 10000) =>
+//   z.string()
+//     .max(maxLength, `${maxLength}文字以内で入力してください`)
+//     .transform((val) => InputSanitizer.stripHtml(val.trim()));
 
-const sanitizedHtml = (maxLength: number = 50000) =>
-  z.string()
-    .max(maxLength, `${maxLength}文字以内で入力してください`)
-    .transform((val) => {
-      // 許可されたHTMLタグのみ保持
-      const allowedTags = /<\/?(?:p|br|strong|em|u|ol|ul|li|h[1-6]|blockquote|a)(?:\s[^>]*)?\/?>/gi;
-      let sanitized = val.replace(/<(?!\/?(?:p|br|strong|em|u|ol|ul|li|h[1-6]|blockquote|a)\b)[^>]*>/gi, '');
-      return InputSanitizer.removeJavaScript(sanitized);
-    });
+// const sanitizedHtml = (maxLength: number = 50000) =>
+//   z.string()
+//     .max(maxLength, `${maxLength}文字以内で入力してください`)
+//     .transform((val) => {
+//       // 許可されたHTMLタグのみ保持
+//       const allowedTags = /<\/?(?:p|br|strong|em|u|ol|ul|li|h[1-6]|blockquote|a)(?:\s[^>]*)?\/?>/gi;
+//       const sanitized = val.replace(/<(?!\/?(?:p|br|strong|em|u|ol|ul|li|h[1-6]|blockquote|a)\b)[^>]*>/gi, '');
+//       return InputSanitizer.removeJavaScript(sanitized);
+//     });
 
 const secureEmail = z.string()
   .email('有効なメールアドレスを入力してください')
@@ -93,7 +93,7 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  name: sanitizedString(50).min(1, '名前を入力してください'),
+  name: z.string().min(1, '名前を入力してください').max(50).transform((val) => InputSanitizer.escapeHtml(val.trim())),
   email: secureEmail,
   password: securePassword,
   passwordConfirmation: z.string(),
@@ -148,9 +148,12 @@ export const resetPasswordSchema = z.object({
 
 // 投稿関連スキーマ
 export const createPostSchema = z.object({
-  title: sanitizedString(200).min(1, 'タイトルを入力してください'),
-  content: sanitizedHtml().min(1, '本文を入力してください'),
-  excerpt: sanitizedText(500).optional(),
+  title: z.string().min(1, 'タイトルを入力してください').max(200).transform((val) => InputSanitizer.escapeHtml(val.trim())),
+  content: z.string().min(1, '本文を入力してください').max(50000).transform((val) => {
+    const sanitized = val.replace(/<(?!\/?(?:p|br|strong|em|u|ol|ul|li|h[1-6]|blockquote|a)\b)[^>]*>/gi, '');
+    return InputSanitizer.removeJavaScript(sanitized);
+  }),
+  excerpt: z.string().max(500).transform((val) => InputSanitizer.stripHtml(val.trim())).optional(),
   status: z.enum(['draft', 'published'], {
     errorMap: () => ({ message: '有効なステータスを選択してください' }),
   }),
@@ -170,9 +173,9 @@ export const deletePostSchema = z.object({
 // コメント関連スキーマ
 export const createCommentSchema = z.object({
   postId: z.number().int().positive('有効な投稿IDが必要です'),
-  content: sanitizedText(1000).min(1, 'コメントを入力してください'),
+  content: z.string().min(1, 'コメントを入力してください').max(1000).transform((val) => InputSanitizer.stripHtml(val.trim())),
   parentId: z.number().int().positive().optional(),
-  authorName: sanitizedString(50).min(1, '名前を入力してください'),
+  authorName: z.string().min(1, '名前を入力してください').max(50).transform((val) => InputSanitizer.escapeHtml(val.trim())),
   authorEmail: secureEmail,
   csrfToken: z.string().min(1, 'CSRFトークンが必要です'),
 });
@@ -202,10 +205,10 @@ export const fileUploadSchema = z.object({
 
 // お問い合わせ関連スキーマ
 export const contactSchema = z.object({
-  name: sanitizedString(100).min(1, '名前を入力してください'),
+  name: z.string().min(1, '名前を入力してください').max(100).transform((val) => InputSanitizer.escapeHtml(val.trim())),
   email: secureEmail,
-  subject: sanitizedString(200).min(1, '件名を入力してください'),
-  message: sanitizedText(2000).min(10, 'メッセージは10文字以上入力してください'),
+  subject: z.string().min(1, '件名を入力してください').max(200).transform((val) => InputSanitizer.escapeHtml(val.trim())),
+  message: z.string().min(10, 'メッセージは10文字以上入力してください').max(2000).transform((val) => InputSanitizer.stripHtml(val.trim())),
   phone: z.string()
     .regex(/^[\d\-\+\(\)\s]+$/, '有効な電話番号を入力してください')
     .optional()
@@ -215,7 +218,7 @@ export const contactSchema = z.object({
 
 // 検索関連スキーマ
 export const searchSchema = z.object({
-  query: sanitizedString(100).min(1, '検索キーワードを入力してください'),
+  query: z.string().min(1, '検索キーワードを入力してください').max(100).transform((val) => InputSanitizer.escapeHtml(val.trim())),
   category: z.enum(['all', 'posts', 'pages'], {
     errorMap: () => ({ message: '有効なカテゴリを選択してください' }),
   }).optional(),
@@ -228,9 +231,9 @@ export const searchSchema = z.object({
 
 // 設定関連スキーマ
 export const userSettingsSchema = z.object({
-  name: sanitizedString(50).min(1, '名前を入力してください'),
+  name: z.string().min(1, '名前を入力してください').max(50).transform((val) => InputSanitizer.escapeHtml(val.trim())),
   email: secureEmail,
-  bio: sanitizedText(500).optional(),
+  bio: z.string().max(500).transform((val) => InputSanitizer.stripHtml(val.trim())).optional(),
   website: secureUrl.optional(),
   avatar: secureFilename.optional(),
   notifications: z.object({

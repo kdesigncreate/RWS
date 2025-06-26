@@ -23,11 +23,14 @@ export function LoadingSpinner({
   fullScreen = false 
 }: LoadingSpinnerProps) {
   const spinner = (
-    <div className={cn(
-      'flex items-center justify-center',
-      fullScreen && 'min-h-screen',
-      className
-    )}>
+    <div 
+      data-testid="loading-spinner"
+      className={cn(
+        'flex items-center justify-center',
+        fullScreen && 'min-h-screen',
+        className
+      )}
+    >
       <div className="flex flex-col items-center space-y-2">
         <Loader2 className={cn(
           'animate-spin text-gray-600',

@@ -148,8 +148,16 @@ function showRateLimitNotification(action: string, resetTime: number) {
     console.warn(`${message}。${timeMessage}後に再試行してください。`);
     
     // カスタム通知システムがあれば使用
-    if (window.showNotification) {
-      window.showNotification({
+    const customWindow = window as typeof window & {
+      showNotification?: (options: {
+        type: string;
+        message: string;
+        duration: number;
+      }) => void;
+    };
+    
+    if (customWindow.showNotification) {
+      customWindow.showNotification({
         type: 'warning',
         message: `${message}。${timeMessage}後に再試行してください。`,
         duration: 5000,
@@ -162,11 +170,11 @@ function showRateLimitNotification(action: string, resetTime: number) {
 export function useRateLimitedApi() {
   const { checkLimit } = useRateLimit();
   
-  return useCallback(async <T>(
+  async function rateLimitedCall<T>(
     action: string,
     apiCall: () => Promise<T>,
     customLimit?: number
-  ): Promise<T> => {
+  ): Promise<T> {
     const allowed = await checkLimit(action, customLimit);
     
     if (!allowed) {
@@ -180,7 +188,9 @@ export function useRateLimitedApi() {
     }
     
     return apiCall();
-  }, [checkLimit]);
+  }
+  
+  return rateLimitedCall;
 }
 
 // レート制限付きフォーム送信Hook
@@ -212,19 +222,19 @@ export function withRateLimit<P extends object>(
   action: string,
   limit?: number
 ) {
-  return React.memo((props: P) => {
+  const RateLimitedComponent = React.memo((props: P) => {
     const { checkLimit, isBlocked } = useRateLimit();
     const [blocked, setBlocked] = React.useState(false);
     
     React.useEffect(() => {
       setBlocked(isBlocked(action));
-    }, [isBlocked, action]);
+    }, [isBlocked]);
     
     const handleAction = React.useCallback(async () => {
       const allowed = await checkLimit(action, limit);
       setBlocked(!allowed);
       return allowed;
-    }, [checkLimit, action, limit]);
+    }, [checkLimit]);
     
     if (blocked) {
       return (
@@ -243,6 +253,10 @@ export function withRateLimit<P extends object>(
       />
     );
   });
+  
+  RateLimitedComponent.displayName = `withRateLimit(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  
+  return RateLimitedComponent;
 }
 
 // レート制限状態表示コンポーネント

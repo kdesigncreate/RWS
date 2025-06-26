@@ -73,6 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -123,6 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       autoLogoutTimer.stop();
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -153,6 +156,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * ページ遷移時やAPIコール時の認証確認
    */
+  // 将来の拡張用に保持
+  /*
   const ensureAuthenticated = useCallback(async (): Promise<boolean> => {
     if (!isAuthenticated || !token) {
       return false;
@@ -166,6 +171,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false;
     }
   }, [isAuthenticated, token, checkAuthStatus, handleLogout]);
+  */
 
   // 初期化
   useEffect(() => {
@@ -207,6 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       autoLogoutTimer.stop();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const contextValue: AuthContextType = {

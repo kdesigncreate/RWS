@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Post;
 
 use App\Models\Post;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
@@ -67,18 +67,18 @@ class CreatePostRequest extends FormRequest
             'title.string' => 'タイトルは文字列で入力してください。',
             'title.max' => 'タイトルは255文字以内で入力してください。',
             'title.min' => 'タイトルは1文字以上入力してください。',
-            
+
             'content.required' => '本文は必須です。',
             'content.string' => '本文は文字列で入力してください。',
             'content.min' => '本文は10文字以上入力してください。',
-            
+
             'excerpt.string' => '抜粋は文字列で入力してください。',
             'excerpt.max' => '抜粋は500文字以内で入力してください。',
-            
+
             'status.required' => 'ステータスは必須です。',
             'status.string' => 'ステータスは文字列で入力してください。',
             'status.in' => 'ステータスは「下書き」または「公開」を選択してください。',
-            
+
             'published_at.date' => '公開日時は有効な日付を入力してください。',
             'published_at.after_or_equal' => '公開日時は現在時刻以降を設定してください。',
         ];
@@ -106,7 +106,7 @@ class CreatePostRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // ステータスが公開の場合、published_atが未設定なら現在時刻を設定
-        if ($this->status === Post::STATUS_PUBLISHED && !$this->published_at) {
+        if ($this->status === Post::STATUS_PUBLISHED && ! $this->published_at) {
             $this->merge([
                 'published_at' => now()->toISOString(),
             ]);

@@ -8,21 +8,20 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-     /**
+    /**
      * 管理者ログイン
      */
-    public function login(LoginRequest $request):JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        try{
-            $user = User::where('email',$request->email)->first();
+        try {
+            $user = User::where('email', $request->email)->first();
 
-            if(!$user || !Hash::check($request->password,$user->password)){
+            if (! $user || ! Hash::check($request->password, $user->password)) {
                 throw ValidationException::withMessages([
                     'email' => ['メールアドレスまたはパスワードが間違っています。'],
                 ]);
@@ -52,7 +51,7 @@ class AuthController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }    
+    }
 
     /**
      * 管理者ログアウト
@@ -60,8 +59,20 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            // 現在のトークンを削除
-            $request->user()->currentAccessToken()->delete();
+            $user = $request->user();
+
+            if ($user) {
+                // 現在のアクセストークンを取得
+                $currentToken = $user->currentAccessToken();
+
+                if ($currentToken) {
+                    // トークンを削除
+                    $currentToken->delete();
+                }
+
+                // より確実にするため、ユーザーの全てのトークンを削除
+                $user->tokens()->delete();
+            }
 
             return response()->json([
                 'message' => 'Logout successful.',
@@ -75,7 +86,7 @@ class AuthController extends Controller
         }
     }
 
-     /**
+    /**
      * 現在認証されている管理者情報を取得
      */
     public function user(Request $request): JsonResponse
@@ -83,7 +94,7 @@ class AuthController extends Controller
         try {
             $user = $request->user();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'message' => 'User not authenticated.',
                 ], 401);
@@ -104,11 +115,19 @@ class AuthController extends Controller
     /**
      * 認証状態の確認
      */
-    public function check(): JsonResponse
+    public function check(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json([
+                'authenticated' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
         return response()->json([
-            'authenticated' => Auth::guard('sanctum')->check(),
+            'authenticated' => true,
+            'user' => new UserResource($user),
         ]);
     }
-
 }

@@ -14,7 +14,7 @@ import type {
   UpdatePostInput,
   DeletePostInput,
   CreateCommentInput,
-  FileUploadInput,
+  // FileUploadInput, // 将来の拡張用に保持
   ContactInput,
   SearchInput,
   UserSettingsInput,
@@ -81,6 +81,38 @@ export interface UploadResponse {
   type: string;
 }
 
+// セキュリティ関連の型定義
+export interface CSPViolation {
+  documentUri?: string;
+  referrer?: string;
+  blockedUri?: string;
+  violatedDirective?: string;
+  originalPolicy?: string;
+  sourceFile?: string;
+  lineNumber?: number;
+  columnNumber?: number;
+  statusCode?: number;
+}
+
+export interface XSSAttempt {
+  url: string;
+  payload: string;
+  userAgent?: string;
+  ipAddress?: string;
+  timestamp: string;
+}
+
+export interface SecurityEvent {
+  id: number;
+  type: 'csp_violation' | 'xss_attempt' | 'csrf_attempt' | 'rate_limit_exceeded';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  details: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+}
+
 // 認証API
 export const authApi = {
   login: async (data: LoginInput): Promise<ApiResponse<AuthResponse>> => {
@@ -122,7 +154,7 @@ export const authApi = {
 
 // 投稿API
 export const postsApi = {
-  getAll: async (params: PaginationInput & FilterInput = {}): Promise<ApiResponse<PaginatedResponse<Post>>> => {
+  getAll: async (params: Partial<PaginationInput & FilterInput> = {}): Promise<ApiResponse<PaginatedResponse<Post>>> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -166,7 +198,7 @@ export const postsApi = {
 
 // コメントAPI
 export const commentsApi = {
-  getByPostId: async (postId: number, params: PaginationInput = {}): Promise<ApiResponse<PaginatedResponse<Comment>>> => {
+  getByPostId: async (postId: number, params: Partial<PaginationInput> = {}): Promise<ApiResponse<PaginatedResponse<Comment>>> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -232,19 +264,19 @@ export const healthApi = {
 
 // セキュリティAPI
 export const securityApi = {
-  reportCSPViolation: async (violation: any): Promise<ApiResponse<void>> => {
+  reportCSPViolation: async (violation: CSPViolation): Promise<ApiResponse<void>> => {
     return secureApiClient.post<void>('/security/csp-violation', violation, {
       skipAuth: true,
     });
   },
 
-  reportXSSAttempt: async (attempt: any): Promise<ApiResponse<void>> => {
+  reportXSSAttempt: async (attempt: XSSAttempt): Promise<ApiResponse<void>> => {
     return secureApiClient.post<void>('/security/xss-attempt', attempt, {
       skipAuth: true,
     });
   },
 
-  getSecurityEvents: async (params: PaginationInput = {}): Promise<ApiResponse<PaginatedResponse<any>>> => {
+  getSecurityEvents: async (params: Partial<PaginationInput> = {}): Promise<ApiResponse<PaginatedResponse<SecurityEvent>>> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -252,7 +284,7 @@ export const securityApi = {
       }
     });
     
-    return secureApiClient.get<PaginatedResponse<any>>(`/security/events?${searchParams.toString()}`);
+    return secureApiClient.get<PaginatedResponse<SecurityEvent>>(`/security/events?${searchParams.toString()}`);
   },
 };
 

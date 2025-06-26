@@ -170,7 +170,7 @@ export const sessionManager = {
       const timestampStr = localStorage.getItem('auth_timestamp');
       
       return {
-        user: userStr ? JSON.parse(userStr) : null,
+        user: userStr ? (JSON.parse(userStr) as AuthUser) : null,
         token,
         timestamp: timestampStr ? parseInt(timestampStr, 10) : null,
       };

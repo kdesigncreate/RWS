@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { MapPin, Users, Clock, Star, ExternalLink, Phone, Mail, Calendar, TrendingUp, Award } from 'lucide-react';
+import React, { useEffect } from 'react';
+import Image from 'next/image';
+import { MapPin, Users, Star, Calendar, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -121,10 +122,12 @@ export default function HomePage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden">
               <div className="w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] relative">
-                <img 
+                <Image 
                   src="/images/TOP.jpeg" 
                   alt="R.W.S ドリブル塾のメインビジュアル - サッカードリブル技術向上スクール" 
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  priority
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -196,9 +199,11 @@ export default function HomePage() {
                   <CardContent>
                     <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-12">
                       <div className="flex-1">
-                        <img 
+                        <Image 
                           src="/images/about.jpeg" 
                           alt="R.W.S ドリブル塾について - サッカードリブル指導の様子" 
+                          width={400}
+                          height={300}
                           className="w-full max-w-md mx-auto rounded-lg shadow-lg"
                         />
                       </div>

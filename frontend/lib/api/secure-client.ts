@@ -21,7 +21,7 @@ interface RequestOptions extends RequestInit {
   skipRateLimit?: boolean;
 }
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   statusText: string;
@@ -31,7 +31,7 @@ interface ApiResponse<T = any> {
 class SecureApiClient {
   private config: SecureApiConfig;
   private activeRequests = new Set<AbortController>();
-  private requestQueue: Array<() => Promise<any>> = [];
+  private requestQueue: Array<() => Promise<unknown>> = [];
   private isProcessingQueue = false;
 
   constructor(config: Partial<SecureApiConfig> = {}) {
@@ -87,10 +87,10 @@ class SecureApiClient {
       }
 
       // ヘッダーの設定
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...options.headers,
+        ...(options.headers as Record<string, string>),
       };
 
       // 認証トークンの追加
@@ -134,13 +134,15 @@ class SecureApiClient {
       const contentType = response.headers.get('content-type');
       
       if (contentType?.includes('application/json')) {
-        data = await response.json();
+        const jsonData: unknown = await response.json();
+        data = jsonData as T;
       } else {
         data = (await response.text()) as unknown as T;
       }
 
       // セキュリティログ
-      SecurityLogger.logEvent('api_request', {
+      SecurityLogger.logEvent('suspicious_activity', {
+        type: 'api_request',
         method: options.method || 'GET',
         url: url.replace(/\/\d+/g, '/:id'), // IDをマスク
         status: response.status,
@@ -182,12 +184,13 @@ class SecureApiClient {
   }
 
   private async handleErrorResponse(response: Response): Promise<void> {
-    let errorData: any = {};
+    let errorData: Record<string, unknown> = {};
     
     try {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
-        errorData = await response.json();
+        const parsedData: unknown = await response.json();
+        errorData = typeof parsedData === 'object' && parsedData !== null ? parsedData as Record<string, unknown> : {};
       }
     } catch {
       // JSONパースエラーは無視
@@ -198,7 +201,7 @@ class SecureApiClient {
         throw new AppError({
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.LOW,
-          userMessage: errorData.message || '入力内容に問題があります。',
+          userMessage: (errorData.message as string) || '入力内容に問題があります。',
           technicalMessage: `Bad Request: ${response.statusText}`,
           context: errorData,
         });
@@ -210,7 +213,7 @@ class SecureApiClient {
           window.location.href = '/login';
         }
         throw new AppError({
-          type: ErrorType.AUTH,
+          type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
           userMessage: '認証が必要です。ログインしてください。',
           technicalMessage: 'Unauthorized',
@@ -218,7 +221,7 @@ class SecureApiClient {
 
       case 403:
         throw new AppError({
-          type: ErrorType.AUTH,
+          type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
           userMessage: 'このリソースにアクセスする権限がありません。',
           technicalMessage: 'Forbidden',
@@ -278,7 +281,7 @@ class SecureApiClient {
     }
   }
 
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: unknown): boolean {
     if (error instanceof AppError) {
       // サーバーエラーまたはネットワークエラーの場合のみリトライ
       return error.type === ErrorType.SERVER || error.type === ErrorType.NETWORK;
@@ -291,7 +294,7 @@ class SecureApiClient {
     return this.retryRequest<T>(url, { ...options, method: 'GET' });
   }
 
-  async post<T>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
       method: 'POST',
@@ -299,7 +302,7 @@ class SecureApiClient {
     });
   }
 
-  async put<T>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
       method: 'PUT',
@@ -307,7 +310,7 @@ class SecureApiClient {
     });
   }
 
-  async patch<T>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
       method: 'PATCH',

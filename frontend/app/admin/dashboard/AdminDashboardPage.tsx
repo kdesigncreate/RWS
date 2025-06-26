@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation'; // 将来の拡張用にコメントアウト
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { PostTable } from '@/components/admin/PostTable';
-import { SearchBar } from '@/components/posts/SearchBar';
+// import { SearchBar } from '@/components/posts/SearchBar'; // 未使用のため一時的にコメントアウト
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { usePosts } from '@/hooks/usePosts';
@@ -24,27 +24,27 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { 
   Plus, 
   Search, 
-  Filter, 
-  BarChart3, 
+  // Filter, 
+  // BarChart3, 
   FileText, 
   Eye, 
   Edit,
   TrendingUp,
-  Users,
-  Calendar
+  // Users,
+  // Calendar
 } from 'lucide-react';
 import type { PostSearchParams } from '@/types/post';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
+  // const router = useRouter(); // 将来の拡張用にコメントアウト
   const {
     posts,
     loading,
     error,
     pagination,
     fetchAdminPosts,
-    deletePost,
+    // deletePost, // 将来の拡張用にコメントアウト
   } = usePosts();
 
   // 検索パラメータの状態
@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
       search: debouncedSearch,
     };
     fetchAdminPosts(params);
-  }, [debouncedSearch, searchParams.status, searchParams.page, searchParams.limit, searchParams.sort, searchParams.order, fetchAdminPosts]);
+  }, [debouncedSearch, searchParams, fetchAdminPosts]);
 
   // 検索パラメータの更新
   const updateSearchParams = (updates: Partial<PostSearchParams>) => {
@@ -81,21 +81,21 @@ export default function AdminDashboardPage() {
     }));
   };
 
-  // 記事の編集
-  const handleEdit = (postId: number) => {
-    router.push(`/admin/dashboard/info/${postId}`);
-  };
+  // 記事の編集（将来の拡張用）
+  // const handleEdit = (postId: number) => {
+  //   router.push(`/admin/dashboard/info/${postId}`);
+  // };
 
-  // 記事の削除
-  const handleDelete = async (postId: number) => {
-    if (confirm('この記事を削除しますか？')) {
-      const result = await deletePost(postId);
-      if (result.success) {
-        // 選択からも除外
-        setSelectedPosts(prev => prev.filter(id => id !== postId));
-      }
-    }
-  };
+  // 記事の削除（将来の拡張用）
+  // const handleDelete = async (postId: number) => {
+  //   if (confirm('この記事を削除しますか？')) {
+  //     const result = await deletePost(postId);
+  //     if (result.success) {
+  //       // 選択からも除外
+  //       setSelectedPosts(prev => prev.filter(id => id !== postId));
+  //     }
+  //   }
+  // };
 
   // 選択状態の管理
   const handleSelectionChange = (postIds: number[]) => {
@@ -103,10 +103,10 @@ export default function AdminDashboardPage() {
   };
 
   // 一括操作（将来の拡張用）
-  const handleBulkAction = async (action: string) => {
-    // TODO: 一括操作の実装
-    console.log('Bulk action:', action, 'on posts:', selectedPosts);
-  };
+  // const handleBulkAction = async (action: string) => {
+  //   // TODO: 一括操作の実装
+  //   console.log('Bulk action:', action, 'on posts:', selectedPosts);
+  // };
 
   // 統計データ（モック）
   const stats = {
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
                 <Select
                   value={searchParams.status || 'all'}
                   onValueChange={(value) => 
-                    updateSearchParams({ status: value === 'all' ? undefined : value as any })
+                    updateSearchParams({ status: value === 'all' ? undefined : value as 'published' | 'draft' })
                   }
                 >
                   <SelectTrigger>
@@ -308,7 +308,7 @@ export default function AdminDashboardPage() {
                 selectedPosts={selectedPosts}
                 onSelectionChange={handleSelectionChange}
                 onSort={(field, order) => 
-                  updateSearchParams({ sort: field as any, order })
+                  updateSearchParams({ sort: field as 'created_at' | 'published_at' | 'title', order })
                 }
                 sortField={searchParams.sort || 'created_at'}
                 sortDirection={searchParams.order || 'desc'}

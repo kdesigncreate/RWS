@@ -2,13 +2,13 @@
 
 namespace App\Http\Requests\Post;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class SearchPostRequest extends FormRequest
 {
-     /**
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -73,21 +73,21 @@ class SearchPostRequest extends FormRequest
             'search.string' => '検索キーワードは文字列で入力してください。',
             'search.max' => '検索キーワードは100文字以内で入力してください。',
             'search.min' => '検索キーワードは1文字以上入力してください。',
-            
+
             'status.string' => 'ステータスは文字列で入力してください。',
             'status.in' => 'ステータスは「draft」「published」「all」のいずれかを指定してください。',
-            
+
             'page.integer' => 'ページ番号は整数で入力してください。',
             'page.min' => 'ページ番号は1以上を指定してください。',
             'page.max' => 'ページ番号は1000以下を指定してください。',
-            
+
             'limit.integer' => '表示件数は整数で入力してください。',
             'limit.min' => '表示件数は1以上を指定してください。',
             'limit.max' => '表示件数は50以下を指定してください。',
-            
+
             'sort.string' => 'ソート項目は文字列で入力してください。',
             'sort.in' => 'ソート項目は「created_at」「published_at」「title」のいずれかを指定してください。',
-            
+
             'order.string' => 'ソート順は文字列で入力してください。',
             'order.in' => 'ソート順は「asc」「desc」のいずれかを指定してください。',
         ];
@@ -133,8 +133,6 @@ class SearchPostRequest extends FormRequest
 
     /**
      * Get the validated search parameters.
-     *
-     * @return array
      */
     public function getSearchParams(): array
     {

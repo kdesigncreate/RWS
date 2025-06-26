@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { PostStatus } from '@/types/post';
+// import type { PostStatus } from '@/types/post'; // 将来の拡張用にコメントアウト
 
 // 記事ステータスのスキーマ
 export const postStatusSchema = z.enum(['draft', 'published'] as const);
@@ -31,9 +31,9 @@ export const createPostSchema = z.object({
       .or(z.null()),
   });
 
-// 記事更新用スキーマ
-export const updatePostSchema = createPostSchema.extend({
-    id: z.number().positive('記事IDは正の数である必要があります'),
+// 記事更新用スキーマ（部分更新用）
+export const updatePostSchema = createPostSchema.partial().extend({
+    id: z.number().positive('記事IDは正の数である必要があります').optional(),
   });
 
 // 記事検索用スキーマ

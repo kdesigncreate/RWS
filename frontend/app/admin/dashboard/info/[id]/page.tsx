@@ -3,7 +3,7 @@ import AdminPostEditPage from './AdminPostEditPage';
 import { generateMetadata as generateSEOMetadata } from '@/lib/metadata';
 
 interface PostEditPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const metadata: Metadata = generateSEOMetadata({
@@ -12,6 +12,7 @@ export const metadata: Metadata = generateSEOMetadata({
   noindex: true, // 管理画面は検索エンジンにインデックスさせない
 });
 
-export default function Page({ params }: PostEditPageProps) {
-  return <AdminPostEditPage params={params} />;
+export default async function Page({ params }: PostEditPageProps) {
+  const resolvedParams = await params;
+  return <AdminPostEditPage params={resolvedParams} />;
 }

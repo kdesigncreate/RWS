@@ -2,9 +2,6 @@
 const nextConfig = {
   // 画像最適化設定
   images: {
-    // 画像の品質設定（1-100、デフォルト75）
-    quality: 80,
-    
     // 画像フォーマット設定
     formats: ['image/webp', 'image/avif'],
     
@@ -34,12 +31,6 @@ const nextConfig = {
 
   // 実験的機能
   experimental: {
-    // App Router使用時の最適化
-    appDir: true,
-    
-    // Server Components最適化
-    serverComponentsExternalPackages: ['@prisma/client'],
-    
     // 画像最適化の実験的機能
     optimizePackageImports: ['lucide-react', '@headlessui/react'],
   },
@@ -212,8 +203,7 @@ const nextConfig = {
   // 厳密モード
   reactStrictMode: true,
 
-  // SWC（Rust製コンパイラ）の設定
-  swcMinify: true,
+  // SWC（Rust製コンパイラ）の設定は不要（デフォルトで有効）
 
   // ページ拡張子設定
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],

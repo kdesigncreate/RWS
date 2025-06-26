@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Home, 
   ArrowLeft, 
-  Search,
+  // Search, // 将来の拡張用にコメントアウト
   FileX
 } from 'lucide-react';
 import Link from 'next/link';

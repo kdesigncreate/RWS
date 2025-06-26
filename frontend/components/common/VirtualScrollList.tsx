@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // 仮想スクロールの設定
@@ -13,10 +13,10 @@ interface VirtualScrollConfig {
 }
 
 // 仮想スクロールアイテムの型
-interface VirtualScrollItem {
+interface VirtualScrollItem<T = unknown> {
   index: number;
   style: React.CSSProperties;
-  data: any;
+  data: T;
 }
 
 // 仮想スクロールリストのプロパティ
@@ -71,7 +71,7 @@ export function VirtualScrollList<T>({
       height += getItemHeight(i);
     }
     return height;
-  }, [items.length, getItemHeight]);
+  }, [items.length, getItemHeight, itemHeight]);
 
   // 表示する範囲を計算
   const visibleRange = useMemo(() => {
@@ -122,7 +122,7 @@ export function VirtualScrollList<T>({
       offset += getItemHeight(i);
     }
     return offset;
-  }, [getItemHeight]);
+  }, [getItemHeight, itemHeight]);
 
   // スクロールイベントハンドラ
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
@@ -296,6 +296,8 @@ export function VirtualGrid<T>({
     const rowIndex = virtualItem.index;
     const startIndex = rowIndex * columns;
     const endIndex = Math.min(startIndex + columns, items.length);
+    // endIndexはループで使用される
+    void endIndex;
     
     return (
       <div
@@ -370,7 +372,9 @@ export function VariableHeightVirtualList<T>({
   measureHeight,
   ...props
 }: VariableHeightVirtualListProps<T>) {
-  const [measuredHeights, setMeasuredHeights] = useState<Map<number, number>>(new Map());
+  const [measuredHeights] = useState<Map<number, number>>(new Map());
+  // setMeasuredHeightsは将来の拡張用に保持
+  // const setMeasuredHeights = useState<Map<number, number>>(new Map())[1];
 
   const getItemHeight = useCallback((index: number): number => {
     // 測定済みの高さがあればそれを使用

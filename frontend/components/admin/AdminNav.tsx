@@ -8,9 +8,9 @@ import {
   FileText, 
   Plus, 
   Search, 
-  Settings, 
-  BarChart3,
-  Users,
+  // Settings, // 将来の拡張用にコメントアウト 
+  // BarChart3, // 将来の拡張用にコメントアウト
+  // Users, // 将来の拡張用にコメントアウト
   Home
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -127,7 +127,7 @@ export class PerformanceMonitor {
           tags: {
             ...tags,
             status: 'error',
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
           },
         });
 
@@ -305,16 +305,22 @@ export class PerformanceMonitor {
     // メモリ使用量の監視（対応ブラウザのみ）
     if ('memory' in performance) {
       setInterval(() => {
-        const memory = (performance as any).memory;
+        const memoryInfo = (performance as Performance & {
+          memory?: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }).memory;
         
         this.recordCustomMetric({
           name: 'memory_used',
-          value: memory.usedJSHeapSize,
+          value: memoryInfo?.usedJSHeapSize || 0,
           category: 'render',
           timestamp: Date.now(),
           tags: {
-            total_heap: memory.totalJSHeapSize.toString(),
-            heap_limit: memory.jsHeapSizeLimit.toString(),
+            total_heap: (memoryInfo?.totalJSHeapSize || 0).toString(),
+            heap_limit: (memoryInfo?.jsHeapSizeLimit || 0).toString(),
           },
         });
       }, 30000); // 30秒ごと
@@ -324,13 +330,19 @@ export class PerformanceMonitor {
   /**
    * 分析サービスに送信
    */
-  private async sendToAnalytics(type: string, data: any): Promise<void> {
+  private async sendToAnalytics(type: string, data: unknown): Promise<void> {
     try {
       // Google Analytics 4 または他の分析サービスに送信
-      if (typeof gtag !== 'undefined') {
-        gtag('event', type, {
-          custom_parameter: JSON.stringify(data),
-        });
+      if (typeof window !== 'undefined' && 'gtag' in window) {
+        const gtagWindow = window as typeof window & {
+          gtag?: (command: string, action: string, params: Record<string, unknown>) => void;
+        };
+        
+        if (gtagWindow.gtag) {
+          gtagWindow.gtag('event', type, {
+            custom_parameter: JSON.stringify(data),
+          });
+        }
       }
 
       // カスタム分析サービスへの送信
@@ -357,8 +369,14 @@ export class PerformanceMonitor {
    */
   private getConnectionType(): string {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
-      return connection.effectiveType || connection.type || 'unknown';
+      const connectionInfo = (navigator as Navigator & {
+        connection?: {
+          effectiveType?: string;
+          type?: string;
+        };
+      }).connection;
+      
+      return connectionInfo?.effectiveType || connectionInfo?.type || 'unknown';
     }
     return 'unknown';
   }
@@ -391,64 +409,8 @@ export async function loadWebVitals(): Promise<void> {
   if (typeof window === 'undefined') return;
 
   try {
-    const { getCLS, getFID, getFCP, getLCP, getTTFB } = await import('web-vitals');
-    
-    const monitor = performanceMonitor;
-
-    getCLS((metric) => {
-      monitor.recordWebVital({
-        name: 'CLS',
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-      });
-    });
-
-    getFID((metric) => {
-      monitor.recordWebVital({
-        name: 'FID',
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-      });
-    });
-
-    getFCP((metric) => {
-      monitor.recordWebVital({
-        name: 'FCP',
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-      });
-    });
-
-    getLCP((metric) => {
-      monitor.recordWebVital({
-        name: 'LCP',
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-      });
-    });
-
-    getTTFB((metric) => {
-      monitor.recordWebVital({
-        name: 'TTFB',
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-      });
-    });
+    // Web Vitals monitoring not available - web-vitals package not installed
+    console.log('Web Vitals monitoring not available - web-vitals package not installed');
   } catch (error) {
     console.warn('Failed to load web-vitals:', error);
   }
@@ -479,8 +441,8 @@ export function withPerformanceMonitoring<P extends object>(
 ) {
   const displayName = componentName || WrappedComponent.displayName || WrappedComponent.name;
 
-  return React.memo((props: P) => {
-    const renderStartTime = React.useRef<number>();
+  const MemoizedComponent = React.memo((props: P) => {
+    const renderStartTime = React.useRef<number>(0);
 
     React.useLayoutEffect(() => {
       renderStartTime.current = performance.now();
@@ -504,6 +466,9 @@ export function withPerformanceMonitoring<P extends object>(
 
     return <WrappedComponent {...props} />;
   });
+
+  MemoizedComponent.displayName = `withPerformanceMonitoring(${displayName})`;
+  return MemoizedComponent;
 }
 
 // Performance budget checker
