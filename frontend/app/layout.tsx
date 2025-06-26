@@ -159,6 +159,15 @@ export default function RootLayout({
                 };
                 
                 console.log('Complete Supabase blocker and cache cleaner initialized');
+                
+                // 強制リロード（一度だけ）
+                if (!sessionStorage.getItem('force_reloaded')) {
+                  sessionStorage.setItem('force_reloaded', 'true');
+                  console.log('Forcing hard reload to clear old bundles...');
+                  setTimeout(function() {
+                    window.location.reload(true);
+                  }, 1000);
+                }
               })();
             `
           }} 
