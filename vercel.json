@@ -1,28 +1,27 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/next"
+      "source": "/api/:path*",
+      "destination": "https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api/api/:path*"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
-  ],
-  "env": {
-    "NEXT_PUBLIC_API_BASE_URL": "@api_base_url",
-    "NEXT_PUBLIC_FRONTEND_URL": "@frontend_url"
-  },
-  "project": {
-    "framework": "nextjs",
-    "rootDirectory": "frontend"
-  },
-  "functions": {
-    "frontend/app/**": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
