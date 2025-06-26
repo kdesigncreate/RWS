@@ -22,8 +22,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const login = async (credentials: LoginCredentials) => {
     try {
+      console.log('AuthProvider: Starting login with our API client');
+      console.log('AuthProvider: API base URL =', api.defaults.baseURL);
+      
+      // 強制的に我々のAPIクライアントを使用
       const response = await api.post('/login', credentials);
       const { user: userData, token: authToken } = response.data as { user: AuthUser; token: string; };
+      
+      console.log('AuthProvider: Login successful, user:', userData);
       
       setUser(userData);
       setToken(authToken);
@@ -34,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // APIクライアントにトークンを設定
       api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('AuthProvider: Login error:', error);
       throw new Error('ログインに失敗しました');
     }
   };
