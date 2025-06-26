@@ -42,6 +42,12 @@ export const api: AxiosInstance = axios.create({
     withCredentials: false, // Supabase Edge Functions用
   });
 
+// デバッグ: Axiosインスタンスの設定確認
+if (typeof window !== 'undefined') {
+  console.log('DEBUG: Axios instance baseURL =', api.defaults.baseURL);
+  console.log('DEBUG: Axios headers =', api.defaults.headers);
+}
+
 // トークン管理
 export const setAuthToken = (token: string | null) => {
     if (token) {
@@ -70,6 +76,11 @@ api.interceptors.request.use(
     if (process.env.NODE_ENV === 'development') {
       console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
     }
+    
+    // デバッグ: 実際のリクエストURL確認
+    console.log('DEBUG: Full request URL =', config.baseURL + config.url);
+    console.log('DEBUG: Request config =', config);
+    
     return config;
   },
   (error) => {
