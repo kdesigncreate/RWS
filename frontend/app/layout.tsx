@@ -72,6 +72,97 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script 
+          dangerouslySetInnerHTML={{
+            __html: `
+              // 緊急対応: ブラウザキャッシュ完全クリアとSupabase直接アクセス完全ブロック
+              (function() {
+                // ブラウザキャッシュの強制クリア
+                try {
+                  // Service Worker の削除
+                  if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                      for(let registration of registrations) {
+                        registration.unregister();
+                      }
+                    });
+                  }
+                  
+                  // すべてのキャッシュをクリア
+                  if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                      for (let name of names) {
+                        caches.delete(name);
+                      }
+                    });
+                  }
+                  
+                  // LocalStorage の完全クリア
+                  try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                  } catch (e) {
+                    console.warn('Could not clear storage:', e);
+                  }
+                  
+                  console.log('Browser cache completely cleared');
+                } catch (e) {
+                  console.warn('Cache clearing failed:', e);
+                }
+                
+                const originalFetch = window.fetch;
+                const originalXHR = window.XMLHttpRequest;
+                
+                // Fetch API の完全インターセプト
+                window.fetch = function(input, init) {
+                  let url = '';
+                  if (typeof input === 'string') {
+                    url = input;
+                  } else if (input instanceof URL) {
+                    url = input.href;
+                  } else if (input instanceof Request) {
+                    url = input.url;
+                  }
+                  
+                  // Supabase の完全ブロック
+                  if (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme')) {
+                    console.error('HARD BLOCKED: All Supabase access is forbidden:', url);
+                    // ログイン試行の場合は /api/login にリダイレクト
+                    if (url.includes('login') || url.includes('auth')) {
+                      console.log('Redirecting to /api/login');
+                      input = '/api/login';
+                      if (init && init.method === 'POST') {
+                        return originalFetch.apply(this, [input, init]);
+                      }
+                    }
+                    return Promise.reject(new Error('Supabase access completely blocked. Use /api/* endpoints only.'));
+                  }
+                  
+                  return originalFetch.apply(this, arguments);
+                };
+                
+                // XMLHttpRequest の完全インターセプト
+                const OriginalXHR = window.XMLHttpRequest;
+                window.XMLHttpRequest = function() {
+                  const xhr = new OriginalXHR();
+                  const originalOpen = xhr.open;
+                  
+                  xhr.open = function(method, url, ...args) {
+                    if (typeof url === 'string' && (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme'))) {
+                      console.error('HARD BLOCKED: All Supabase XHR access is forbidden:', url);
+                      throw new Error('Supabase access completely blocked. Use /api/* endpoints only.');
+                    }
+                    return originalOpen.apply(this, [method, url, ...args]);
+                  };
+                  
+                  return xhr;
+                };
+                
+                console.log('Complete Supabase blocker and cache cleaner initialized');
+              })();
+            `
+          }} 
+        />
       </head>
       <body className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}>
         <ErrorBoundary>
