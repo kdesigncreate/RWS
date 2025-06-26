@@ -45,6 +45,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.3.4",
     "zod": "^3.25.67"
   },
   "devDependencies": {
@@ -60,8 +62,6 @@
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
     "babel-jest": "^30.0.2",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "15.3.4",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "identity-obj-proxy": "^3.0.0",
