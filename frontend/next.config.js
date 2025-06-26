@@ -40,6 +40,16 @@ const nextConfig = {
   // gzip圧縮の有効化
   compress: true,
 
+  // Webpack設定のカスタマイズ（パス解決を強化）
+  webpack: (config) => {
+    // エイリアス設定を強化
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+    };
+    return config;
+  },
+
   // セキュリティヘッダーの設定
   async headers() {
     return [
