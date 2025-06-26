@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 強制キャッシュバスティング
+  generateBuildId: async () => {
+    return `build-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  },
+
   // 画像最適化設定
   images: {
     // サポートする画像フォーマット（WebP、AVIF）
@@ -21,8 +26,8 @@ const nextConfig = {
     // 画像アイコンサイズ設定
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     
-    // 画像キャッシュの最小保持時間（秒）- 1年間
-    minimumCacheTTL: 31536000,
+    // 画像キャッシュの最小保持時間（秒）- 1日に短縮
+    minimumCacheTTL: 86400,
   },
 
   // Next.js実験的機能
@@ -41,7 +46,13 @@ const nextConfig = {
   compress: true,
 
   // Webpack設定のカスタマイズ（パス解決を強化）
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // 出力ファイル名を強制変更してキャッシュバスティング
+    if (!isServer) {
+      config.output.filename = `static/chunks/[name]-${Date.now()}-[contenthash].js`
+      config.output.chunkFilename = `static/chunks/[name]-${Date.now()}-[contenthash].js`
+    }
+    
     // エイリアス設定を強化
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -50,9 +61,19 @@ const nextConfig = {
     return config;
   },
 
-  // セキュリティヘッダーの設定
+  // セキュリティヘッダーの設定 + キャッシュ無効化
   async headers() {
     return [
+      {
+        // 静的アセットのキャッシュを無効化
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
+          },
+        ],
+      },
       {
         // すべてのページに適用
         source: '/(.*)',
@@ -71,6 +92,11 @@ const nextConfig = {
             // リファラー情報の送信制御
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            // ページキャッシュも無効化
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
           },
         ],
       },
