@@ -110,17 +110,24 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Initialize Supabase client for public access
+    // Log request for debugging
+    console.log('Edge Function called:', {
+      method: req.method,
+      url: req.url,
+      headers: Object.fromEntries(req.headers.entries())
+    });
+
+    // Initialize Supabase client for public access (no auth required)
     const supabasePublic = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      'https://ixrwzaasrxoshjnpxnme.supabase.co', // Direct URL
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q' // Direct key
     )
     
     // Initialize Supabase client with auth for protected routes
     const authHeader = req.headers.get('Authorization')
     const supabaseAuth = authHeader ? createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      'https://ixrwzaasrxoshjnpxnme.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q',
       {
         global: {
           headers: { Authorization: authHeader },
@@ -134,13 +141,20 @@ serve(async (req: Request) => {
 
     // Route handling based on Laravel API structure
     switch (true) {
-      // Health check
+      // Health check (no authentication required)
       case path === '/api/health':
+        console.log('Health check endpoint called');
         return new Response(
           JSON.stringify({ 
             status: 'ok', 
             message: 'R.W.S Blog API is running',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            path: path,
+            method: method,
+            env: {
+              hasSupabaseUrl: !!Deno.env.get('SUPABASE_URL'),
+              hasSupabaseKey: !!Deno.env.get('SUPABASE_ANON_KEY')
+            }
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -230,8 +244,13 @@ serve(async (req: Request) => {
         )
     }
   } catch (error) {
+    console.error('Edge Function error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 
