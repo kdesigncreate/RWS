@@ -7,7 +7,8 @@ import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 // Dynamic CORS configuration for production security
 function getCorsHeaders(origin: string | null): Record<string, string> {
   const allowedOrigins = [
-    'https://rws-4db9yf7fb-kentas-projects-9fa01438.vercel.app',
+    'https://rws-41fcc1u8v-kentas-projects-9fa01438.vercel.app', // Current deployment
+    'https://rws-4db9yf7fb-kentas-projects-9fa01438.vercel.app', // Previous deployment
     'https://rws-kdesigncreate.vercel.app', // Custom domain if configured
     'http://localhost:3000', // Development
     'http://localhost:3001', // Alternative dev port

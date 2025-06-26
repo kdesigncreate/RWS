@@ -5,6 +5,12 @@ import { AppError, ErrorUtils, ErrorType } from '@/lib/errors';
 // 環境変数から設定を取得
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
+// デバッグ: 環境変数の確認
+if (typeof window !== 'undefined') {
+  console.log('DEBUG: API_BASE_URL =', API_BASE_URL);
+  console.log('DEBUG: NEXT_PUBLIC_API_BASE_URL =', process.env.NEXT_PUBLIC_API_BASE_URL);
+}
+
 // API エンドポイント定義
 export const apiEndpoints: ApiEndpoints = {
     // 認証
@@ -33,7 +39,7 @@ export const api: AxiosInstance = axios.create({
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    withCredentials: true, // Sanctum認証用
+    withCredentials: false, // Supabase Edge Functions用
   });
 
 // トークン管理
