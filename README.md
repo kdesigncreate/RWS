@@ -1,185 +1,183 @@
-# R.W.S Blog System
+# Supabase CLI (v1)
 
-A modern blog website built with Laravel backend and Next.js frontend, designed for deployment on Supabase and Vercel.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## 🏗️ Architecture
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-- **Frontend**: Next.js 15 with TypeScript, Tailwind CSS, and shadcn/ui
-- **Backend**: Laravel 12 with PHP 8.2, using Sanctum for API authentication
-- **Database**: PostgreSQL (Supabase in production, SQLite for local development)
-- **Deployment**: Vercel (Frontend) + Supabase (Backend & Database)
+This repository contains all the functionality for Supabase CLI.
 
-## 🚀 Quick Start
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-### Prerequisites
+## Getting started
 
-- Node.js 18+ 
-- PHP 8.2+
-- Composer
-- PostgreSQL (for production) or SQLite (for local)
+### Install the CLI
 
-### Local Development
-
-1. **Clone and setup:**
-   ```bash
-   git clone <repository-url>
-   cd RWS
-   ```
-
-2. **Backend setup:**
-   ```bash
-   cd backend
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   php artisan migrate
-   php artisan db:seed
-   php artisan serve # Runs on http://localhost:8000
-   ```
-
-3. **Frontend setup:**
-   ```bash
-   cd frontend
-   npm install
-   cp .env.example .env.local
-   npm run dev # Runs on http://localhost:3000
-   ```
-
-### Docker Development
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-docker-compose up -d
+npm i supabase --save-dev
 ```
 
-This starts all services:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
-- Database: PostgreSQL on port 5432
-- Email testing: http://localhost:8025
+To install the beta release channel:
 
-## 📁 Project Structure
-
-```
-RWS/
-├── frontend/          # Next.js application
-│   ├── app/          # App Router pages
-│   ├── components/   # React components
-│   ├── lib/          # Utilities and configurations
-│   ├── types/        # TypeScript definitions
-│   └── tests/        # E2E and unit tests
-├── backend/          # Laravel application
-│   ├── app/          # Application logic
-│   ├── database/     # Migrations and seeders
-│   ├── routes/       # API routes
-│   └── tests/        # Backend tests
-├── supabase/         # Supabase configuration
-│   ├── config.toml   # Supabase settings
-│   └── migrations/   # Database migrations
-└── docker-compose.yml
-```
-
-## 🌐 Deployment
-
-### Vercel (Frontend)
-
-1. Connect your GitHub repository to Vercel
-2. Set environment variables:
-   ```
-   NEXT_PUBLIC_API_BASE_URL=https://your-supabase-project.supabase.co/functions/v1
-   NEXT_PUBLIC_FRONTEND_URL=https://your-vercel-app.vercel.app
-   ```
-3. Deploy automatically on push to main branch
-
-### Supabase (Backend & Database)
-
-1. Create a new Supabase project
-2. Set up the database using the migration files:
-   ```bash
-   supabase db push
-   ```
-3. Deploy Laravel as Supabase Edge Functions or use Supabase's database directly
-
-## 🧪 Testing
-
-### Frontend Tests
 ```bash
-cd frontend
-npm run test          # Jest unit tests
-npm run test:e2e      # Playwright E2E tests
-npm run lint          # ESLint
+npm i supabase@beta --save-dev
 ```
 
-### Backend Tests
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
+
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+
+<details>
+  <summary><b>macOS</b></summary>
+
+  Available via [Homebrew](https://brew.sh). To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
 ```bash
-cd backend
-php artisan test      # PHPUnit tests
-composer test         # Alias for testing
-composer dev          # Start all services (server, queue, logs)
+supabase bootstrap
 ```
 
-## 📝 Environment Variables
+Or using npx:
 
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
-NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+```bash
+npx supabase bootstrap
 ```
 
-### Backend (.env)
-```env
-APP_NAME="R.W.S Blog"
-APP_ENV=local
-APP_KEY=base64:YOUR_APP_KEY_HERE
-DB_CONNECTION=sqlite # or pgsql for Supabase
-DATABASE_URL="file:database/database.sqlite"
-SANCTUM_STATEFUL_DOMAINS=localhost:3000
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
 ```
-
-## 🔧 Key Features
-
-- **Public Blog**: Homepage with post listings and individual post pages
-- **Admin Dashboard**: Authentication-protected admin panel for post management
-- **API-First Design**: RESTful API with clear separation between frontend and backend
-- **Authentication**: Laravel Sanctum SPA authentication with CSRF protection
-- **Responsive Design**: Mobile-first design with Tailwind CSS
-- **Type Safety**: Full TypeScript coverage with Zod validation
-- **Testing**: Comprehensive test coverage with PHPUnit, Jest, and Playwright
-
-## 📖 API Endpoints
-
-### Public Routes
-- `GET /api/posts` - List published posts
-- `GET /api/posts/{id}` - Get specific post
-- `GET /api/health` - Health check
-
-### Authentication Routes
-- `POST /api/login` - Admin login
-- `POST /api/logout` - Admin logout
-- `GET /api/user` - Get authenticated user
-
-### Admin Routes (Protected)
-- `GET /api/admin/posts` - List all posts (admin)
-- `POST /api/admin/posts` - Create new post
-- `PUT /api/admin/posts/{id}` - Update post
-- `DELETE /api/admin/posts/{id}` - Delete post
-
-## 🛡️ Security Features
-
-- CSRF protection on all forms
-- XSS protection through proper data sanitization
-- SQL injection prevention via Eloquent ORM
-- Rate limiting on authentication endpoints
-- Secure session management
-- Input validation with Laravel Form Requests and Zod schemas
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm run test && cd ../backend && php artisan test`
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.

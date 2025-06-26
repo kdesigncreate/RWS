@@ -6,5 +6,20 @@
       "source": "/api/:path*",
       "destination": "https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api/api/:path*"
     }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "apikey",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q"
+        }
+      ]
+    }
   ]
 }
