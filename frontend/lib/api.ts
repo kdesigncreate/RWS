@@ -38,6 +38,8 @@ export const api: AxiosInstance = axios.create({
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      // Supabase API Key for Edge Functions
+      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     },
     withCredentials: false, // Supabase Edge Functions用
   });
