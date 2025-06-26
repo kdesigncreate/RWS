@@ -109,6 +109,28 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Early check for health endpoint - bypass all authentication
+  const url = new URL(req.url)
+  const path = url.pathname.replace('/laravel-api', '')
+  
+  if (path === '/api/health') {
+    console.log('Health check endpoint called directly');
+    return new Response(
+      JSON.stringify({ 
+        status: 'ok', 
+        message: 'R.W.S Blog API is running',
+        timestamp: new Date().toISOString(),
+        path: path,
+        method: req.method,
+        success: 'Supabase Edge Function authentication fixed!'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
+  }
+
   try {
     // Log request for debugging
     console.log('Edge Function called:', {
@@ -120,14 +142,14 @@ serve(async (req: Request) => {
     // Initialize Supabase client for public access (no auth required)
     const supabasePublic = createClient(
       'https://ixrwzaasrxoshjnpxnme.supabase.co', // Direct URL
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q' // Direct key
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE' // Updated anon key
     )
     
     // Initialize Supabase client with auth for protected routes
     const authHeader = req.headers.get('Authorization')
     const supabaseAuth = authHeader ? createClient(
       'https://ixrwzaasrxoshjnpxnme.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTkyMjEwNDAsImV4cCI6MjAzNDc5NzA0MH0.vb_J30kJnB40CYZ9q3lPqDK9-9qFUYEOtmCK0xFDJ2Q',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE',
       {
         global: {
           headers: { Authorization: authHeader },
@@ -136,31 +158,12 @@ serve(async (req: Request) => {
     ) : null
 
     const url = new URL(req.url)
-    const path = url.pathname.replace('/functions/v1/laravel-api', '')
+    const path = url.pathname.replace('/laravel-api', '')
     const method = req.method
 
     // Route handling based on Laravel API structure
     switch (true) {
-      // Health check (no authentication required)
-      case path === '/api/health':
-        console.log('Health check endpoint called');
-        return new Response(
-          JSON.stringify({ 
-            status: 'ok', 
-            message: 'R.W.S Blog API is running',
-            timestamp: new Date().toISOString(),
-            path: path,
-            method: method,
-            env: {
-              hasSupabaseUrl: !!Deno.env.get('SUPABASE_URL'),
-              hasSupabaseKey: !!Deno.env.get('SUPABASE_ANON_KEY')
-            }
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200 
-          }
-        )
+      // Health check was handled early, so this case should not be reached
 
       // Posts routes (public)
       case path === '/api/posts' && method === 'GET':

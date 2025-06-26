@@ -10,6 +10,23 @@ if (typeof window !== 'undefined') {
   console.log('DEBUG: API_BASE_URL =', API_BASE_URL);
   console.log('DEBUG: NEXT_PUBLIC_API_BASE_URL =', process.env.NEXT_PUBLIC_API_BASE_URL);
   
+  // 古いSupabase設定をクリア
+  try {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('supabase') || key.includes('sb-'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    if (keysToRemove.length > 0) {
+      console.log('Cleared old Supabase settings from localStorage:', keysToRemove);
+    }
+  } catch (error) {
+    console.warn('Could not clear localStorage:', error);
+  }
+  
   // グローバルfetchインターセプト（緊急対応）
   const originalFetch = window.fetch;
   window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
@@ -23,16 +40,32 @@ if (typeof window !== 'undefined') {
       url = input.url;
     }
     
-    if (url.includes('ixrwzaasrxoshjnpxnme.supabase.co/rest/v1/login')) {
-      console.warn('GLOBAL INTERCEPTED: Redirecting Supabase login to our API');
-      url = '/api/login';
+    // すべてのSupabase直接呼び出しをブロック
+    if (url.includes('ixrwzaasrxoshjnpxnme.supabase.co/rest/v1/') || url.includes('.supabase.co/rest/v1/')) {
+      console.warn('GLOBAL INTERCEPTED: Blocking Supabase direct access, redirecting to our API');
+      
+      // URLを解析してエンドポイントを特定
+      if (url.includes('/rest/v1/login') || url.includes('/auth/v1/token')) {
+        url = '/api/login';
+      } else if (url.includes('/rest/v1/logout')) {
+        url = '/api/logout';
+      } else if (url.includes('/rest/v1/user')) {
+        url = '/api/user';
+      } else {
+        // その他のSupabase呼び出しをブロック
+        console.error('BLOCKED: Unsupported Supabase direct access to:', url);
+        return Promise.reject(new Error('Direct Supabase access is not allowed. Please use the API endpoints.'));
+      }
+      
       input = url;
       
-      // Supabase API keyをヘッダーに追加
+      // Supabase API keyをヘッダーから削除し、適切なヘッダーを設定
       if (!init) init = {};
       if (!init.headers) init.headers = {};
       const headers = init.headers as Record<string, string>;
-      headers['apikey'] = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+      delete headers['apikey'];
+      headers['Content-Type'] = 'application/json';
+      headers['Accept'] = 'application/json';
     }
     
     return originalFetch.call(this, input, init);
@@ -68,6 +101,8 @@ export const api: AxiosInstance = axios.create({
       'Accept': 'application/json',
       // Supabase API Key for Edge Functions
       'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      // Authorization header for Supabase Edge Functions (public access)
+      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}`,
     },
     withCredentials: false, // Supabase Edge Functions用
   });
@@ -112,11 +147,24 @@ api.interceptors.request.use(
     console.log('DEBUG: Request config =', config);
     
     // 緊急対応: Supabase直接アクセスを我々のAPIに強制リダイレクト
-    if (config.url && config.url.includes('ixrwzaasrxoshjnpxnme.supabase.co')) {
-      console.warn('INTERCEPTED: Supabase direct access detected, redirecting to our API');
+    if (config.url && (config.url.includes('ixrwzaasrxoshjnpxnme.supabase.co') || config.url.includes('.supabase.co/rest/v1/'))) {
+      console.warn('AXIOS INTERCEPTED: Supabase direct access detected, redirecting to our API');
       config.baseURL = '/api';
-      if (config.url.includes('/rest/v1/login')) {
+      
+      if (config.url.includes('/rest/v1/login') || config.url.includes('/auth/v1/token')) {
         config.url = '/login';
+      } else if (config.url.includes('/rest/v1/logout')) {
+        config.url = '/logout';
+      } else if (config.url.includes('/rest/v1/user')) {
+        config.url = '/user';
+      } else {
+        console.error('AXIOS BLOCKED: Unsupported Supabase direct access to:', config.url);
+        return Promise.reject(new Error('Direct Supabase access is not allowed. Please use the API endpoints.'));
+      }
+      
+      // Supabase固有のヘッダーを削除
+      if (config.headers) {
+        delete config.headers['apikey'];
       }
     }
     
