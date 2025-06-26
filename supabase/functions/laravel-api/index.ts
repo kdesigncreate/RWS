@@ -111,18 +111,26 @@ serve(async (req: Request) => {
 
   // Early check for health endpoint - bypass all authentication
   const url = new URL(req.url)
-  const path = url.pathname.replace('/laravel-api', '')
+  const fullPath = url.pathname
+  const path = fullPath.replace('/functions/v1/laravel-api', '').replace('/laravel-api', '')
   
-  if (path === '/api/health') {
-    console.log('Health check endpoint called directly');
+  console.log('Request path analysis:', {
+    fullPath,
+    cleanedPath: path,
+    url: req.url
+  });
+  
+  if (path === '/api/health' || fullPath.includes('/health')) {
+    console.log('Health check endpoint called - bypassing auth');
     return new Response(
       JSON.stringify({ 
         status: 'ok', 
         message: 'R.W.S Blog API is running',
         timestamp: new Date().toISOString(),
+        fullPath: fullPath,
         path: path,
         method: req.method,
-        success: 'Supabase Edge Function authentication fixed!'
+        success: 'Health endpoint working with proper API key headers!'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -139,23 +147,33 @@ serve(async (req: Request) => {
       headers: Object.fromEntries(req.headers.entries())
     });
 
-    // Initialize Supabase client for public access (no auth required)
-    const supabasePublic = createClient(
-      'https://ixrwzaasrxoshjnpxnme.supabase.co', // Direct URL
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE' // Updated anon key
-    )
+    // Supabase configuration
+    const SUPABASE_URL = 'https://ixrwzaasrxoshjnpxnme.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE'
+    
+    // Initialize Supabase client for public access with proper headers
+    const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+      },
+    })
     
     // Initialize Supabase client with auth for protected routes
     const authHeader = req.headers.get('Authorization')
-    const supabaseAuth = authHeader ? createClient(
-      'https://ixrwzaasrxoshjnpxnme.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE',
-      {
-        global: {
-          headers: { Authorization: authHeader },
+    const supabaseAuth = authHeader ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: {
+        headers: { 
+          Authorization: authHeader,
+          apikey: SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
         },
-      }
-    ) : null
+      },
+    }) : null
 
     const url = new URL(req.url)
     const path = url.pathname.replace('/laravel-api', '')
