@@ -119,6 +119,7 @@ export default function AdminLoginPage() {
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="admin@example.com"
                       className={`w-full ${
                         errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-300'
@@ -139,6 +140,7 @@ export default function AdminLoginPage() {
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
+                        autoComplete="current-password"
                         placeholder="••••••••"
                         className={`w-full pr-10 ${
                           errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-300'

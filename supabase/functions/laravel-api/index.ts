@@ -1,13 +1,108 @@
 // Supabase Edge Function for R.W.S Blog API
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.1/mod.ts"
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Dynamic CORS configuration for production security
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigins = [
+    'https://rws-4db9yf7fb-kentas-projects-9fa01438.vercel.app',
+    'https://rws-kdesigncreate.vercel.app', // Custom domain if configured
+    'http://localhost:3000', // Development
+    'http://localhost:3001', // Alternative dev port
+  ]
+  
+  const isAllowedOrigin = origin && allowedOrigins.includes(origin)
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Max-Age': '3600',
+  }
+}
+
+// JWT Configuration
+const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'RWS_BLOG_SECRET_KEY_2024'
+const JWT_ALGORITHM = 'HS256'
+
+// Admin Credentials (in production, store these in database with proper hashing)
+const ADMIN_CREDENTIALS = {
+  email: 'admin@rws-dribble.com',
+  // Password: 'RWS2024!AdminPass'
+  passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewU.dJgABhVl.nCq', // Pre-hashed
+  id: 1,
+  name: 'R.W.S管理者',
+  role: 'admin'
+}
+
+// JWT Utility Functions
+async function createJWT(payload: any): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(JWT_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  
+  const jwt = await create(
+    { alg: JWT_ALGORITHM, typ: 'JWT' },
+    {
+      ...payload,
+      exp: getNumericDate(60 * 60 * 24), // 24 hours
+      iat: getNumericDate(new Date()),
+      iss: 'rws-blog'
+    },
+    key
+  )
+  
+  return jwt
+}
+
+async function verifyJWT(token: string): Promise<any> {
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(JWT_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    )
+    
+    const payload = await verify(token, key)
+    return payload
+  } catch (error) {
+    throw new Error('Invalid token')
+  }
+}
+
+// Authentication Helper Functions
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(password, hash)
+  } catch (error) {
+    return false
+  }
+}
+
+async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 12)
+}
+
+function extractBearerToken(authHeader: string | null): string | null {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+  return authHeader.substring(7)
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -69,7 +164,7 @@ serve(async (req: Request) => {
         return await handleLogout(supabaseAuth)
 
       case path === '/api/user' && method === 'GET':
-        return await handleGetUser(supabaseAuth)
+        return await handleGetUser(supabaseAuth, authHeader)
 
       // Admin routes (protected)
       case path === '/api/admin/posts' && method === 'GET':
@@ -190,41 +285,69 @@ async function handleGetPost(supabase: any, id: string) {
 async function handleLogin(supabase: any, loginData: any) {
   const { email, password } = loginData
   
-  // Simple password verification (in production, use proper hashing)
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single()
+  try {
+    // Validate input
+    if (!email || !password) {
+      return new Response(
+        JSON.stringify({ error: 'メールアドレスとパスワードは必須です' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      )
+    }
 
-  if (error || !user) {
+    // Check admin credentials
+    if (email === ADMIN_CREDENTIALS.email) {
+      const isValidPassword = await verifyPassword(password, ADMIN_CREDENTIALS.passwordHash)
+      
+      if (isValidPassword) {
+        // Generate JWT token
+        const token = await createJWT({
+          sub: ADMIN_CREDENTIALS.id,
+          email: ADMIN_CREDENTIALS.email,
+          name: ADMIN_CREDENTIALS.name,
+          role: ADMIN_CREDENTIALS.role
+        })
+
+        return new Response(
+          JSON.stringify({
+            user: {
+              id: ADMIN_CREDENTIALS.id,
+              name: ADMIN_CREDENTIALS.name,
+              email: ADMIN_CREDENTIALS.email,
+              role: ADMIN_CREDENTIALS.role
+            },
+            token: token,
+            message: 'ログインに成功しました'
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        )
+      }
+    }
+
+    // If not admin or invalid credentials, check database (future implementation)
+    // For now, return invalid credentials
     return new Response(
-      JSON.stringify({ error: 'Invalid credentials' }),
+      JSON.stringify({ error: 'メールアドレスまたはパスワードが正しくありません' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401 
       }
     )
-  }
-
-  // In production, verify password hash properly
-  if (email === 'admin@example.com' && password === 'password123') {
+  } catch (error) {
+    console.error('Login error:', error)
     return new Response(
-      JSON.stringify({ 
-        user: { id: user.id, name: user.name, email: user.email },
-        token: 'mock-token' // In production, generate real JWT
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: '認証処理中にエラーが発生しました' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
     )
   }
-
-  return new Response(
-    JSON.stringify({ error: 'Invalid credentials' }),
-    { 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 401 
-    }
-  )
 }
 
 async function handleLogout(supabase: any) {
@@ -234,14 +357,52 @@ async function handleLogout(supabase: any) {
   )
 }
 
-async function handleGetUser(supabase: any) {
-  // Mock user response - in production, verify JWT token
-  return new Response(
-    JSON.stringify({ 
-      user: { id: 1, name: 'Administrator', email: 'admin@example.com' }
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
+async function handleGetUser(supabase: any, authHeader: string | null) {
+  try {
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: '認証が必要です' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      )
+    }
+
+    const token = extractBearerToken(authHeader)
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: '無効な認証ヘッダーです' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      )
+    }
+
+    // Verify JWT token
+    const payload = await verifyJWT(token)
+    
+    return new Response(
+      JSON.stringify({ 
+        user: {
+          id: payload.sub,
+          name: payload.name,
+          email: payload.email,
+          role: payload.role
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: '認証トークンが無効です' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401 
+      }
+    )
+  }
 }
 
 async function handleGetAdminPosts(supabase: any, searchParams: URLSearchParams) {
