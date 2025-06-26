@@ -10,8 +10,9 @@ if (typeof window !== 'undefined') {
   console.log('DEBUG: API_BASE_URL =', API_BASE_URL);
   console.log('DEBUG: NEXT_PUBLIC_API_BASE_URL =', process.env.NEXT_PUBLIC_API_BASE_URL);
   
-  // 古いSupabase設定をクリア
+  // 古いSupabase設定とブラウザキャッシュをクリア
   try {
+    // LocalStorageのクリア
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -20,11 +21,22 @@ if (typeof window !== 'undefined') {
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    if (keysToRemove.length > 0) {
-      console.log('Cleared old Supabase settings from localStorage:', keysToRemove);
+    
+    // SessionStorageのクリア
+    const sessionKeysToRemove = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && (key.includes('supabase') || key.includes('sb-'))) {
+        sessionKeysToRemove.push(key);
+      }
+    }
+    sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+    
+    if (keysToRemove.length > 0 || sessionKeysToRemove.length > 0) {
+      console.log('Cleared old Supabase settings:', { localStorage: keysToRemove, sessionStorage: sessionKeysToRemove });
     }
   } catch (error) {
-    console.warn('Could not clear localStorage:', error);
+    console.warn('Could not clear storage:', error);
   }
   
   // グローバルfetchインターセプト（緊急対応）
@@ -59,11 +71,10 @@ if (typeof window !== 'undefined') {
       
       input = url;
       
-      // Supabase API keyをヘッダーから削除し、適切なヘッダーを設定
+      // 適切なヘッダーを設定
       if (!init) init = {};
       if (!init.headers) init.headers = {};
       const headers = init.headers as Record<string, string>;
-      delete headers['apikey'];
       headers['Content-Type'] = 'application/json';
       headers['Accept'] = 'application/json';
     }
@@ -99,12 +110,8 @@ export const api: AxiosInstance = axios.create({
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      // Supabase API Key for Edge Functions
-      'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      // Authorization header for Supabase Edge Functions (public access)
-      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}`,
     },
-    withCredentials: false, // Supabase Edge Functions用
+    withCredentials: false,
   });
 
 // デバッグ: Axiosインスタンスの設定確認
@@ -162,9 +169,10 @@ api.interceptors.request.use(
         return Promise.reject(new Error('Direct Supabase access is not allowed. Please use the API endpoints.'));
       }
       
-      // Supabase固有のヘッダーを削除
+      // 不要なヘッダーを削除
       if (config.headers) {
         delete config.headers['apikey'];
+        delete config.headers['Authorization'];
       }
     }
     
