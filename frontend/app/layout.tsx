@@ -97,10 +97,20 @@ export default function RootLayout({
                     });
                   }
                   
-                  // LocalStorage の完全クリア
+                  // LocalStorage の選択的クリア（無限ループを防ぐため）
                   try {
-                    localStorage.clear();
-                    sessionStorage.clear();
+                    // Supabase関連のキーのみクリア
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                      const key = localStorage.key(i);
+                      if (key && (key.includes('supabase') || key.includes('sb-'))) {
+                        keysToRemove.push(key);
+                      }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                    
+                    // SessionStorageは触らない（無限リロード防止）
+                    console.log('Cleared Supabase keys from localStorage:', keysToRemove);
                   } catch (e) {
                     console.warn('Could not clear storage:', e);
                   }
@@ -159,15 +169,6 @@ export default function RootLayout({
                 };
                 
                 console.log('Complete Supabase blocker and cache cleaner initialized');
-                
-                // 強制リロード（一度だけ）
-                if (!sessionStorage.getItem('force_reloaded')) {
-                  sessionStorage.setItem('force_reloaded', 'true');
-                  console.log('Forcing hard reload to clear old bundles...');
-                  setTimeout(function() {
-                    window.location.reload(true);
-                  }, 1000);
-                }
               })();
             `
           }} 
