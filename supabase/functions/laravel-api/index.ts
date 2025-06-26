@@ -14,16 +14,23 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseClient = createClient(
+    // Initialize Supabase client for public access
+    const supabasePublic = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    )
+    
+    // Initialize Supabase client with auth for protected routes
+    const authHeader = req.headers.get('Authorization')
+    const supabaseAuth = authHeader ? createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
-    )
+    ) : null
 
     const url = new URL(req.url)
     const path = url.pathname.replace('/functions/v1/laravel-api', '')
@@ -45,41 +52,77 @@ serve(async (req: Request) => {
           }
         )
 
-      // Posts routes
+      // Posts routes (public)
       case path === '/api/posts' && method === 'GET':
-        return await handleGetPosts(supabaseClient, url.searchParams)
+        return await handleGetPosts(supabasePublic, url.searchParams)
 
       case path.startsWith('/api/posts/') && method === 'GET':
         const postId = path.split('/')[3]
-        return await handleGetPost(supabaseClient, postId)
+        return await handleGetPost(supabasePublic, postId)
 
       // Auth routes
       case path === '/api/login' && method === 'POST':
         const loginData = await req.json()
-        return await handleLogin(supabaseClient, loginData)
+        return await handleLogin(supabasePublic, loginData)
 
       case path === '/api/logout' && method === 'POST':
-        return await handleLogout(supabaseClient)
+        return await handleLogout(supabaseAuth)
 
       case path === '/api/user' && method === 'GET':
-        return await handleGetUser(supabaseClient)
+        return await handleGetUser(supabaseAuth)
 
       // Admin routes (protected)
       case path === '/api/admin/posts' && method === 'GET':
-        return await handleGetAdminPosts(supabaseClient, url.searchParams)
+        if (!supabaseAuth) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 401 
+            }
+          )
+        }
+        return await handleGetAdminPosts(supabaseAuth, url.searchParams)
 
       case path === '/api/admin/posts' && method === 'POST':
+        if (!supabaseAuth) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 401 
+            }
+          )
+        }
         const createData = await req.json()
-        return await handleCreatePost(supabaseClient, createData)
+        return await handleCreatePost(supabaseAuth, createData)
 
       case path.startsWith('/api/admin/posts/') && method === 'PUT':
+        if (!supabaseAuth) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 401 
+            }
+          )
+        }
         const updatePostId = path.split('/')[4]
         const updateData = await req.json()
-        return await handleUpdatePost(supabaseClient, updatePostId, updateData)
+        return await handleUpdatePost(supabaseAuth, updatePostId, updateData)
 
       case path.startsWith('/api/admin/posts/') && method === 'DELETE':
+        if (!supabaseAuth) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 401 
+            }
+          )
+        }
         const deletePostId = path.split('/')[4]
-        return await handleDeletePost(supabaseClient, deletePostId)
+        return await handleDeletePost(supabaseAuth, deletePostId)
 
       default:
         return new Response(
