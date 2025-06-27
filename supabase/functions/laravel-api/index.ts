@@ -1,23 +1,35 @@
-// Supabase Edge Function for R.W.S Blog API
+// Supabase Edge Function for R.W.S Blog API - Security Optimized
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.1/mod.ts"
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
+// Security Configuration
+const SECURITY_CONFIG = {
+  maxLoginAttempts: 5,
+  lockoutDuration: 15 * 60 * 1000, // 15 minutes
+  jwtExpiry: 8 * 60 * 60, // 8 hours
+  sessionTimeout: 24 * 60 * 60, // 24 hours
+  passwordMinLength: 12,
+  rateLimitWindow: 60 * 1000, // 1 minute
+  maxRequestsPerWindow: 100
+}
+
 // Dynamic CORS configuration for production security
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigins = [
-    'https://rws-41fcc1u8v-kentas-projects-9fa01438.vercel.app', // Current deployment
-    'https://rws-4db9yf7fb-kentas-projects-9fa01438.vercel.app', // Previous deployment
-    'https://rws-kdesigncreate.vercel.app', // Custom domain if configured
-    'http://localhost:3000', // Development
-    'http://localhost:3001', // Alternative dev port
-  ]
+  // Get allowed origins from environment variable
+  const allowedOriginsEnv = Deno.env.get('ALLOWED_ORIGINS') || ''
+  const allowedOrigins = allowedOriginsEnv.split(',').map(o => o.trim()).filter(o => o.length > 0)
+  
+  // Default origins for development if none specified
+  if (allowedOrigins.length === 0) {
+    allowedOrigins.push('http://localhost:3000', 'http://localhost:3001')
+  }
   
   const isAllowedOrigin = origin && allowedOrigins.includes(origin)
   
   return {
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : (allowedOrigins[0] || '*'),
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
@@ -25,21 +37,95 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   }
 }
 
-// JWT Configuration
-const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'RWS_BLOG_SECRET_KEY_2024'
+// JWT Configuration - Enhanced Security
+const JWT_SECRET = Deno.env.get('JWT_SECRET') || crypto.randomUUID()
 const JWT_ALGORITHM = 'HS256'
 
-// Admin Credentials (in production, store these in database with proper hashing)
-const ADMIN_CREDENTIALS = {
-  email: 'admin@rws-dribble.com',
-  // Password: 'RWS2024!AdminPass'
-  passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewU.dJgABhVl.nCq', // Pre-hashed
-  id: 1,
-  name: 'R.W.S管理者',
-  role: 'admin'
+// Supabase Environment Variables (Secure - no hardcoded values)
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+// Validate required environment variables
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('Required environment variables SUPABASE_URL and SUPABASE_ANON_KEY must be set')
 }
 
-// JWT Utility Functions
+// Rate Limiting Store (In-memory, for demo - use Redis in production)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
+// Security Functions
+async function rateLimit(identifier: string): Promise<boolean> {
+  const now = Date.now()
+  const entry = rateLimitStore.get(identifier)
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitStore.set(identifier, { count: 1, resetTime: now + SECURITY_CONFIG.rateLimitWindow })
+    return true
+  }
+  
+  if (entry.count >= SECURITY_CONFIG.maxRequestsPerWindow) {
+    return false
+  }
+  
+  entry.count++
+  return true
+}
+
+async function logSecurityEvent(event: string, details: any, severity: 'low' | 'medium' | 'high' = 'medium') {
+  console.log(`SECURITY_EVENT[${severity.toUpperCase()}]: ${event}`, {
+    timestamp: new Date().toISOString(),
+    details,
+    severity
+  })
+  
+  // In production, send to security monitoring system
+  // Example: Sentry, DataDog, CloudWatch, etc.
+}
+
+function sanitizeInput(input: any): any {
+  if (typeof input === 'string') {
+    return input.trim().slice(0, 1000) // Prevent overly long strings
+  }
+  if (typeof input === 'object' && input !== null) {
+    const sanitized: any = {}
+    for (const [key, value] of Object.entries(input)) {
+      if (typeof key === 'string' && key.length <= 100) {
+        sanitized[key] = sanitizeInput(value)
+      }
+    }
+    return sanitized
+  }
+  return input
+}
+
+function validatePassword(password: string): { isValid: boolean; errors: string[] } {
+  const errors: string[] = []
+  
+  if (password.length < SECURITY_CONFIG.passwordMinLength) {
+    errors.push(`パスワードは${SECURITY_CONFIG.passwordMinLength}文字以上である必要があります`)
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('パスワードには大文字を含める必要があります')
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('パスワードには小文字を含める必要があります')
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('パスワードには数字を含める必要があります')
+  }
+  
+  if (!/[!@#$%^&*]/.test(password)) {
+    errors.push('パスワードには特殊文字(!@#$%^&*)を含める必要があります')
+  }
+  
+  return { isValid: errors.length === 0, errors }
+}
+
+// Enhanced JWT Utility Functions with Security
 async function createJWT(payload: any): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -49,13 +135,16 @@ async function createJWT(payload: any): Promise<string> {
     ['sign']
   )
   
+  const now = new Date()
   const jwt = await create(
     { alg: JWT_ALGORITHM, typ: 'JWT' },
     {
       ...payload,
-      exp: getNumericDate(60 * 60 * 24), // 24 hours
-      iat: getNumericDate(new Date()),
-      iss: 'rws-blog'
+      exp: getNumericDate(new Date(now.getTime() + SECURITY_CONFIG.jwtExpiry * 1000)),
+      iat: getNumericDate(now),
+      jti: crypto.randomUUID(), // JWT ID for tracking
+      iss: 'rws-blog-api', // Issuer
+      aud: 'rws-blog-frontend' // Audience
     },
     key
   )
@@ -185,6 +274,19 @@ function extractBearerToken(authHeader: string | null): string | null {
 serve(async (req: Request) => {
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
+  const clientIP = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for') || 'unknown'
+  
+  // Security: Rate limiting
+  if (!await rateLimit(clientIP)) {
+    await logSecurityEvent('RATE_LIMIT_EXCEEDED', { ip: clientIP, origin }, 'high')
+    return new Response(
+      JSON.stringify({ error: 'リクエストが多すぎます。しばらく待ってから再試行してください。' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 429 
+      }
+    )
+  }
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -234,6 +336,24 @@ serve(async (req: Request) => {
     return await handleLogin(supabasePublic, loginData)
   }
 
+  // Password hash generation endpoint (one-time use)
+  if (path === '/api/generate-hash' && req.method === 'POST') {
+    console.log('Password hash generation endpoint called');
+    const { password } = await req.json()
+    const hash = await hashPassword(password)
+    return new Response(
+      JSON.stringify({
+        password: password,
+        hash: hash,
+        message: 'Use this hash to update ADMIN_CREDENTIALS.passwordHash in the code'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
+  }
+
   try {
     // Log request for debugging
     console.log('Edge Function called:', {
@@ -242,33 +362,51 @@ serve(async (req: Request) => {
       headers: Object.fromEntries(req.headers.entries())
     });
 
-    // Supabase configuration
-    const SUPABASE_URL = 'https://ixrwzaasrxoshjnpxnme.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4cnd6YWFzcnhvc2hqbnB4bm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NTYyMjMsImV4cCI6MjA2NjIzMjIyM30.i3Vc1taU7jTPxIpzJYqzb3T8mnTJeWbLXN4QmXQ1piE'
-    
-    // Initialize Supabase client for public access with proper headers
+    // Initialize Supabase clients with enhanced security
     const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      },
       global: {
         headers: {
-          apikey: SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
+          'Prefer': 'return=minimal',
+          'X-Client-Info': 'rws-blog-api'
         },
       },
     })
     
-    // Initialize Supabase client with auth for protected routes
-    const authHeader = req.headers.get('Authorization')
-    const supabaseAuth = authHeader ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Initialize admin client for protected operations (uses service role)
+    const supabaseAdmin = SUPABASE_SERVICE_KEY ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+      },
       global: {
-        headers: { 
-          Authorization: authHeader,
-          apikey: SUPABASE_ANON_KEY,
+        headers: {
           'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
+          'Prefer': 'return=minimal',
+          'X-Client-Info': 'rws-blog-api-admin'
         },
       },
     }) : null
+    
+    // Get authenticated user context from JWT
+    const authHeader = req.headers.get('Authorization')
+    let authenticatedUser = null
+    if (authHeader) {
+      try {
+        const token = extractBearerToken(authHeader)
+        if (token) {
+          authenticatedUser = await verifyJWT(token)
+        }
+      } catch (error) {
+        await logSecurityEvent('INVALID_JWT_TOKEN', { ip: clientIP, error: error.message }, 'medium')
+      }
+    }
 
     const url = new URL(req.url)
     const path = url.pathname.replace('/laravel-api', '')
@@ -437,36 +575,51 @@ async function handleLogin(supabase: any, loginData: any) {
       )
     }
 
-    // Check admin credentials
-    if (email === ADMIN_CREDENTIALS.email) {
-      const isValidPassword = await verifyPassword(password, ADMIN_CREDENTIALS.passwordHash)
-      
-      if (isValidPassword) {
-        // Generate JWT token
-        const token = await createJWT({
-          sub: ADMIN_CREDENTIALS.id,
-          email: ADMIN_CREDENTIALS.email,
-          name: ADMIN_CREDENTIALS.name,
-          role: ADMIN_CREDENTIALS.role
-        })
+    // Get user from database
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, name, email, password')
+      .eq('email', email)
+      .single()
 
-        return new Response(
-          JSON.stringify({
-            user: {
-              id: ADMIN_CREDENTIALS.id,
-              name: ADMIN_CREDENTIALS.name,
-              email: ADMIN_CREDENTIALS.email,
-              role: ADMIN_CREDENTIALS.role
-            },
-            token: token,
-            message: 'ログインに成功しました'
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200 
-          }
-        )
-      }
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'ユーザーが見つかりません' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      )
+    }
+
+    // Verify password against database hash
+    const isValidPassword = await verifyPassword(password, user.password)
+    
+    if (isValidPassword) {
+      // Generate JWT token
+      const token = await createJWT({
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        role: 'admin' // All users in this system are admins
+      })
+
+      return new Response(
+        JSON.stringify({
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: 'admin'
+          },
+          token: token,
+          message: 'ログインに成功しました'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
     }
 
     // If not admin or invalid credentials, check database (future implementation)
