@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api/api/:path*"
+      "destination": "https://YOUR_SUPABASE_PROJECT_ID.supabase.co/functions/v1/laravel-api/:path*"
     }
   ]
 }

@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.1/mod.ts"
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
+// bcrypt removed - using Web Crypto API instead
 
 // Security Configuration
 const SECURITY_CONFIG = {
@@ -179,17 +179,114 @@ async function verifyJWT(token: string): Promise<any> {
   }
 }
 
-// Authentication Helper Functions
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  try {
-    return await bcrypt.compare(password, hash)
-  } catch (error) {
-    return false
-  }
+// Web Crypto API Password Functions (Secure alternative to bcrypt)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const passwordBuffer = encoder.encode(password)
+  
+  // Use PBKDF2 with 100,000 iterations (recommended for 2024)
+  const key = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  )
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    key,
+    256
+  )
+  
+  // Combine salt and hash
+  const combined = new Uint8Array(salt.length + hashBuffer.byteLength)
+  combined.set(salt)
+  combined.set(new Uint8Array(hashBuffer), salt.length)
+  
+  // Return base64 encoded hash with prefix
+  return '$webcrypto$' + btoa(String.fromCharCode(...combined))
 }
 
-async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 12)
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  try {
+    console.log('Password verification attempt:', { 
+      passwordLength: password?.length, 
+      hashPrefix: hash?.substring(0, 15),
+      hashFormat: hash?.startsWith('$webcrypto$') ? 'WebCrypto format' : 
+                  hash?.startsWith('$2y$') ? 'bcrypt $2y$ format' : 
+                  hash?.startsWith('$2b$') ? 'bcrypt $2b$ format' : 'unknown format'
+    })
+    
+    // Handle legacy bcrypt hashes - migrate to WebCrypto format
+    if (hash.startsWith('$2y$') || hash.startsWith('$2b$')) {
+      console.log('Legacy bcrypt hash detected - please migrate to WebCrypto format')
+      return false // Force migration to WebCrypto format
+    }
+    
+    // Handle WebCrypto format
+    if (!hash.startsWith('$webcrypto$')) {
+      console.log('Unknown hash format, verification failed')
+      return false
+    }
+    
+    const encoder = new TextEncoder()
+    const hashData = Uint8Array.from(atob(hash.substring(11)), c => c.charCodeAt(0))
+    
+    if (hashData.length < 16) {
+      console.log('Invalid hash data length')
+      return false
+    }
+    
+    const salt = hashData.slice(0, 16)
+    const storedHash = hashData.slice(16)
+    
+    const passwordBuffer = encoder.encode(password)
+    const key = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    )
+    
+    const computedHashBuffer = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      key,
+      256
+    )
+    
+    const computedHash = new Uint8Array(computedHashBuffer)
+    
+    // Constant-time comparison
+    if (computedHash.length !== storedHash.length) {
+      return false
+    }
+    
+    let result = 0
+    for (let i = 0; i < computedHash.length; i++) {
+      result |= computedHash[i] ^ storedHash[i]
+    }
+    
+    const isValid = result === 0
+    console.log('WebCrypto verification result:', isValid)
+    return isValid
+    
+  } catch (error) {
+    console.error('Password verification error:', error)
+    return false
+  }
 }
 
 // Database Security Setup Function
@@ -332,6 +429,8 @@ serve(async (req: Request) => {
       }
     )
   }
+
+  // Debug endpoints removed for security
   
   // Security: Rate limiting (applied after health check)
   if (!await rateLimit(clientIP)) {
@@ -598,18 +697,15 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
     }
 
     // Log which client we're using for debugging
-    const isUsingAdminClient = supabase === supabaseAdmin
     console.log('Login attempt:', { 
       email, 
-      hasServiceKey: !!SUPABASE_SERVICE_KEY, 
-      isUsingAdminClient,
-      clientHeaders: supabase?.supabaseKey?.substring(0, 20) + '...'
+      hasServiceKey: !!SUPABASE_SERVICE_KEY
     })
 
     // Get user from database using admin client to bypass RLS
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, name, email, password')
+      .select('id, name, email, password, role')
       .eq('email', email)
       .single()
 
@@ -628,7 +724,14 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
     }
 
     // Verify password against database hash
+    console.log('Password verification:', { 
+      inputPassword: password, 
+      dbHash: user.password,
+      hashLength: user.password?.length 
+    })
+    
     const isValidPassword = await verifyPassword(password, user.password)
+    console.log('Password verification result:', isValidPassword)
     
     if (isValidPassword) {
       // Generate JWT token
@@ -636,7 +739,7 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
         sub: user.id,
         email: user.email,
         name: user.name,
-        role: 'admin' // All users in this system are admins
+        role: user.role || 'admin'
       })
 
       return new Response(
@@ -645,7 +748,7 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
             id: user.id,
             name: user.name,
             email: user.email,
-            role: 'admin'
+            role: user.role || 'admin'
           },
           token: token,
           message: 'ログインに成功しました'
@@ -669,7 +772,14 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
   } catch (error) {
     console.error('Login error:', error)
     return new Response(
-      JSON.stringify({ error: '認証処理中にエラーが発生しました' }),
+      JSON.stringify({ 
+        error: '認証処理中にエラーが発生しました',
+        debug: { 
+          message: error?.message || 'Unknown error',
+          stack: error?.stack,
+          hasServiceKey: !!SUPABASE_SERVICE_KEY 
+        }
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 

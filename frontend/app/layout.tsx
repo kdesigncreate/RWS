@@ -78,11 +78,10 @@ export default function RootLayout({
           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
           font-src 'self' https://fonts.gstatic.com;
           img-src 'self' data: blob: https:;
-          connect-src 'self' https://vercel.live wss://ws-*.pusher-channels.vercel.app https://vitals.vercel-analytics.com;
+          connect-src 'self' https://*.vercel.app https://rws-ruddy.vercel.app https://vercel.live https://ws-ap1.pusher-channels.com wss://ws-ap1.pusher-channels.com https://vitals.vercel-analytics.com;
           object-src 'none';
           base-uri 'self';
           form-action 'self';
-          frame-ancestors 'none';
           block-all-mixed-content;
           upgrade-insecure-requests;
         " />
