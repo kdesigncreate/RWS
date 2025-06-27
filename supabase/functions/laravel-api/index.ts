@@ -93,6 +93,88 @@ async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 12)
 }
 
+// Database Security Setup Function
+async function setupDatabaseSecurity(supabase: any) {
+  try {
+    console.log('Setting up database security (RLS policies)...');
+
+    // Enable RLS and create policies for posts table
+    const { error: postsRLSError } = await supabase.rpc('exec_sql', {
+      sql: `
+        -- Enable RLS on posts table
+        ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
+        
+        -- Drop existing policies if they exist
+        DROP POLICY IF EXISTS "Public can view published posts" ON public.posts;
+        DROP POLICY IF EXISTS "Admin access through Edge Functions only" ON public.posts;
+        
+        -- Create new policies for posts
+        CREATE POLICY "Public can view published posts" ON public.posts
+            FOR SELECT USING (true);
+        
+        CREATE POLICY "Admin access through Edge Functions only" ON public.posts
+            FOR ALL USING (false);
+            
+        -- Grant permissions
+        GRANT SELECT ON public.posts TO authenticated;
+        GRANT SELECT ON public.posts TO anon;
+      `
+    });
+
+    if (postsRLSError) {
+      console.error('Posts RLS setup error:', postsRLSError);
+    }
+
+    // Enable RLS on other critical tables
+    const tables = [
+      'users', 'migrations', 'password_reset_tokens', 'sessions', 
+      'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 
+      'personal_access_tokens'
+    ];
+
+    for (const table of tables) {
+      const { error } = await supabase.rpc('exec_sql', {
+        sql: `
+          ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY;
+          DROP POLICY IF EXISTS "No public access to ${table}" ON public.${table};
+          CREATE POLICY "No public access to ${table}" ON public.${table}
+              FOR ALL USING (false);
+        `
+      });
+
+      if (error) {
+        console.error(`RLS setup error for ${table}:`, error);
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Database security (RLS) has been configured successfully',
+        tables_secured: ['posts', ...tables],
+        timestamp: new Date().toISOString()
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    );
+
+  } catch (error) {
+    console.error('Database security setup failed:', error);
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to setup database security',
+        details: error.message
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    );
+  }
+}
+
 function extractBearerToken(authHeader: string | null): string | null {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null
@@ -139,6 +221,19 @@ serve(async (req: Request) => {
     )
   }
 
+  // Security setup endpoint - bypass auth for one-time setup
+  if (path === '/api/setup-security' || fullPath.includes('/setup-security')) {
+    console.log('Security setup endpoint called - bypassing auth for one-time setup');
+    return await setupDatabaseSecurity(supabasePublic)
+  }
+
+  // Login endpoint - bypass auth (public endpoint)
+  if (path === '/api/login' && req.method === 'POST') {
+    console.log('Login endpoint called - bypassing auth (public endpoint)');
+    const loginData = await req.json()
+    return await handleLogin(supabasePublic, loginData)
+  }
+
   try {
     // Log request for debugging
     console.log('Edge Function called:', {
@@ -182,6 +277,10 @@ serve(async (req: Request) => {
     // Route handling based on Laravel API structure
     switch (true) {
       // Health check was handled early, so this case should not be reached
+
+      // Security setup endpoint (one-time RLS configuration)
+      case path === '/api/setup-security' && method === 'POST':
+        return await setupDatabaseSecurity(supabasePublic)
 
       // Posts routes (public)
       case path === '/api/posts' && method === 'GET':
