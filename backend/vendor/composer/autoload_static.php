@@ -521,10 +521,10 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
     );
 
     public static $classMap = array (
-        'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\Auth\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\Post\\PostController' => __DIR__ . '/../..' . '/app/Http/Controllers/Post/PostController.php',
+        'App\\Http\\Middleware\\EnsureApiRequestsAreStateful' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureApiRequestsAreStateful.php',
         'App\\Http\\Requests\\Auth\\LoginRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Auth/LoginRequest.php',
         'App\\Http\\Requests\\Post\\CreatePostRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Post/CreatePostRequest.php',
         'App\\Http\\Requests\\Post\\SearchPostRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Post/SearchPostRequest.php',

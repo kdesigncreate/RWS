@@ -1,0 +1,131 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '22.14.0'
+  SUPABASE_VERSION: '1.0.0'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Run Frontend Tests
+      working-directory: ./frontend
+      run: npm test
+    
+    - name: Run Frontend Lint
+      working-directory: ./frontend
+      run: npm run lint
+    
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install Supabase CLI
+      run: npm install supabase --save-dev
+    
+    - name: Deploy to Supabase
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      run: |
+        cd supabase
+        npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        npx supabase db push
+        npx supabase functions deploy laravel-api
+    
+    - name: Setup Environment Variables
+      run: |
+        cd supabase
+        npx supabase secrets set SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+        npx supabase secrets set SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+        npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        npx supabase secrets set JWT_SECRET=${{ secrets.JWT_SECRET }}
+        npx supabase secrets set ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+        NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
+    
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./frontend
+        vercel-args: '--prod'
+
+  health-check:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Health Check
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 30
+        
+        echo "Checking API health..."
+        curl -f ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health || exit 1
+        
+        echo "Checking frontend..."
+        curl -f ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }} || exit 1
+        
+        echo "All health checks passed!" 

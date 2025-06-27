@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  console.log('MIDDLEWARE: Intercepting request to', request.url);
-  
-  // Supabase直接アクセスを検出してリダイレクト
-  if (request.url.includes('ixrwzaasrxoshjnpxnme.supabase.co/rest/v1/login')) {
-    console.warn('MIDDLEWARE: Redirecting Supabase login to our API');
-    const url = request.nextUrl.clone();
-    url.pathname = '/api/login';
-    url.hostname = request.nextUrl.hostname;
-    url.protocol = request.nextUrl.protocol;
-    url.port = request.nextUrl.port;
-    return NextResponse.redirect(url);
+  // 管理画面のパスでの基本的なルーティング処理のみ実装
+  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/dashboard')) {
+    // 管理画面アクセス時の基本処理
+    console.log('Admin access:', request.nextUrl.pathname);
   }
   
   return NextResponse.next();

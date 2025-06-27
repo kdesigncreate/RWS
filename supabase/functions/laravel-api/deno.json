@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window", "dom"],
+    "strict": true,
+    "noImplicitAny": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.177.0/",
+    "supabase": "https://esm.sh/@supabase/supabase-js@2",
+    "djwt": "https://deno.land/x/djwt@v3.0.1/mod.ts",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --allow-read --watch index.ts",
+    "deploy": "supabase functions deploy laravel-api"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["**/*.ts", "**/*.js"]
+    }
+  }
+} 

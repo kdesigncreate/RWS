@@ -6,10 +6,10 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Http\\Controllers\\Auth\\AuthController' => $baseDir . '/app/Http/Controllers/Auth/AuthController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\Post\\PostController' => $baseDir . '/app/Http/Controllers/Post/PostController.php',
+    'App\\Http\\Middleware\\EnsureApiRequestsAreStateful' => $baseDir . '/app/Http/Middleware/EnsureApiRequestsAreStateful.php',
     'App\\Http\\Requests\\Auth\\LoginRequest' => $baseDir . '/app/Http/Requests/Auth/LoginRequest.php',
     'App\\Http\\Requests\\Post\\CreatePostRequest' => $baseDir . '/app/Http/Requests/Post/CreatePostRequest.php',
     'App\\Http\\Requests\\Post\\SearchPostRequest' => $baseDir . '/app/Http/Requests/Post/SearchPostRequest.php',

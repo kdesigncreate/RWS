@@ -236,6 +236,7 @@ async function setupDatabaseSecurity(supabase: any) {
       }
     }
 
+    const corsHeaders = getCorsHeaders(null);
     return new Response(
       JSON.stringify({
         success: true,
@@ -251,6 +252,7 @@ async function setupDatabaseSecurity(supabase: any) {
 
   } catch (error) {
     console.error('Database security setup failed:', error);
+    const corsHeaders = getCorsHeaders(null);
     return new Response(
       JSON.stringify({
         error: 'Failed to setup database security',
@@ -276,7 +278,52 @@ serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(origin)
   const clientIP = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for') || 'unknown'
   
-  // Security: Rate limiting
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Early check for health endpoint - bypass all security checks
+  const url = new URL(req.url)
+  const fullPath = url.pathname
+  const path = fullPath.replace('/functions/v1/laravel-api', '').replace('/laravel-api', '')
+  
+  console.log('Request path analysis:', {
+    fullPath,
+    cleanedPath: path,
+    url: req.url,
+    clientIP: clientIP
+  });
+  
+  // Check for health endpoint in multiple formats
+  const isHealthEndpoint = path === '/api/health' || 
+                           path === '/health' || 
+                           fullPath.includes('/health') ||
+                           path.endsWith('/health') ||
+                           req.url.includes('/health')
+  
+  if (isHealthEndpoint) {
+    console.log('Health check endpoint called - bypassing all security checks');
+    return new Response(
+      JSON.stringify({ 
+        status: 'ok', 
+        message: 'R.W.S Blog API is running',
+        timestamp: new Date().toISOString(),
+        fullPath: fullPath,
+        path: path,
+        method: req.method,
+        clientIP: clientIP,
+        headers: Object.fromEntries(req.headers.entries()),
+        success: 'Health endpoint working - all security checks bypassed'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
+  }
+  
+  // Security: Rate limiting (applied after health check)
   if (!await rateLimit(clientIP)) {
     await logSecurityEvent('RATE_LIMIT_EXCEEDED', { ip: clientIP, origin }, 'high')
     return new Response(
@@ -287,41 +334,38 @@ serve(async (req: Request) => {
       }
     )
   }
-  
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
 
-  // Early check for health endpoint - bypass all authentication
-  const url = new URL(req.url)
-  const fullPath = url.pathname
-  const path = fullPath.replace('/functions/v1/laravel-api', '').replace('/laravel-api', '')
+  // Initialize Supabase clients with enhanced security
+  const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+        'X-Client-Info': 'rws-blog-api'
+      },
+    },
+  })
   
-  console.log('Request path analysis:', {
-    fullPath,
-    cleanedPath: path,
-    url: req.url
-  });
-  
-  if (path === '/api/health' || fullPath.includes('/health')) {
-    console.log('Health check endpoint called - bypassing auth');
-    return new Response(
-      JSON.stringify({ 
-        status: 'ok', 
-        message: 'R.W.S Blog API is running',
-        timestamp: new Date().toISOString(),
-        fullPath: fullPath,
-        path: path,
-        method: req.method,
-        success: 'Health endpoint working with proper API key headers!'
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
-    )
-  }
+  // Initialize admin client for protected operations (uses service role)
+  const supabaseAdmin = SUPABASE_SERVICE_KEY ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+        'X-Client-Info': 'rws-blog-api-admin'
+      },
+    },
+  }) : null
 
   // Security setup endpoint - bypass auth for one-time setup
   if (path === '/api/setup-security' || fullPath.includes('/setup-security')) {
@@ -333,7 +377,7 @@ serve(async (req: Request) => {
   if (path === '/api/login' && req.method === 'POST') {
     console.log('Login endpoint called - bypassing auth (public endpoint)');
     const loginData = await req.json()
-    return await handleLogin(supabasePublic, loginData)
+    return await handleLogin(supabasePublic, loginData, corsHeaders)
   }
 
   // Password hash generation endpoint (one-time use)
@@ -361,38 +405,6 @@ serve(async (req: Request) => {
       url: req.url,
       headers: Object.fromEntries(req.headers.entries())
     });
-
-    // Initialize Supabase clients with enhanced security
-    const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      },
-      global: {
-        headers: {
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-          'X-Client-Info': 'rws-blog-api'
-        },
-      },
-    })
-    
-    // Initialize admin client for protected operations (uses service role)
-    const supabaseAdmin = SUPABASE_SERVICE_KEY ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false
-      },
-      global: {
-        headers: {
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-          'X-Client-Info': 'rws-blog-api-admin'
-        },
-      },
-    }) : null
     
     // Get authenticated user context from JWT
     const authHeader = req.headers.get('Authorization')
@@ -422,26 +434,26 @@ serve(async (req: Request) => {
 
       // Posts routes (public)
       case path === '/api/posts' && method === 'GET':
-        return await handleGetPosts(supabasePublic, url.searchParams)
+        return await handleGetPosts(supabasePublic, url.searchParams, corsHeaders)
 
       case path.startsWith('/api/posts/') && method === 'GET':
         const postId = path.split('/')[3]
-        return await handleGetPost(supabasePublic, postId)
+        return await handleGetPost(supabasePublic, postId, corsHeaders)
 
       // Auth routes
       case path === '/api/login' && method === 'POST':
         const loginData = await req.json()
-        return await handleLogin(supabasePublic, loginData)
+        return await handleLogin(supabasePublic, loginData, corsHeaders)
 
       case path === '/api/logout' && method === 'POST':
-        return await handleLogout(supabaseAuth)
+        return await handleLogout(corsHeaders)
 
       case path === '/api/user' && method === 'GET':
-        return await handleGetUser(supabaseAuth, authHeader)
+        return await handleGetUser(authHeader, corsHeaders)
 
       // Admin routes (protected)
       case path === '/api/admin/posts' && method === 'GET':
-        if (!supabaseAuth) {
+        if (!supabaseAdmin) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
             { 
@@ -450,10 +462,10 @@ serve(async (req: Request) => {
             }
           )
         }
-        return await handleGetAdminPosts(supabaseAuth, url.searchParams)
+        return await handleGetAdminPosts(supabaseAdmin, url.searchParams, corsHeaders)
 
       case path === '/api/admin/posts' && method === 'POST':
-        if (!supabaseAuth) {
+        if (!supabaseAdmin) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
             { 
@@ -463,10 +475,10 @@ serve(async (req: Request) => {
           )
         }
         const createData = await req.json()
-        return await handleCreatePost(supabaseAuth, createData)
+        return await handleCreatePost(supabaseAdmin, createData, corsHeaders)
 
       case path.startsWith('/api/admin/posts/') && method === 'PUT':
-        if (!supabaseAuth) {
+        if (!supabaseAdmin) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
             { 
@@ -477,10 +489,10 @@ serve(async (req: Request) => {
         }
         const updatePostId = path.split('/')[4]
         const updateData = await req.json()
-        return await handleUpdatePost(supabaseAuth, updatePostId, updateData)
+        return await handleUpdatePost(supabaseAdmin, updatePostId, updateData, corsHeaders)
 
       case path.startsWith('/api/admin/posts/') && method === 'DELETE':
-        if (!supabaseAuth) {
+        if (!supabaseAdmin) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
             { 
@@ -490,7 +502,7 @@ serve(async (req: Request) => {
           )
         }
         const deletePostId = path.split('/')[4]
-        return await handleDeletePost(supabaseAuth, deletePostId)
+        return await handleDeletePost(supabaseAdmin, deletePostId, corsHeaders)
 
       default:
         return new Response(
@@ -518,7 +530,7 @@ serve(async (req: Request) => {
 })
 
 // Handler functions
-async function handleGetPosts(supabase: any, searchParams: URLSearchParams) {
+async function handleGetPosts(supabase: any, searchParams: URLSearchParams, corsHeaders: Record<string, string>) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '10')
   const search = searchParams.get('search') || ''
@@ -544,7 +556,7 @@ async function handleGetPosts(supabase: any, searchParams: URLSearchParams) {
   )
 }
 
-async function handleGetPost(supabase: any, id: string) {
+async function handleGetPost(supabase: any, id: string, corsHeaders: Record<string, string>) {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
@@ -560,7 +572,7 @@ async function handleGetPost(supabase: any, id: string) {
   )
 }
 
-async function handleLogin(supabase: any, loginData: any) {
+async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<string, string>) {
   const { email, password } = loginData
   
   try {
@@ -643,14 +655,14 @@ async function handleLogin(supabase: any, loginData: any) {
   }
 }
 
-async function handleLogout(supabase: any) {
+async function handleLogout(corsHeaders: Record<string, string>) {
   return new Response(
     JSON.stringify({ message: 'Logged out successfully' }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 }
 
-async function handleGetUser(supabase: any, authHeader: string | null) {
+async function handleGetUser(authHeader: string | null, corsHeaders: Record<string, string>) {
   try {
     if (!authHeader) {
       return new Response(
@@ -698,7 +710,7 @@ async function handleGetUser(supabase: any, authHeader: string | null) {
   }
 }
 
-async function handleGetAdminPosts(supabase: any, searchParams: URLSearchParams) {
+async function handleGetAdminPosts(supabase: any, searchParams: URLSearchParams, corsHeaders: Record<string, string>) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '10')
   const status = searchParams.get('status')
@@ -728,7 +740,7 @@ async function handleGetAdminPosts(supabase: any, searchParams: URLSearchParams)
   )
 }
 
-async function handleCreatePost(supabase: any, postData: any) {
+async function handleCreatePost(supabase: any, postData: any, corsHeaders: Record<string, string>) {
   const { title, content, status } = postData
   
   const newPost = {
@@ -760,7 +772,7 @@ async function handleCreatePost(supabase: any, postData: any) {
   )
 }
 
-async function handleUpdatePost(supabase: any, id: string, postData: any) {
+async function handleUpdatePost(supabase: any, id: string, postData: any, corsHeaders: Record<string, string>) {
   const { title, content, status } = postData
   
   const updateData = {
@@ -788,7 +800,7 @@ async function handleUpdatePost(supabase: any, id: string, postData: any) {
   )
 }
 
-async function handleDeletePost(supabase: any, id: string) {
+async function handleDeletePost(supabase: any, id: string, corsHeaders: Record<string, string>) {
   const { error } = await supabase
     .from('posts')
     .delete()

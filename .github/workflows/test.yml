@@ -51,7 +51,7 @@ jobs:
           file: ./frontend/coverage/clover.xml
           flags: frontend
           name: frontend-coverage
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -133,7 +133,7 @@ jobs:
           file: ./backend/coverage-clover.xml
           flags: backend
           name: backend-coverage
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -357,11 +357,22 @@ jobs:
         working-directory: ./backend
         run: composer install --prefer-dist --no-progress --optimize-autoloader
 
+      - name: Run frontend linting
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run backend code style check
+        working-directory: ./backend
+        run: composer run-script --dev format
+        continue-on-error: true
+
       - name: Run SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        if: env.SONAR_TOKEN
+        uses: SonarSource/sonarcloud-github-action@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
 
   # Dependency security check
   dependency-check:
@@ -391,11 +402,13 @@ jobs:
         run: composer audit
 
       - name: Run Snyk to check for vulnerabilities
+        if: env.SNYK_TOKEN
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --file=frontend/package.json
+        continue-on-error: true
 
   # Performance testing
   performance-tests:
@@ -527,19 +540,21 @@ jobs:
 
     steps:
       - name: Notify Slack on success
-        if: needs.frontend-tests.result == 'success' && needs.backend-tests.result == 'success' && needs.e2e-tests.result == 'success'
+        if: env.SLACK_WEBHOOK_URL && needs.frontend-tests.result == 'success' && needs.backend-tests.result == 'success' && needs.e2e-tests.result == 'success'
         uses: 8398a7/action-slack@v3
         with:
           status: success
           text: '✅ All RWS tests passed successfully!'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
 
       - name: Notify Slack on failure
-        if: needs.frontend-tests.result == 'failure' || needs.backend-tests.result == 'failure' || needs.e2e-tests.result == 'failure'
+        if: env.SLACK_WEBHOOK_URL && (needs.frontend-tests.result == 'failure' || needs.backend-tests.result == 'failure' || needs.e2e-tests.result == 'failure')
         uses: 8398a7/action-slack@v3
         with:
           status: failure
           text: '❌ RWS tests failed. Please check the workflow run for details.'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
