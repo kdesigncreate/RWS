@@ -23,13 +23,23 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   
   // Default origins for development if none specified
   if (allowedOrigins.length === 0) {
-    allowedOrigins.push('http://localhost:3000', 'http://localhost:3001')
+    allowedOrigins.push(
+      'http://localhost:3000', 
+      'http://localhost:3001',
+      'https://rws-41fcc1u8v-kentas-projects-9fa01438.vercel.app',
+      'https://vercel.app'
+    )
   }
   
-  const isAllowedOrigin = origin && allowedOrigins.includes(origin)
+  // Check if origin is allowed (including wildcard for vercel.app)
+  const isAllowedOrigin = origin && (
+    allowedOrigins.includes(origin) || 
+    origin.endsWith('.vercel.app') ||
+    origin.includes('localhost')
+  )
   
   return {
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : (allowedOrigins[0] || '*'),
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
@@ -377,7 +387,7 @@ serve(async (req: Request) => {
   if (path === '/api/login' && req.method === 'POST') {
     console.log('Login endpoint called - bypassing auth (public endpoint)');
     const loginData = await req.json()
-    return await handleLogin(supabasePublic, loginData, corsHeaders)
+    return await handleLogin(supabaseAdmin || supabasePublic, loginData, corsHeaders)
   }
 
   // Password hash generation endpoint (one-time use)
@@ -443,7 +453,7 @@ serve(async (req: Request) => {
       // Auth routes
       case path === '/api/login' && method === 'POST':
         const loginData = await req.json()
-        return await handleLogin(supabasePublic, loginData, corsHeaders)
+        return await handleLogin(supabaseAdmin || supabasePublic, loginData, corsHeaders)
 
       case path === '/api/logout' && method === 'POST':
         return await handleLogout(corsHeaders)
@@ -587,7 +597,16 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
       )
     }
 
-    // Get user from database
+    // Log which client we're using for debugging
+    const isUsingAdminClient = supabase === supabaseAdmin
+    console.log('Login attempt:', { 
+      email, 
+      hasServiceKey: !!SUPABASE_SERVICE_KEY, 
+      isUsingAdminClient,
+      clientHeaders: supabase?.supabaseKey?.substring(0, 20) + '...'
+    })
+
+    // Get user from database using admin client to bypass RLS
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, name, email, password')
@@ -595,8 +614,12 @@ async function handleLogin(supabase: any, loginData: any, corsHeaders: Record<st
       .single()
 
     if (userError || !user) {
+      console.log('User lookup error:', { userError, email, user })
       return new Response(
-        JSON.stringify({ error: 'ユーザーが見つかりません' }),
+        JSON.stringify({ 
+          error: 'ユーザーが見つかりません',
+          debug: { userError: userError?.message, email, hasServiceKey: !!SUPABASE_SERVICE_KEY }
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 401 
