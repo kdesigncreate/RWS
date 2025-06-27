@@ -22,14 +22,15 @@ interface HeaderProps {
 
 export function Header({ navigationItems = [] }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const defaultNavigationItems = [
-    { href: '#', label: 'Top' },
-    { href: '#posts', label: 'Posts' },
-    { href: '#about', label: 'About' },
-    { href: '#staff', label: 'Staff' },
-    { href: '#price', label: 'Price' },
-    { href: '#schoolList', label: 'School List' },
+    { href: '/', label: 'Top' },
+    { href: '/#posts', label: 'Posts' },
+    { href: '/#about', label: 'About' },
+    { href: '/#staff', label: 'Staff' },
+    { href: '/#price', label: 'Price' },
+    { href: '/#schoolList', label: 'School List' },
   ];
 
   const items = navigationItems.length > 0 ? navigationItems : defaultNavigationItems;
@@ -38,13 +39,19 @@ export function Header({ navigationItems = [] }: HeaderProps) {
     <ul className={`${mobile ? 'flex flex-col space-y-8' : 'hidden lg:flex space-x-8 xl:space-x-12'}`}>
       {items.map((item) => (
         <li key={item.label}>
-          <a 
-            href={item.href} 
-            className="text-white hover:text-gray-300 transition-all duration-300 text-base lg:text-lg font-medium"
-            onClick={() => mobile && setIsOpen(false)}
+          <button
+            onClick={() => {
+              if (mobile) setIsOpen(false);
+              if (item.href.startsWith('/#')) {
+                router.push(item.href);
+              } else {
+                router.push(item.href);
+              }
+            }}
+            className="text-white hover:text-gray-300 transition-all duration-300 text-base lg:text-lg font-medium bg-transparent border-none cursor-pointer"
           >
             {item.label}
-          </a>
+          </button>
         </li>
       ))}
     </ul>

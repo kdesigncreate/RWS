@@ -213,13 +213,14 @@ interface FooterProps {
 }
 
 export function Footer({ navigationItems = [] }: FooterProps) {
+  const router = useRouter();
   const defaultNavigationItems = [
-    { href: '#', label: 'Top' },
-    { href: '#posts', label: 'Posts' },
-    { href: '#about', label: 'About' },
-    { href: '#staff', label: 'Staff' },
-    { href: '#price', label: 'Price' },
-    { href: '#schoolList', label: 'School List' },
+    { href: '/', label: 'Top' },
+    { href: '/#posts', label: 'Posts' },
+    { href: '/#about', label: 'About' },
+    { href: '/#staff', label: 'Staff' },
+    { href: '/#price', label: 'Price' },
+    { href: '/#schoolList', label: 'School List' },
   ];
 
   const items = navigationItems.length > 0 ? navigationItems : defaultNavigationItems;
@@ -235,12 +236,18 @@ export function Footer({ navigationItems = [] }: FooterProps) {
         <ul className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
           {items.map((item) => (
             <li key={item.label}>
-              <a 
-                href={item.href} 
-                className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base"
+              <button
+                onClick={() => {
+                  if (item.href.startsWith('/#')) {
+                    router.push(item.href);
+                  } else {
+                    router.push(item.href);
+                  }
+                }}
+                className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base bg-transparent border-none cursor-pointer"
               >
                 {item.label}
-              </a>
+              </button>
             </li>
           ))}
         </ul>
