@@ -72,6 +72,61 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta httpEquiv="Content-Security-Policy" content="
+          default-src 'self';
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+          font-src 'self' https://fonts.gstatic.com;
+          img-src 'self' data: blob: https:;
+          connect-src 'self' https://vercel.live wss://ws-*.pusher-channels.vercel.app https://vitals.vercel-analytics.com;
+          object-src 'none';
+          base-uri 'self';
+          form-action 'self';
+          frame-ancestors 'none';
+          block-all-mixed-content;
+          upgrade-insecure-requests;
+        " />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            // 強制的にSupabaseアクセスをブロック
+            (function() {
+              const originalFetch = window.fetch;
+              const originalXHR = window.XMLHttpRequest;
+              
+              // Fetch API完全ブロック
+              window.fetch = function(input, init) {
+                const url = typeof input === 'string' ? input : 
+                           input instanceof URL ? input.href : 
+                           input instanceof Request ? input.url : String(input);
+                
+                if (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme')) {
+                  console.error('BLOCKED: Supabase direct access prevented:', url);
+                  return Promise.reject(new Error('Supabase access blocked by CSP'));
+                }
+                
+                return originalFetch.apply(this, arguments);
+              };
+              
+              // XMLHttpRequest完全ブロック
+              window.XMLHttpRequest = function() {
+                const xhr = new originalXHR();
+                const originalOpen = xhr.open;
+                
+                xhr.open = function(method, url, ...args) {
+                  if (typeof url === 'string' && (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme'))) {
+                    console.error('BLOCKED: Supabase XHR access prevented:', url);
+                    throw new Error('Supabase access blocked by CSP');
+                  }
+                  return originalOpen.apply(this, [method, url, ...args]);
+                };
+                
+                return xhr;
+              };
+              
+              console.log('Supabase access blocker initialized');
+            })();
+          `
+        }} />
       </head>
       <body className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}>
         <ErrorBoundary>

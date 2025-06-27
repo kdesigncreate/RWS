@@ -98,6 +98,24 @@ const nextConfig = {
             key: 'Cache-Control',
             value: 'no-cache, no-store, must-revalidate, max-age=0',
           },
+          {
+            // Content Security Policy でSupabaseドメインをブロック
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https:",
+              "connect-src 'self' https://vercel.live wss://ws-*.pusher-channels.vercel.app https://vitals.vercel-analytics.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "block-all-mixed-content",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
         ],
       },
     ];
