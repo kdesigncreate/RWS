@@ -3,85 +3,7 @@ import type { ApiError, ApiEndpoints } from '@/types/api';
 import { AppError, ErrorUtils, ErrorType } from '@/lib/errors';
 
 // 環境変数から設定を取得
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
-
-// デバッグ: 環境変数の確認
-if (typeof window !== 'undefined') {
-  console.log('DEBUG: API_BASE_URL =', API_BASE_URL);
-  console.log('DEBUG: NEXT_PUBLIC_API_BASE_URL =', process.env.NEXT_PUBLIC_API_BASE_URL);
-  
-  // 古いSupabase設定とブラウザキャッシュをクリア
-  try {
-    // LocalStorageのクリア
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.includes('supabase') || key.includes('sb-'))) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    // SessionStorageのクリア
-    const sessionKeysToRemove = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key && (key.includes('supabase') || key.includes('sb-'))) {
-        sessionKeysToRemove.push(key);
-      }
-    }
-    sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
-    
-    if (keysToRemove.length > 0 || sessionKeysToRemove.length > 0) {
-      console.log('Cleared old Supabase settings:', { localStorage: keysToRemove, sessionStorage: sessionKeysToRemove });
-    }
-  } catch (error) {
-    console.warn('Could not clear storage:', error);
-  }
-  
-  // グローバルfetchインターセプト（緊急対応）
-  const originalFetch = window.fetch;
-  window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
-    let url: string;
-    
-    if (typeof input === 'string') {
-      url = input;
-    } else if (input instanceof URL) {
-      url = input.href;
-    } else {
-      url = input.url;
-    }
-    
-    // すべてのSupabase直接呼び出しをブロック
-    if (url.includes('ixrwzaasrxoshjnpxnme.supabase.co/rest/v1/') || url.includes('.supabase.co/rest/v1/')) {
-      console.warn('GLOBAL INTERCEPTED: Blocking Supabase direct access, redirecting to our API');
-      
-      // URLを解析してエンドポイントを特定
-      if (url.includes('/rest/v1/login') || url.includes('/auth/v1/token')) {
-        url = '/api/login';
-      } else if (url.includes('/rest/v1/logout')) {
-        url = '/api/logout';
-      } else if (url.includes('/rest/v1/user')) {
-        url = '/api/user';
-      } else {
-        // その他のSupabase呼び出しをブロック
-        console.error('BLOCKED: Unsupported Supabase direct access to:', url);
-        return Promise.reject(new Error('Direct Supabase access is not allowed. Please use the API endpoints.'));
-      }
-      
-      input = url;
-      
-      // 適切なヘッダーを設定
-      if (!init) init = {};
-      if (!init.headers) init.headers = {};
-      const headers = init.headers as Record<string, string>;
-      headers['Content-Type'] = 'application/json';
-      headers['Accept'] = 'application/json';
-    }
-    
-    return originalFetch.call(this, input, init);
-  };
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 // API エンドポイント定義
 export const apiEndpoints: ApiEndpoints = {
@@ -105,20 +27,14 @@ export const apiEndpoints: ApiEndpoints = {
 
 // Axios インスタンスの作成
 export const api: AxiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    withCredentials: false,
-  });
-
-// デバッグ: Axiosインスタンスの設定確認
-if (typeof window !== 'undefined') {
-  console.log('DEBUG: Axios instance baseURL =', api.defaults.baseURL);
-  console.log('DEBUG: Axios headers =', api.defaults.headers);
-}
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  withCredentials: false,
+});
 
 // トークン管理
 export const setAuthToken = (token: string | null) => {
@@ -147,33 +63,6 @@ api.interceptors.request.use(
     // リクエストログ（開発環境のみ）
     if (process.env.NODE_ENV === 'development') {
       console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    }
-    
-    // デバッグ: 実際のリクエストURL確認
-    console.log('DEBUG: Full request URL =', (config.baseURL || '') + (config.url || ''));
-    console.log('DEBUG: Request config =', config);
-    
-    // 緊急対応: Supabase直接アクセスを我々のAPIに強制リダイレクト
-    if (config.url && (config.url.includes('ixrwzaasrxoshjnpxnme.supabase.co') || config.url.includes('.supabase.co/rest/v1/'))) {
-      console.warn('AXIOS INTERCEPTED: Supabase direct access detected, redirecting to our API');
-      config.baseURL = '/api';
-      
-      if (config.url.includes('/rest/v1/login') || config.url.includes('/auth/v1/token')) {
-        config.url = '/login';
-      } else if (config.url.includes('/rest/v1/logout')) {
-        config.url = '/logout';
-      } else if (config.url.includes('/rest/v1/user')) {
-        config.url = '/user';
-      } else {
-        console.error('AXIOS BLOCKED: Unsupported Supabase direct access to:', config.url);
-        return Promise.reject(new Error('Direct Supabase access is not allowed. Please use the API endpoints.'));
-      }
-      
-      // 不要なヘッダーを削除
-      if (config.headers) {
-        delete config.headers['apikey'];
-        delete config.headers['Authorization'];
-      }
     }
     
     return config;
