@@ -170,7 +170,9 @@ export function usePosts(): UsePostsReturn {
         loading: false,
       }));
     } catch (error) {
+      console.error('fetchAdminPost error:', error);
       const apiError = handleApiError(error);
+      console.error('API Error details:', apiError);
       setError(apiError.message);
       setLoading(false);
     }

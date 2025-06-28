@@ -49,6 +49,7 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
   // 記事データの取得（編集時のみ）
   useEffect(() => {
     if (isEditing && postId && !isNaN(postId)) {
+      console.log('Fetching admin post with ID:', postId);
       fetchAdminPost(postId);
     }
   }, [isEditing, postId, fetchAdminPost]);
