@@ -216,7 +216,7 @@ export function Footer({ navigationItems = [] }: FooterProps) {
   const router = useRouter();
   const defaultNavigationItems = [
     { href: '/', label: 'Top' },
-    { href: '/#posts', label: 'Posts' },
+    { href: '/#posts', label: 'News' },
     { href: '/#about', label: 'About' },
     { href: '/#staff', label: 'Staff' },
     { href: '/#price', label: 'Price' },

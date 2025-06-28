@@ -26,7 +26,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
 
   const defaultNavigationItems = [
     { href: '/', label: 'Top' },
-    { href: '/#posts', label: 'Posts' },
+    { href: '/#posts', label: 'News' },
     { href: '/#about', label: 'About' },
     { href: '/#staff', label: 'Staff' },
     { href: '/#price', label: 'Price' },
