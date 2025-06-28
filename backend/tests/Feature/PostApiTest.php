@@ -22,7 +22,7 @@ class PostApiTest extends TestCase
         $this->adminUser = User::factory()->create([
             'name' => 'Test Admin',
             'email' => 'admin@test.com',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('TestPassword123!'),
             'email_verified_at' => now(),
         ]);
 
@@ -512,5 +512,209 @@ class PostApiTest extends TestCase
             ->assertJson([
                 'message' => '記事が見つかりません',
             ]);
+    }
+
+    // ======================
+    // 公開日時変更機能のテスト
+    // ======================
+
+    /**
+     * 新規記事作成時の公開日時設定テスト
+     */
+    public function test_published_at_is_set_when_creating_published_post(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $postData = [
+            'title' => 'Published Post',
+            'content' => 'This post should have published_at set.',
+            'status' => 'published',
+        ];
+
+        $response = $this->postJson('/api/admin/posts', $postData);
+
+        $response->assertStatus(201);
+        $post = $response->json('data');
+
+        // 公開記事には published_at が設定されている
+        $this->assertNotNull($post['published_at']);
+        
+        // データベースでも確認
+        $this->assertDatabaseHas('posts', [
+            'id' => $post['id'],
+            'status' => 'published',
+        ]);
+        
+        $createdPost = Post::find($post['id']);
+        $this->assertNotNull($createdPost->published_at);
+    }
+
+    /**
+     * 新規記事作成時の下書きでは公開日時が設定されないテスト
+     */
+    public function test_published_at_is_null_when_creating_draft_post(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $postData = [
+            'title' => 'Draft Post',
+            'content' => 'This post should not have published_at set.',
+            'status' => 'draft',
+        ];
+
+        $response = $this->postJson('/api/admin/posts', $postData);
+
+        $response->assertStatus(201);
+        $post = $response->json('data');
+
+        // 下書き記事は published_at が null
+        $this->assertNull($post['published_at']);
+        
+        // データベースでも確認
+        $createdPost = Post::find($post['id']);
+        $this->assertNull($createdPost->published_at);
+    }
+
+    /**
+     * 下書きから公開に変更時の公開日時設定テスト
+     */
+    public function test_published_at_is_set_when_changing_draft_to_published(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        // 下書き記事を作成
+        $draftPost = Post::factory()->draft()->create([
+            'user_id' => $this->adminUser->id,
+            'published_at' => null,
+        ]);
+
+        $this->assertNull($draftPost->published_at);
+
+        // 下書きから公開に変更
+        $updateData = [
+            'title' => $draftPost->title,
+            'content' => $draftPost->content,
+            'status' => 'published',
+        ];
+
+        $response = $this->putJson("/api/admin/posts/{$draftPost->id}", $updateData);
+
+        $response->assertStatus(200);
+        $updatedPost = $response->json('data');
+
+        // 公開に変更した際に published_at が設定される
+        $this->assertNotNull($updatedPost['published_at']);
+        
+        // データベースでも確認
+        $draftPost->refresh();
+        $this->assertNotNull($draftPost->published_at);
+        $this->assertEquals('published', $draftPost->status);
+    }
+
+    /**
+     * 公開記事を編集時に公開日時が保持されるテスト
+     */
+    public function test_published_at_is_preserved_when_updating_published_post(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        // 公開記事を作成
+        $publishedPost = Post::factory()->published()->create([
+            'user_id' => $this->adminUser->id,
+            'published_at' => now()->subHours(2), // 2時間前に公開
+        ]);
+
+        $originalPublishedAt = $publishedPost->published_at;
+
+        // 公開記事の内容を更新（ステータスは公開のまま）
+        $updateData = [
+            'title' => 'Updated Published Post',
+            'content' => 'Updated content for published post.',
+            'status' => 'published',
+        ];
+
+        $response = $this->putJson("/api/admin/posts/{$publishedPost->id}", $updateData);
+
+        $response->assertStatus(200);
+        $updatedPost = $response->json('data');
+
+        // published_at が元の値のまま保持されている
+        $this->assertEquals($originalPublishedAt->toISOString(), $updatedPost['published_at']);
+        
+        // データベースでも確認
+        $publishedPost->refresh();
+        $this->assertTrue($originalPublishedAt->equalTo($publishedPost->published_at));
+        $this->assertEquals('Updated Published Post', $publishedPost->title);
+    }
+
+    /**
+     * 公開記事を下書きに変更時の公開日時クリアテスト
+     */
+    public function test_published_at_is_cleared_when_changing_published_to_draft(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        // 公開記事を作成
+        $publishedPost = Post::factory()->published()->create([
+            'user_id' => $this->adminUser->id,
+            'published_at' => now()->subDay(), // 1日前に公開
+        ]);
+
+        $this->assertNotNull($publishedPost->published_at);
+
+        // 公開から下書きに変更
+        $updateData = [
+            'title' => $publishedPost->title,
+            'content' => $publishedPost->content,
+            'status' => 'draft',
+        ];
+
+        $response = $this->putJson("/api/admin/posts/{$publishedPost->id}", $updateData);
+
+        $response->assertStatus(200);
+        $updatedPost = $response->json('data');
+
+        // 下書きに変更した際に published_at が null になる
+        $this->assertNull($updatedPost['published_at']);
+        
+        // データベースでも確認
+        $publishedPost->refresh();
+        $this->assertNull($publishedPost->published_at);
+        $this->assertEquals('draft', $publishedPost->status);
+    }
+
+    /**
+     * 公開記事を再度公開に設定時の公開日時保持テスト
+     */
+    public function test_published_at_is_preserved_when_published_post_remains_published(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        // 公開記事を作成
+        $publishedPost = Post::factory()->published()->create([
+            'user_id' => $this->adminUser->id,
+            'published_at' => now()->subWeek(), // 1週間前に公開
+        ]);
+
+        $originalPublishedAt = $publishedPost->published_at;
+
+        // 公開記事を編集（ステータスは公開のまま）
+        $updateData = [
+            'title' => 'Re-published Post',
+            'content' => 'Content updated but still published.',
+            'status' => 'published',
+        ];
+
+        $response = $this->putJson("/api/admin/posts/{$publishedPost->id}", $updateData);
+
+        $response->assertStatus(200);
+        $updatedPost = $response->json('data');
+
+        // 元の公開日時が保持されている（新しい日時に更新されない）
+        $this->assertEquals($originalPublishedAt->toISOString(), $updatedPost['published_at']);
+        
+        // データベースでも確認
+        $publishedPost->refresh();
+        $this->assertTrue($originalPublishedAt->equalTo($publishedPost->published_at));
     }
 }

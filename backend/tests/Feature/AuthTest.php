@@ -18,12 +18,14 @@ class AuthTest extends TestCase
         parent::setUp();
 
         // テスト用管理者ユーザーを作成
+        $testPassword = 'TestPassword123!';
         $this->adminUser = User::factory()->create([
             'name' => 'Test Admin',
             'email' => 'admin@test.com',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($testPassword),
             'email_verified_at' => now(),
         ]);
+        $this->testPassword = $testPassword;
     }
 
     /**
@@ -33,7 +35,7 @@ class AuthTest extends TestCase
     {
         $response = $this->postJson('/api/login', [
             'email' => 'admin@test.com',
-            'password' => 'password123',
+            'password' => $this->testPassword,
         ]);
 
         $response->assertStatus(200)

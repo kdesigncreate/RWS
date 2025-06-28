@@ -17,6 +17,8 @@ class Post extends Model
     public const STATUS_DRAFT = 'draft';
 
     public const STATUS_PUBLISHED = 'published';
+    
+    public const STATUS_ARCHIVED = 'archived'; // Supabaseで追加されたステータス
 
     /**
      * 一括代入可能な属性
@@ -30,6 +32,10 @@ class Post extends Model
         'status',
         'published_at',
         'user_id',
+        'slug', // Supabaseで追加されたフィールド
+        'featured_image', // Supabaseで追加されたフィールド
+        'is_published', // Supabaseで追加されたフィールド
+        'is_draft', // Supabaseで追加されたフィールド
     ];
 
     /**
@@ -41,6 +47,8 @@ class Post extends Model
         'published_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'is_published' => 'boolean', // Supabaseで追加されたフィールド
+        'is_draft' => 'boolean', // Supabaseで追加されたフィールド
     ];
 
     /**
