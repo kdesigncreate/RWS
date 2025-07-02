@@ -143,4 +143,251 @@ describe('Error Handling', () => {
     
     expect(result.message).toBe('予期しないエラーが発生しました');
   });
+});
+
+describe('Post API Operations', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Published Date Handling', () => {
+    it('should handle post creation with published status', async () => {
+      const mockPostData = {
+        title: 'Test Published Post',
+        content: 'Test content for published post',
+        status: 'published',
+      };
+
+      const mockResponse = {
+        data: {
+          data: {
+            id: 1,
+            title: 'Test Published Post',
+            content: 'Test content for published post',
+            status: 'published',
+            published_at: '2023-01-01T10:00:00.000Z',
+            published_at_formatted: '2023/1/1',
+            is_published: true,
+            is_draft: false,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T10:00:00.000Z',
+          }
+        }
+      };
+
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const response = await api.post(apiEndpoints.adminPosts, mockPostData);
+      const post = response.data.data;
+
+      expect(post.published_at).toBeTruthy();
+      expect(post.is_published).toBe(true);
+      expect(post.is_draft).toBe(false);
+    });
+
+    it('should handle post creation with draft status', async () => {
+      const mockPostData = {
+        title: 'Test Draft Post',
+        content: 'Test content for draft post',
+        status: 'draft',
+      };
+
+      const mockResponse = {
+        data: {
+          data: {
+            id: 2,
+            title: 'Test Draft Post',
+            content: 'Test content for draft post',
+            status: 'draft',
+            published_at: null,
+            published_at_formatted: null,
+            is_published: false,
+            is_draft: true,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T10:00:00.000Z',
+          }
+        }
+      };
+
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const response = await api.post(apiEndpoints.adminPosts, mockPostData);
+      const post = response.data.data;
+
+      expect(post.published_at).toBeNull();
+      expect(post.is_published).toBe(false);
+      expect(post.is_draft).toBe(true);
+    });
+
+    it('should preserve published_at when updating published post', async () => {
+      const originalPublishedAt = '2023-01-01T10:00:00.000Z';
+      const mockUpdateData = {
+        title: 'Updated Published Post',
+        content: 'Updated content',
+        status: 'published',
+      };
+
+      const mockResponse = {
+        data: {
+          data: {
+            id: 1,
+            title: 'Updated Published Post',
+            content: 'Updated content',
+            status: 'published',
+            published_at: originalPublishedAt, // 元の公開日時が保持される
+            published_at_formatted: '2023/1/1',
+            is_published: true,
+            is_draft: false,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T11:00:00.000Z', // 更新日時のみ変更
+          }
+        }
+      };
+
+      mockedAxios.put.mockResolvedValue(mockResponse);
+
+      const response = await api.put(apiEndpoints.adminPost(1), mockUpdateData);
+      const post = response.data.data;
+
+      expect(post.published_at).toBe(originalPublishedAt);
+      expect(post.updated_at).not.toBe(post.created_at);
+    });
+
+    it('should clear published_at when changing from published to draft', async () => {
+      const mockUpdateData = {
+        title: 'Changed to Draft',
+        content: 'This post is now a draft',
+        status: 'draft',
+      };
+
+      const mockResponse = {
+        data: {
+          data: {
+            id: 1,
+            title: 'Changed to Draft',
+            content: 'This post is now a draft',
+            status: 'draft',
+            published_at: null, // 公開日時がクリアされる
+            published_at_formatted: null,
+            is_published: false,
+            is_draft: true,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T11:00:00.000Z',
+          }
+        }
+      };
+
+      mockedAxios.put.mockResolvedValue(mockResponse);
+
+      const response = await api.put(apiEndpoints.adminPost(1), mockUpdateData);
+      const post = response.data.data;
+
+      expect(post.published_at).toBeNull();
+      expect(post.is_published).toBe(false);
+      expect(post.is_draft).toBe(true);
+    });
+
+    it('should set published_at when changing from draft to published', async () => {
+      const mockUpdateData = {
+        title: 'Now Published',
+        content: 'This post is now published',
+        status: 'published',
+      };
+
+      const mockResponse = {
+        data: {
+          data: {
+            id: 2,
+            title: 'Now Published',
+            content: 'This post is now published',
+            status: 'published',
+            published_at: '2023-01-01T12:00:00.000Z', // 新しい公開日時が設定される
+            published_at_formatted: '2023/1/1',
+            is_published: true,
+            is_draft: false,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T12:00:00.000Z',
+          }
+        }
+      };
+
+      mockedAxios.put.mockResolvedValue(mockResponse);
+
+      const response = await api.put(apiEndpoints.adminPost(2), mockUpdateData);
+      const post = response.data.data;
+
+      expect(post.published_at).toBeTruthy();
+      expect(post.is_published).toBe(true);
+      expect(post.is_draft).toBe(false);
+    });
+  });
+
+  describe('Post Data Structure', () => {
+    it('should include all required post fields', async () => {
+      const mockResponse = {
+        data: {
+          data: {
+            id: 1,
+            title: 'Test Post',
+            content: 'Test content',
+            excerpt: 'Test excerpt',
+            status: 'published',
+            status_label: '公開済み',
+            published_at: '2023-01-01T10:00:00.000Z',
+            published_at_formatted: '2023/1/1',
+            is_published: true,
+            is_draft: false,
+            created_at: '2023-01-01T10:00:00.000Z',
+            updated_at: '2023-01-01T10:00:00.000Z',
+            created_at_formatted: '2023/1/1',
+            updated_at_formatted: '2023/1/1',
+            user_id: 1,
+            author: {
+              id: 1,
+              name: 'Admin User',
+              email: 'admin@example.com'
+            },
+            meta: {
+              title_length: 9,
+              content_length: 12,
+              excerpt_length: 12,
+              reading_time_minutes: 1
+            }
+          }
+        }
+      };
+
+      mockedAxios.get.mockResolvedValue(mockResponse);
+
+      const response = await api.get(apiEndpoints.adminPost(1));
+      const post = response.data.data;
+
+      // 基本フィールドの確認
+      expect(post).toHaveProperty('id');
+      expect(post).toHaveProperty('title');
+      expect(post).toHaveProperty('content');
+      expect(post).toHaveProperty('status');
+
+      // 公開日時関連フィールドの確認
+      expect(post).toHaveProperty('published_at');
+      expect(post).toHaveProperty('published_at_formatted');
+      expect(post).toHaveProperty('is_published');
+      expect(post).toHaveProperty('is_draft');
+
+      // 作成・更新日時フィールドの確認
+      expect(post).toHaveProperty('created_at');
+      expect(post).toHaveProperty('updated_at');
+      expect(post).toHaveProperty('created_at_formatted');
+      expect(post).toHaveProperty('updated_at_formatted');
+
+      // 作者情報の確認
+      expect(post).toHaveProperty('author');
+      expect(post.author).toHaveProperty('id');
+      expect(post.author).toHaveProperty('name');
+
+      // メタ情報の確認
+      expect(post).toHaveProperty('meta');
+      expect(post.meta).toHaveProperty('reading_time_minutes');
+    });
+  });
 }); 

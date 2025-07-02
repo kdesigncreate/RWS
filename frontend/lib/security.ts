@@ -26,18 +26,6 @@ export const SECURITY_CONFIG = {
   // レート制限
   API_RATE_LIMIT: 100, // 1分間のリクエスト数
   LOGIN_RATE_LIMIT: 5, // 1分間のログイン試行数
-  
-  // セキュリティヘッダー
-  CONTENT_SECURITY_POLICY: {
-    'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-    'font-src': ["'self'", 'https://fonts.gstatic.com'],
-    'img-src': ["'self'", 'data:', 'https:'],
-    'connect-src': ["'self'", 'https://*.vercel.app', 'https://rws-ruddy.vercel.app', 'https://vercel.live', 'https://ws-ap1.pusher-channels.com', 'wss://ws-ap1.pusher-channels.com', 'https://vitals.vercel-analytics.com'],
-    'form-action': ["'self'"],
-    'base-uri': ["'self'"],
-  },
 } as const;
 
 // 入力サニタイゼーション
@@ -574,21 +562,4 @@ if (typeof window !== 'undefined') {
     RateLimiter.cleanup();
     BruteForceProtection.cleanup();
   }, 5 * 60 * 1000);
-}
-
-// セキュリティヘッダーの生成
-export function generateSecurityHeaders(): Record<string, string> {
-  const csp = Object.entries(SECURITY_CONFIG.CONTENT_SECURITY_POLICY)
-    .map(([directive, sources]) => `${directive} ${sources.join(' ')}`)
-    .join('; ');
-
-  return {
-    'Content-Security-Policy': csp,
-    'X-Frame-Options': 'DENY',
-    'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-    'X-XSS-Protection': '1; mode=block',
-  };
 }

@@ -1,5 +1,5 @@
 {
-  "devDependencies": {
-    "supabase": "^2.26.9"
+  "dependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2"
   }
 }

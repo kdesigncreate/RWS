@@ -72,19 +72,6 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta httpEquiv="Content-Security-Policy" content="
-          default-src 'self';
-          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live;
-          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-          font-src 'self' https://fonts.gstatic.com;
-          img-src 'self' data: blob: https:;
-          connect-src 'self' https://*.vercel.app https://rws-ruddy.vercel.app https://vercel.live https://ws-ap1.pusher-channels.com wss://ws-ap1.pusher-channels.com https://vitals.vercel-analytics.com;
-          object-src 'none';
-          base-uri 'self';
-          form-action 'self';
-          block-all-mixed-content;
-          upgrade-insecure-requests;
-        " />
         <script dangerouslySetInnerHTML={{
           __html: `
             // 強制的にSupabaseアクセスをブロック

@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 /**
  * シンプルなフッターコンポーネント
@@ -221,6 +222,7 @@ export function Footer({ navigationItems = [] }: FooterProps) {
     { href: '/#staff', label: 'Staff' },
     { href: '/#price', label: 'Price' },
     { href: '/#schoolList', label: 'School List' },
+    { href: '/#videos', label: 'Videos' },
   ];
 
   const items = navigationItems.length > 0 ? navigationItems : defaultNavigationItems;
@@ -229,7 +231,16 @@ export function Footer({ navigationItems = [] }: FooterProps) {
     <footer className="bg-black text-white py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="mb-6 sm:mb-8">
-          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">R.W.S ドリブル塾</h3>
+          <Link href="/">
+            <Image 
+              src="/images/logo_black_removebg.png" 
+              alt="R.W.S ドリブル塾" 
+              width={192}
+              height={48}
+              className="h-8 sm:h-10 lg:h-12 w-auto mx-auto"
+              priority
+            />
+          </Link>
           <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">サッカーのドリブル技術向上を目的としたスクール</p>
         </div>
         <Separator className="bg-gray-800 mb-6 sm:mb-8" />

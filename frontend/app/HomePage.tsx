@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { MapPin, Users, Star, Calendar, Award } from 'lucide-react';
+import { MapPin, Users, Star, Calendar, Award, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { ErrorDisplay } from '@/components/common/ErrorDisplay';
 import { Header } from '@/components/common/Header';
 import { Footer } from '@/components/common/Footer';
 import { generateStructuredData } from '@/lib/metadata';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 export default function HomePage() {
   const { posts, loading, error, fetchPublicPosts } = usePosts();
@@ -25,53 +26,185 @@ export default function HomePage() {
 
   const staffMembers = [
     {
-      name: '森陰　修平',
-      position: '代表',
-      image: '/images/IMG_0332.jpeg',
+      name: '香村 正幸（かむらコーチ）',
+      position: '神奈川支部代表',
+      image: '/images/staff_kamura.jpeg',
+      instagram: 'https://www.instagram.com/masayuki_kamura/',
       schedule: [
-        '毎週月曜日…西大宮校メインコーチ',
-        '毎週火曜日…美園校メインコーチ',
-        '毎週水曜日…戸田校メインコーチ',
-        '毎週木曜日…江戸川メインコーチ',
-        '毎週金曜日…鶴ヶ島校メインコーチ',
+        '毎週月曜日…瀬谷校メインコーチ',
+        '毎週火曜日…東神奈川校メインコーチ',
+        '毎週水曜日…相模原校メインコーチ',
+        '毎週木曜日…瀬谷校メインコーチ',
+        '毎週金曜日…元町校メインコーチ',
+        'エリートクラス校↓↓',
+        '毎週月曜日…瀬谷校会場　※19時から',
+        '毎週金曜日…元町校会場　※19時から',
       ]
     },
     {
-      name: '森陰　修平',
-      position: '代表',
-      image: '/images/IMG_0333.jpeg',
+      name: '高橋 千春（はるコーチ）',
+      position: '',
+      image: '/images/staff_haru.jpeg',
+      instagram: 'https://www.instagram.com/rws.takahashi?igsh=OGQ5ZDc2ODk2ZA==',
       schedule: [
-        '毎週月曜日…西大宮校メインコーチ',
-        '毎週火曜日…美園校メインコーチ',
-        '毎週水曜日…戸田校メインコーチ',
-        '毎週木曜日…江戸川メインコーチ',
-        '毎週金曜日…鶴ヶ島校メインコーチ',
+        '毎週月曜日…厚木校メインコーチ',
+        '毎週火曜日…橋本校メインコーチ',
+        '毎週水曜日…平塚校メインコーチ',
+        '毎週木曜日…小田原校メインコーチ',
+        '毎週金曜日…厚木校メインコーチ',
       ]
     },
     {
-      name: '森陰　修平',
-      position: '代表',
-      image: '/images/IMG_0333.jpeg',
+      name: '種山 健太（けんたコーチ）',
+      position: '',
+      image: '/images/staff_kenta.jpeg',
+      instagram: 'https://www.instagram.com/rws_kenta?igsh=MWdleWdhNW9uazRtYg%3D%3D&utm_source=qr',
       schedule: [
-        '毎週月曜日…西大宮校メインコーチ',
-        '毎週火曜日…美園校メインコーチ',
-        '毎週水曜日…戸田校メインコーチ',
-        '毎週木曜日…江戸川メインコーチ',
-        '毎週金曜日…鶴ヶ島校メインコーチ',
+        '毎週月曜日…東戸塚校メインコーチ',
+        '毎週火曜日…座間校メインコーチ',
+        '毎週水曜日…海老名校メインコーチ',
+        '毎週木曜日…富士校メインコーチ',
+        '毎週金曜日…相模原校メインコーチ',
+      ]
+    },
+    {
+      name: '宗像 ひろき（ひろコーチ）',
+      position: '',
+      image: '/images/staff_hiro.jpeg',
+      instagram: 'https://www.instagram.com/rws.hiro?igsh=eDU5a3h4OWZtZ2Z4&utm_source=qr',
+      schedule: [
+        '毎週月曜日…茅ヶ崎校メインコーチ',
+        '毎週火曜日…瀬谷校メインコーチ',
+        '毎週水曜日…戸塚校メインコーチ',
+        '毎週木曜日…平塚校メインコーチ',
       ]
     },
   ];
 
-  const schoolList = [
-    '埼玉・東京スクール',
-    '千葉・茨城スクール',
-    '神奈川・愛知スクール',
-    '大阪・兵庫スクール',
-    '京都・滋賀スクール',
-    '福岡・佐賀スクール',
-    '新潟・静岡スクール',
-    '栃木・岐阜スクール',
-    '宮城・愛媛スクール',
+  // 地域ごとのスクールリスト
+  const schoolAreas = [
+    {
+      area: '横浜市',
+      schools: [
+        {
+          name: '瀬谷校…(月)',
+          place: 'TAKA FIELD YOKOHAMA',
+          time: '17時〜18時30分',
+          elite: 'エリートクラス…19時〜20時30分'
+        },
+        {
+          name: '瀬谷校 (火)(木)',
+          place: 'TAKA FIELD YOKOHAMA',
+          time: '18時〜20時'
+        },
+        {
+          name: '東神奈川校(火)',
+          place: 'ノア・フットサルステージ横浜',
+          time: '17時30分~19時30分'
+        },
+        {
+          name: '元町校(金)',
+          place: 'スポルティーヴォ横浜元町',
+          time: '17時〜18時30分',
+          elite: 'エリートクラス…19時〜20時30分'
+        },
+        {
+          name: '東戸塚校…(月)',
+          place: 'KPI PARKフットサルコート',
+          time: '18時〜20時'
+        },
+        {
+          name: '戸塚校…(水)',
+          place: 'スポーツフィールド戸塚',
+          time: '17時〜19時'
+        },
+      ]
+    },
+    {
+      area: '相模原市',
+      schools: [
+        {
+          name: '相模原校…(水)',
+          place: 'WindsLife 相模原フィールド',
+          time: '16時30分〜18時'
+        },
+        {
+          name: '橋本校…(火)',
+          place: 'ルネサンス橋本',
+          time: '18時〜20時'
+        },
+        {
+          name: '座間校…(火)',
+          place: 'ティダスポーツパーク',
+          time: '17時〜19時'
+        },
+        {
+          name: '相模原校…(金)',
+          place: 'MSA ENERGY PARK CON REGALIA',
+          time: '17時30分〜19時30分'
+        },
+      ]
+    },
+    {
+      area: '平塚市',
+      schools: [
+        {
+          name: '平塚校…(水)(木)',
+          place: 'コロナフットボールパーク湘南平塚',
+          time: '17時〜19時'
+        },
+      ]
+    },
+    {
+      area: '厚木市',
+      schools: [
+        {
+          name: '厚木校…(月)(金)',
+          place: '厚木インドアフットボールクラブ',
+          time: '18時〜20時'
+        },
+      ]
+    },
+    {
+      area: '海老名市',
+      schools: [
+        {
+          name: '海老名校…(水)',
+          place: '海老名フットサルアリーナ',
+          time: '18時〜20時'
+        },
+      ]
+    },
+    {
+      area: '茅ヶ崎市',
+      schools: [
+        {
+          name: '茅ヶ崎校…(月)',
+          place: '岡崎慎司フットサルフィールド',
+          time: '17時〜19時'
+        },
+      ]
+    },
+    {
+      area: '小田原市',
+      schools: [
+        {
+          name: '小田原校…(木)',
+          place: 'Futsal Point小田原',
+          time: '18時〜20時'
+        },
+      ]
+    },
+    {
+      area: '静岡県',
+      schools: [
+        {
+          name: '富士校…(木)',
+          place: 'ソレイユインドアスポーツプラザ',
+          time: '18時～20時'
+        },
+      ]
+    },
   ];
 
   // 構造化データの設定
@@ -188,61 +321,42 @@ export default function HomePage() {
           </section>
 
           {/* About セクション */}
-          <section id="about" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">About</h2>
-                <p className="text-gray-600 text-base sm:text-lg lg:text-xl">R.W.Sドリブル塾について</p>
+          <section id="about" className="py-16 bg-gray-50">
+            <div className="container mx-auto px-4 flex flex-col lg:flex-row items-center gap-12">
+              {/* 画像 */}
+              <div className="flex-1 relative">
+                <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200">
+                  <Image
+                    src="/images/about.jpeg"
+                    alt="R.W.S ドリブル塾について"
+                    width={500}
+                    height={350}
+                    className="object-cover w-full h-full"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-transparent"></div>
+                </div>
               </div>
-              <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-12">
-                <Card className="p-6 sm:p-8 lg:p-12 bg-white shadow-xl">
-                  <CardContent>
-                    <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-12">
-                      <div className="flex-1">
-                        <Image 
-                          src="/images/about.jpeg" 
-                          alt="R.W.S ドリブル塾について - サッカードリブル指導の様子" 
-                          width={400}
-                          height={300}
-                          className="w-full max-w-md mx-auto rounded-lg shadow-lg"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 leading-relaxed font-medium">
-                          『練習する事.チャレンジするだけでは意味がない.練習し続ける事.チャレンジし続ける事』に意味がある。
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
-                <Card>
-                  <CardHeader className="text-center pb-4 sm:pb-6">
-                    <div className="mx-auto mb-4 sm:mb-6 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                      <MapPin className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-lg sm:text-xl lg:text-2xl">全国でスクールを開催</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 sm:px-6">
-                    <p className="text-gray-700 leading-relaxed text-center text-sm sm:text-base">
-                      設立から6年で埼玉・東京・千葉・茨城・新潟・大阪・兵庫・神奈川・愛知・岐阜・鹿児島・静岡・栃木・京都・滋賀・三重・奈良・福岡・佐賀・宮城・愛媛にて設立から6年で2,000名のスクール生が在籍※受講者数は6年で20,000名以上。
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="text-center pb-4 sm:pb-6">
-                    <div className="mx-auto mb-4 sm:mb-6 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-green-100 rounded-full flex items-center justify-center">
-                      <Award className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-green-600" />
-                    </div>
-                    <CardTitle className="text-lg sm:text-xl lg:text-2xl">R.W.S独自の練習メニュー</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 sm:px-6">
-                    <p className="text-gray-700 leading-relaxed text-center text-sm sm:text-base">
-                      【独自】の練習メニュー（特殊なボールを使ったトレーニングR・W・Sオリジナルコーンドリブルなど）で入会当初は最初全く出来なかったお子様がJリーグ下部組織.海外のクラブチームに合格者を輩出。人間生の部分でも、普段学校では自ら発言をしないお子様が発言をするようになったりと学校生活でも変化が…
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* テキスト */}
+              <div className="flex-1 bg-white/80 rounded-2xl shadow-lg p-8">
+                <h2 className="text-3xl font-bold mb-4 text-blue-700 border-l-4 border-blue-400 pl-4">About</h2>
+                <p className="text-lg text-gray-700 font-semibold mb-4">
+                  『練習する事・チャレンジするだけでは意味がない。<br />
+                  <span className="text-blue-600 font-bold">練習し続ける事・チャレンジし続ける事</span>に意味がある。』
+                </p>
+                <ul className="mt-6 space-y-2">
+                  <li className="flex items-center">
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    全国で2,000名以上のスクール生が在籍
+                  </li>
+                  <li className="flex items-center">
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Jリーグ下部組織・海外クラブ合格者多数
+                  </li>
+                  <li className="flex items-center">
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    人間性・学校生活でも成長を実感
+                  </li>
+                </ul>
               </div>
             </div>
           </section>
@@ -266,23 +380,33 @@ export default function HomePage() {
                         <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-2">{staff.name}</h3>
                         <Badge variant="outline" className="mb-4 text-xs sm:text-sm">{staff.position}</Badge>
                       </div>
-                      <div className="space-y-2 sm:space-y-3">
-                        <p className="font-medium text-gray-800 text-center text-sm sm:text-base">□担当校</p>
+                      <div className="text-center font-medium text-gray-800 text-base mb-2">担当校</div>
+                      <ul className="flex flex-col items-center space-y-1 mb-6">
                         {staff.schedule.map((item, idx) => (
-                          <div key={idx} className="flex items-start text-xs sm:text-sm text-gray-700 leading-relaxed">
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full mr-2 sm:mr-3 mt-1.5 sm:mt-2 flex-shrink-0"></div>
-                            <span className="flex-1">{item}</span>
-                          </div>
+                          <li key={idx} className="flex items-center text-sm text-gray-700">
+                            <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            <span>{item}</span>
+                          </li>
                         ))}
+                      </ul>
+                      {/* Instagramアイコン - カードの一番下 */}
+                      <div className="text-center border-t pt-4">
+                        <p className="text-sm text-gray-600 mb-3">Instagramはこちらから</p>
+                        <a 
+                          href={staff.instagram} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          aria-label={`${staff.name}のInstagram`}
+                          className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="currentColor"/>
+                          </svg>
+                        </a>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-              <div className="text-center">
-                <Button className="bg-black text-white hover:bg-gray-800 px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base">
-                  Staff一覧
-                </Button>
               </div>
             </div>
           </section>
@@ -296,82 +420,78 @@ export default function HomePage() {
               </div>
               <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
                 {/* 入会金 */}
-                <Card className="shadow-xl">
-                  <CardHeader className="bg-gray-800 text-white rounded-t-lg">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Users className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      入会金
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
+                <Card className="bg-white rounded-2xl shadow-xl p-0">
+                  <div className="bg-gray-800 text-white rounded-t-2xl px-6 py-2 flex items-center text-lg sm:text-xl font-bold">
+                    <Users className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    入会金
+                  </div>
+                  <div className="px-6 pb-6 pt-4">
                     <div className="divide-y">
-                      <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-center py-3 hover:bg-gray-50 transition-colors">
                         <span className="font-medium text-sm sm:text-base">入会金</span>
-                        <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                        <span className="text-right font-semibold text-sm sm:text-base">12,980円（税別）</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-center py-3 hover:bg-gray-50 transition-colors">
                         <span className="font-medium text-sm sm:text-base flex items-center">
                           年会費
                           <Badge variant="secondary" className="ml-2 text-xs">※1</Badge>
                         </span>
-                        <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                        <span className="text-right font-semibold text-sm sm:text-base">11,000円（税別）</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-center py-3 hover:bg-gray-50 transition-colors">
                         <span className="font-medium text-sm sm:text-base flex items-center">
                           スポーツ保険
                           <Badge variant="secondary" className="ml-2 text-xs">※2</Badge>
                         </span>
-                        <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                        <span className="text-right font-semibold text-sm sm:text-base">1,000円（税別）</span>
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
 
                 {/* 教材費 */}
-                <Card className="shadow-xl">
-                  <CardHeader className="bg-gray-800 text-white rounded-t-lg">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Award className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      教材費
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                <Card className="bg-white rounded-2xl shadow-xl p-0">
+                  <div className="bg-gray-800 text-white rounded-t-2xl px-6 py-2 flex items-center text-lg sm:text-xl font-bold">
+                    <Award className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    教材費
+                  </div>
+                  <div className="px-6 pb-6 pt-4">
+                    <div className="flex justify-between items-center py-3 hover:bg-gray-50 transition-colors">
                       <span className="font-medium text-sm sm:text-base flex items-center">
                         指定ウェア
                         <Badge variant="secondary" className="ml-2 text-xs">※3</Badge>
                       </span>
-                      <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                      <span className="text-right font-semibold text-sm sm:text-base">6,500円（税別）</span>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
 
                 {/* 月会費 */}
-                <Card className="shadow-xl">
-                  <CardHeader className="bg-gray-800 text-white rounded-t-lg">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      月会費
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
+                <Card className="bg-white rounded-2xl shadow-xl p-0">
+                  <div className="bg-gray-800 text-white rounded-t-2xl px-6 py-2 flex items-center text-lg sm:text-xl font-bold">
+                    <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    月会費
+                  </div>
+                  <div className="px-6 pb-6 pt-4">
                     <div className="divide-y">
-                      <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
-                        <span className="font-medium text-sm sm:text-base flex items-center">
-                          90分スクール
-                          <Badge variant="secondary" className="ml-2 text-xs">※4</Badge>
-                        </span>
-                        <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                      <div className="py-3 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium text-sm sm:text-base flex items-center">
+                            90分スクール
+                            <Badge variant="secondary" className="ml-2 text-xs">※4</Badge>
+                          </span>
+                          <span className="text-right font-semibold text-sm sm:text-base">8,850円（税別）</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-center py-3 hover:bg-gray-50 transition-colors">
                         <span className="font-medium text-sm sm:text-base flex items-center">
                           120分スクール
-                          <Badge variant="secondary" className="ml-2 text-xs">※4</Badge>
+                          <Badge variant="secondary" className="ml-2 text-xs">※5</Badge>
                         </span>
-                        <span className="text-right font-semibold text-sm sm:text-base">10,000円（税別）</span>
+                        <span className="text-right font-semibold text-sm sm:text-base">9,850円（税別）</span>
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
 
                 <Card className="bg-blue-50 border-blue-200 shadow-lg">
@@ -381,32 +501,10 @@ export default function HomePage() {
                       <p><Badge variant="outline" className="mr-2">※2</Badge>毎年の4月で年度更新となります</p>
                       <p><Badge variant="outline" className="mr-2">※3</Badge>シャツのみの値段です。シャツのみは入会して頂く際に購入して頂く形となります</p>
                       <p><Badge variant="outline" className="mr-2">※4</Badge>ご兄弟様は2人目から兄弟割引で上記の料金から3,000円引き</p>
+                      <p><Badge variant="outline" className="mr-2">※5</Badge>※元町校、エリートクラスは120分スクールとなります</p>
                     </div>
                   </CardContent>
                 </Card>
-
-                <div className="text-center">
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-6 sm:mb-8">その他各スクールも開催しております</h3>
-                  <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {[
-                      { name: 'ドリブル家庭教師', icon: Users },
-                      { name: 'ドリブル少人数特別レッスン', icon: Star },
-                      { name: '１dayスクール', icon: Calendar }
-                    ].map((school, index) => (
-                      <Card key={index}>
-                        <CardContent className="p-4 sm:p-6 text-center">
-                          <div className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                            <school.icon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-                          </div>
-                          <h4 className="text-base sm:text-lg lg:text-xl font-semibold mb-3 sm:mb-4">{school.name}</h4>
-                          <Button className="w-full bg-black text-white hover:bg-gray-800 text-sm sm:text-base">
-                            詳しく見る
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </section>
@@ -419,91 +517,137 @@ export default function HomePage() {
                 <p className="text-gray-600 text-base sm:text-lg lg:text-xl">スクール一覧</p>
               </div>
               <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
-                {schoolList.map((school, index) => (
-                  <Card key={index} className="cursor-pointer">
-                    <CardContent className="p-4 sm:p-6 text-center">
-                      <div className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-green-100 rounded-full flex items-center justify-center">
-                        <MapPin className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-green-600" />
+                {schoolAreas.map((area, idx) => (
+                  <Sheet key={idx}>
+                    <SheetTrigger asChild>
+                      <Card className="cursor-pointer hover:shadow-xl transition-shadow">
+                        <CardContent className="p-4 sm:p-6 text-center">
+                          <div className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-green-100 rounded-full flex items-center justify-center">
+                            <MapPin className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-green-600" />
+                          </div>
+                          <h3 className="text-base sm:text-lg lg:text-xl font-semibold hover:text-blue-600 transition-colors">
+                            {area.area}
+                          </h3>
+                        </CardContent>
+                      </Card>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="max-w-lg w-full flex flex-col">
+                      <SheetHeader className="flex flex-row items-center justify-between">
+                        <SheetTitle>{area.area}のスクール一覧</SheetTitle>
+                        <SheetTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">閉じる</span>
+                          </Button>
+                        </SheetTrigger>
+                      </SheetHeader>
+                      <div className="mt-4 space-y-4 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+                        {area.schools.map((school, sidx) => (
+                          <Card key={sidx} className="border p-4">
+                            <div className="font-bold text-lg mb-1">{school.name}</div>
+                            <div className="text-sm text-gray-700 mb-1">会場名：{school.place}</div>
+                            <div className="text-sm text-gray-700 mb-1">時間：{school.time}</div>
+                            {school.elite && (
+                              <div className="text-xs text-blue-600">{school.elite}</div>
+                            )}
+                          </Card>
+                        ))}
                       </div>
-                      <a href="#" className="block">
-                        <h3 className="text-base sm:text-lg lg:text-xl font-semibold hover:text-blue-600 transition-colors">
-                          {school}
-                        </h3>
-                      </a>
-                    </CardContent>
-                  </Card>
+                    </SheetContent>
+                  </Sheet>
                 ))}
               </div>
             </div>
           </section>
 
           {/* Videos セクション */}
+          <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-white">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">Videos</h2>
+                <p className="text-gray-600 text-base sm:text-lg lg:text-xl">RWSドリブル塾のYouTube動画</p>
+              </div>
+              <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+                <div className="aspect-w-16 aspect-h-9 w-full">
+                  <iframe
+                    width="100%"
+                    height="315"
+                    src="https://www.youtube.com/embed/DQAt2JC6UsY?si=ku2JFoE0oKayXkR3"
+                    title="YouTube video player 1"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="aspect-w-16 aspect-h-9 w-full">
+                  <iframe
+                    width="100%"
+                    height="315"
+                    src="https://www.youtube.com/embed/f1KGe6Ej5Sw?si=-erOYzlIP55mB3CH"
+                    title="YouTube video player 2"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="aspect-w-16 aspect-h-9 w-full">
+                  <iframe
+                    width="100%"
+                    height="315"
+                    src="https://www.youtube.com/embed/_-et071EvuE?si=eOhRMfFcQXgTZN_c"
+                    title="YouTube video player 3"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Present セクション */}
           <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-
-              <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+              <div className="max-w-2xl mx-auto">
                 <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-xl">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 flex items-center justify-center">
-                      全コーチの練習メニュー特典動画️【無料】プレゼント
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                      この度、皆様に日頃の感謝の気持ちを込めて、<br className="hidden sm:block"/>
-                      小学生、中学生にゼッタイにやってほしい練習メニューを<br className="hidden sm:block"/>
-                      14個撮影しました<br/>
-                      なんとそれを…<br/>
-                      無料で皆様にプレゼントさせて頂きます！
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 shadow-xl">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 flex items-center justify-center">
-                      無料動画14個の応募方法
-                    </h3>
-                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                      お客様のお住まいの地域のRWSドリブル塾の公式LINEを追加して頂き<br className="hidden sm:block"/>
-                      『全コーチのプレゼント動画』とメッセージを送るだけです
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="text-center flex items-center justify-center text-lg sm:text-xl">
-                      <MapPin className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                      地域ごとの公式LINEはコチラ↓↓
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                      {[
-                        { region: '関西支部', id: '@769fhryq' },
-                        { region: '北陸支部', id: '@648cqorv' },
-                        { region: '東海支部', id: '@285usnjz' },
-                        { region: '九州支部', id: '@011nqumx' },
-                        { region: '関東支部', id: '@efl1726g' },
-                        { region: '東北支部', id: '@993qnrlr' },
-                        { region: '四国支部', id: '@463iztgr' },
-                      ].map((line, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                          <span className="font-medium text-sm sm:text-base">{line.region}</span>
-                          <Badge variant="outline" className="font-mono text-xs sm:text-sm">{line.id}</Badge>
-                        </div>
-                      ))}
+                  <CardContent className="p-8 text-center space-y-6">
+                    <h3 className="text-2xl font-bold mb-4 text-red-600 flex items-center justify-center">‼️全コーチプレゼント‼️</h3>
+                    <div className="text-xl font-semibold text-yellow-600">⭐️無料で自主練動画27個⭐️</div>
+                    <div className="text-gray-700 leading-relaxed text-base sm:text-lg space-y-2">
+                      <p>この度、YouTubeチャンネル登録、<br/>公式LINEを追加された<br/>お客様になんと…</p>
+                      <p className="font-bold text-lg text-blue-700">RWS全コーチから完全無料で、<br/>27個の自主練動画をプレゼント‼️</p>
+                      <p className="mt-6 font-semibold">□公式LINEアカウント↓↓□</p>
+                      <p className="text-sm text-gray-600">ID検索の場合は@マークを<br/>忘れずにしてください！</p>
+                      <div className="mt-4">
+                        <div className="font-bold text-base">⚫︎神奈川支部の公式LINE↓</div>
+                        <div className="text-sm">ID→<span className="font-mono">@rws.kanagawa</span></div>
+                        <div className="text-sm">URL→ <a href="https://lin.ee/x1gvg8e" className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">https://lin.ee/x1gvg8e</a></div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+          </section>
 
-                <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-red-200 shadow-xl">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <p className="text-gray-700 text-base sm:text-lg">
-                      RWSドリブル塾のYouTubeをチャンネル登録も<br className="hidden sm:block"/>
-                      忘れずにお願い致します！
-                    </p>
-                  </CardContent>
-                </Card>
+          {/* SNS セクション */}
+          <section id="sns" className="py-12 sm:py-16 lg:py-20 bg-white">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">SNS・公式アカウント</h2>
+                <p className="text-gray-600 text-base sm:text-lg lg:text-xl">最新情報やお問合せはSNSから！</p>
+              </div>
+              <div className="flex justify-center items-center">
+                <a href="https://lin.ee/x1gvg8e" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center group">
+                  <svg width="64" height="64" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2 group-hover:scale-110 transition-transform">
+                    <rect width="48" height="48" rx="12" fill="#06C755"/>
+                    <path d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z" fill="#fff"/>
+                  </svg>
+                  <span className="text-lg font-semibold">LINE</span>
+                </a>
               </div>
             </div>
           </section>

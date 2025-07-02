@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api/api/:path*"
+      "destination": "https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api/:path*"
     }
   ],
   "headers": [
@@ -28,8 +28,16 @@
           "value": "strict-origin-when-cross-origin"
         },
         {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.vercel.app https://rws-ruddy.vercel.app https://vercel.live https://ws-ap1.pusher-channels.com wss://ws-ap1.pusher-channels.com https://vitals.vercel-analytics.com; object-src 'none'; base-uri 'self'; form-action 'self'; block-all-mixed-content; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://images.unsplash.com; connect-src 'self' https://*.vercel.app https://rws-ruddy.vercel.app https://vercel.live https://ws-ap1.pusher-channels.com wss://ws-ap1.pusher-channels.com https://vitals.vercel-analytics.com https://www.google-analytics.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; block-all-mixed-content; upgrade-insecure-requests"
         },
         {
           "key": "Cache-Control",
