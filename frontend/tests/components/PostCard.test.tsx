@@ -79,9 +79,7 @@ describe('PostCard Component', () => {
     
     // 作成者名が表示されているか
     if (mockPost.author) {
-      if (mockPost.author) {
       expect(screen.getByText(mockPost.author.name)).toBeInTheDocument();
-    }
     }
     
     // 作成日が表示されているか（フォーマット済み）
@@ -334,7 +332,7 @@ describe('PostCard Component', () => {
 
     render(<PostCard post={postWithSpecificDate} />);
 
-    // 日付が表示されていること（実際の表示内容を確認）
+    // 日付が表示されていること（JST時間帯では翌日になる）
     expect(screen.getByText(/2023年12月26日/)).toBeInTheDocument();
   });
 });
