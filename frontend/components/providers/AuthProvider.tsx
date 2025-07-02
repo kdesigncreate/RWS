@@ -78,7 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       
       const response = await api.get('/user');
-      const userData = response.data as AuthUser;
+      const userData = response.data.user || response.data as AuthUser;
       
       setUser(userData);
       setToken(storedToken);

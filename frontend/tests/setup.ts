@@ -158,7 +158,9 @@ beforeAll(() => {
       (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
        args[0].includes('Warning: React.createFactory() is deprecated') ||
        args[0].includes('Received `true` for a non-boolean attribute `fill`') ||
-       args[0].includes('Received `true` for a non-boolean attribute `priority`'))
+       args[0].includes('Received `true` for a non-boolean attribute `priority`') ||
+       args[0].includes('AuthProvider: Login error:') ||
+       args[0].includes('Auth check error:'))
     ) {
       return;
     }

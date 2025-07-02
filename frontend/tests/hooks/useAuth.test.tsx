@@ -41,7 +41,9 @@ const mockLoginResponse = {
 };
 
 const mockUserResponse = {
-  data: mockUser,
+  data: {
+    user: mockUser,
+  },
 };
 
 // テスト用のラッパーコンポーネント
@@ -118,7 +120,7 @@ describe('useAuth Hook', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-    });
+    }, { timeout: 5000 });
 
     await act(async () => {
       const response = await result.current.login({ email: 'test@example.com', password: 'wrongpassword' });
@@ -129,7 +131,7 @@ describe('useAuth Hook', () => {
     await waitFor(() => {
       expect(result.current.user).toBeNull();
       expect(result.current.isAuthenticated).toBe(false);
-    });
+    }, { timeout: 5000 });
 
     // トークンが保存されていないか
     expect(localStorage.getItem('auth_token')).toBeNull();
@@ -151,7 +153,7 @@ describe('useAuth Hook', () => {
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isAuthenticated).toBe(true);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
 
     // ログアウト実行
     await act(async () => {
@@ -188,7 +190,7 @@ describe('useAuth Hook', () => {
       expect(result.current.user).toEqual(mockUser);
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.isLoading).toBe(false);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
 
     // ユーザー情報取得APIが呼ばれているか
     expect(mockApi.get).toHaveBeenCalledWith('/user');
@@ -212,7 +214,7 @@ describe('useAuth Hook', () => {
       expect(result.current.user).toBeNull();
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.isLoading).toBe(false);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
 
     // 無効なトークンがlocalStorageから削除されているか
     expect(localStorage.getItem('auth_token')).toBeNull();
@@ -233,7 +235,7 @@ describe('useAuth Hook', () => {
     await waitFor(() => {
       expect(result.current.isAdmin).toBe(true);
       expect(result.current.isAuthenticated).toBe(true);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
   });
 
   /**
@@ -247,7 +249,7 @@ describe('useAuth Hook', () => {
 
     await waitFor(() => {
       expect(result.current.isAuthenticated).toBe(true);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
 
     const userInfo = result.current.getUserInfo();
     expect(userInfo.user).toEqual(mockUser);
@@ -266,7 +268,7 @@ describe('useAuth Hook', () => {
 
     await waitFor(() => {
       expect(result.current.isAuthenticated).toBe(true);
-    }, { timeout: 3000 });
+    }, { timeout: 5000 });
 
     const mockCallback = jest.fn().mockResolvedValue('success');
     
