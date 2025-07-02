@@ -166,7 +166,7 @@ class AuthTest extends TestCase
         // まずログインしてトークンを取得
         $loginResponse = $this->postJson('/api/login', [
             'email' => 'admin@test.com',
-            'password' => 'password123',
+            'password' => $this->testPassword,
         ]);
 
         $token = $loginResponse->json('token');

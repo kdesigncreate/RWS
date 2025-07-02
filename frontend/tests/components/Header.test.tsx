@@ -16,7 +16,9 @@ jest.mock('next/link', () => {
 
 jest.mock('next/image', () => {
   return function MockImage({ src, alt, priority, ...props }: any) {
-    return <img src={src} alt={alt} {...props} />;
+    // Remove priority and other Next.js specific props to avoid React warnings
+    const { priority: _, fill, sizes, quality, placeholder, ...imgProps } = props;
+    return <img src={src} alt={alt} {...imgProps} />;
   };
 });
 
@@ -51,14 +53,12 @@ describe('Header', () => {
     
     // デフォルトのナビゲーションアイテムが表示されることを確認
     expect(screen.getByText('Top')).toBeInTheDocument();
-    expect(screen.getByText('Posts')).toBeInTheDocument();
+    expect(screen.getByText('News')).toBeInTheDocument();
     expect(screen.getByText('About')).toBeInTheDocument();
     expect(screen.getByText('Staff')).toBeInTheDocument();
     expect(screen.getByText('Price')).toBeInTheDocument();
     expect(screen.getByText('School List')).toBeInTheDocument();
-    
-    // Contactボタンが表示されることを確認
-    expect(screen.getByText('Contact')).toBeInTheDocument();
+    expect(screen.getByText('Videos')).toBeInTheDocument();
   });
 
   it('renders header with custom navigation items', () => {

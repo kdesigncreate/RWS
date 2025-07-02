@@ -9,6 +9,7 @@ jest.mock('@/lib/api', () => ({
     post: jest.fn(),
     get: jest.fn(),
     defaults: {
+      baseURL: 'http://localhost:8000/api',
       headers: {
         common: {},
       },

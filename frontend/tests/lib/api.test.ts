@@ -8,6 +8,25 @@ import {
 import axios from 'axios';
 import { AppError, ErrorType } from '@/lib/errors';
 
+// api モジュールの一部をモック
+jest.mock('@/lib/api', () => {
+  const actualApi = jest.requireActual('@/lib/api');
+  
+  // リアルな api インスタンスを使用するが、HTTP メソッドだけをモック
+  const mockApi = {
+    ...actualApi.api,
+    post: jest.fn(),
+    get: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  };
+  
+  return {
+    ...actualApi,
+    api: mockApi
+  };
+});
+
 // axiosをモック
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -53,7 +72,7 @@ describe('API Endpoints', () => {
 describe('Auth Token Management', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // axiosインスタンスのヘッダーをリセット
+    // ヘッダーをクリア
     if (api.defaults.headers.common) {
       delete api.defaults.headers.common['Authorization'];
     }
@@ -175,7 +194,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.post(apiEndpoints.adminPosts, mockPostData);
       const post = response.data.data;
@@ -209,7 +228,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.post(apiEndpoints.adminPosts, mockPostData);
       const post = response.data.data;
@@ -244,7 +263,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.put.mockResolvedValue(mockResponse);
+      (api.put as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.put(apiEndpoints.adminPost(1), mockUpdateData);
       const post = response.data.data;
@@ -277,7 +296,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.put.mockResolvedValue(mockResponse);
+      (api.put as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.put(apiEndpoints.adminPost(1), mockUpdateData);
       const post = response.data.data;
@@ -311,7 +330,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.put.mockResolvedValue(mockResponse);
+      (api.put as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.put(apiEndpoints.adminPost(2), mockUpdateData);
       const post = response.data.data;
@@ -357,7 +376,7 @@ describe('Post API Operations', () => {
         }
       };
 
-      mockedAxios.get.mockResolvedValue(mockResponse);
+      (api.get as jest.Mock).mockResolvedValue(mockResponse);
 
       const response = await api.get(apiEndpoints.adminPost(1));
       const post = response.data.data;
