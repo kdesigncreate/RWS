@@ -123,9 +123,31 @@ jobs:
         sleep 30
         
         echo "Checking API health..."
-        curl -f ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health || exit 1
+        for i in {1..5}; do
+          if curl -f ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health; then
+            echo "API healthy!"
+            break
+          fi
+          echo "API not ready, retrying in 10s..."
+          sleep 10
+          if [ $i -eq 5 ]; then
+            echo "API health check failed after 5 attempts."
+            exit 1
+          fi
+        done
         
         echo "Checking frontend..."
-        curl -f ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }} || exit 1
+        for i in {1..5}; do
+          if curl -f ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}; then
+            echo "Frontend healthy!"
+            break
+          fi
+          echo "Frontend not ready, retrying in 10s..."
+          sleep 10
+          if [ $i -eq 5 ]; then
+            echo "Frontend health check failed after 5 attempts."
+            exit 1
+          fi
+        done
         
         echo "All health checks passed!" 
