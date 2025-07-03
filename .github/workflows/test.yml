@@ -18,6 +18,7 @@ jobs:
   frontend-tests:
     name: Frontend Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ./frontend
@@ -66,6 +67,7 @@ jobs:
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ./backend
@@ -144,10 +146,18 @@ jobs:
             ./backend/test-results/
             ./backend/coverage-html/
 
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
+            echo "Waiting for postgres at 127.0.0.1:5432..."
+            sleep 2
+          done
+
   # End-to-End testing job
   e2e-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [frontend-tests, backend-tests]
 
     services:
