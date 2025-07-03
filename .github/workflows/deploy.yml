@@ -94,6 +94,37 @@ jobs:
         npx supabase secrets set JWT_SECRET=${{ secrets.JWT_SECRET }}
         npx supabase secrets set ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
 
+    - name: Wait for Supabase Postgres
+      run: |
+        DB_HOST="${{ secrets.SUPABASE_DB_HOST }}"
+        DB_PORT="${{ secrets.SUPABASE_DB_PORT }}"
+        DB_USER="${{ secrets.SUPABASE_DB_USER }}"
+        for i in {1..45}; do
+          if pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER"; then
+            echo "Supabase PostgreSQL is ready!"
+            break
+          fi
+          echo "Waiting for Supabase postgres at $DB_HOST:$DB_PORT..."
+          sleep 2
+        done
+        pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || exit 1
+      env:
+        SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+        SUPABASE_DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+        SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+
+    - name: Run Laravel Migrations with Retry
+      run: |
+        n=0
+        until [ "$n" -ge 5 ]
+        do
+          php artisan migrate:fresh --seed --env=testing && break
+          n=$((n+1))
+          echo "Migration failed, retrying in 5s..."
+          sleep 5
+        done
+        if [ "$n" -ge 5 ]; then exit 1; fi
+
   deploy-frontend:
     needs: test
     runs-on: ubuntu-latest
@@ -149,14 +180,20 @@ jobs:
         fi
         echo "✅ All Vercel secrets are configured"
     
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest
+      timeout-minutes: 5
+    
     - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v26
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./frontend
-        vercel-args: '--prod --debug'
+      working-directory: ./frontend
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      run: |
+        echo "🚀 Starting Vercel deployment..."
+        vercel --prod --debug --yes
+        echo "✅ Vercel deployment completed"
       timeout-minutes: 15
 
   health-check:
