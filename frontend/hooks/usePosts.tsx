@@ -86,17 +86,24 @@ export function usePosts(): UsePostsReturn {
     try {
       const response = await api.get<PostsResponse>('/posts', { params });
       
-      setState(prev => ({
-        ...prev,
-        posts: response.data.data,
-        pagination: {
-          currentPage: response.data.meta.current_page,
-          lastPage: response.data.meta.last_page,
-          total: response.data.meta.total,
-          perPage: response.data.meta.per_page,
-        },
-        loading: false,
-      }));
+      setState(prev => {
+        // ページが1の場合は記事を置き換え、それ以外は追加
+        const newPosts = params?.page === 1 || !params?.page 
+          ? response.data.data 
+          : [...prev.posts, ...response.data.data];
+        
+        return {
+          ...prev,
+          posts: newPosts,
+          pagination: {
+            currentPage: response.data.meta.current_page,
+            lastPage: response.data.meta.last_page,
+            total: response.data.meta.total,
+            perPage: response.data.meta.per_page,
+          },
+          loading: false,
+        };
+      });
     } catch (error) {
       const apiError = handleApiError(error);
       setError(apiError.message);

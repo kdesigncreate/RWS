@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Clock, User, Calendar, Edit, Share2 } from 'lucide-react';
+import { ArrowLeft, User, Calendar, Edit, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -106,12 +106,7 @@ export function PostDetail({
             </span>
           </div>
           
-          {post.meta?.reading_time_minutes && (
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>約{post.meta?.reading_time_minutes}分</span>
-            </div>
-          )}
+
           
           {post.updated_at !== post.created_at && (
             <div className="flex items-center text-xs">
@@ -138,9 +133,6 @@ export function PostDetail({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           {/* 記事情報 */}
           <div className="text-sm text-gray-500">
-            <p>
-              文字数: {post.meta?.content_length?.toLocaleString()}文字
-            </p>
             {post.published_at && (
               <p>
                 公開日: {formatDate.toJapanese(post.published_at)}
@@ -228,12 +220,7 @@ export function PostDetailSimple({
               {formatDate.toJapanese(post.published_at || post.created_at)}
             </span>
             
-            {post.meta?.reading_time_minutes && (
-              <span className="flex items-center">
-                <Clock className="h-3 w-3 mr-1" />
-                約{post.meta?.reading_time_minutes}分
-              </span>
-            )}
+
           </div>
         )}
       </header>

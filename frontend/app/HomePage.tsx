@@ -2,9 +2,10 @@
 
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { MapPin, Users, Star, Calendar, Award, X } from 'lucide-react';
+import Link from 'next/link';
+import { MapPin, Users, Calendar, Award, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PostCardList } from '@/components/posts/PostCard';
@@ -251,7 +252,7 @@ export default function HomePage() {
         <Header />
 
         {/* メインビジュアル */}
-        <section className="relative pt-16 sm:pt-20">
+        <section className="relative pt-16 sm:pt-20" style={{ scrollMarginTop: '4rem' }}>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden">
               <div className="w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] relative">
@@ -261,6 +262,11 @@ export default function HomePage() {
                   fill
                   className="object-cover"
                   priority
+                  sizes="100vw"
+                  quality={85}
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -283,7 +289,7 @@ export default function HomePage() {
 
         <main>
           {/* News セクション */}
-          <section id="posts" className="py-12 sm:py-16 lg:py-20">
+          <section id="posts" className="py-12 sm:py-16 lg:py-20" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">News</h2>
@@ -312,8 +318,13 @@ export default function HomePage() {
                   />
                 )}
                 <div className="text-center mt-8 sm:mt-12">
-                  <Button className="bg-black text-white hover:bg-gray-800 px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base">
-                    News一覧
+                  <Button 
+                    asChild
+                    className="bg-black text-white hover:bg-gray-800 px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base"
+                  >
+                    <Link href="/news">
+                      News一覧
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -321,48 +332,62 @@ export default function HomePage() {
           </section>
 
           {/* About セクション */}
-          <section id="about" className="py-16 bg-gray-50">
-            <div className="container mx-auto px-4 flex flex-col lg:flex-row items-center gap-12">
-              {/* 画像 */}
-              <div className="flex-1 relative">
-                <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200">
-                  <Image
-                    src="/images/about.jpeg"
-                    alt="R.W.S ドリブル塾について"
-                    width={500}
-                    height={350}
-                    className="object-cover w-full h-full"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-transparent"></div>
-                </div>
+          <section id="about" className="py-12 sm:py-16 lg:py-20 bg-gray-50" style={{ scrollMarginTop: '5rem' }}>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">About</h2>
+                <p className="text-gray-600 text-base sm:text-lg lg:text-xl">R.W.S ドリブル塾について</p>
               </div>
-              {/* テキスト */}
-              <div className="flex-1 bg-white/80 rounded-2xl shadow-lg p-8">
-                <h2 className="text-3xl font-bold mb-4 text-blue-700 border-l-4 border-blue-400 pl-4">About</h2>
-                <p className="text-lg text-gray-700 font-semibold mb-4">
-                  『練習する事・チャレンジするだけでは意味がない。<br />
-                  <span className="text-blue-600 font-bold">練習し続ける事・チャレンジし続ける事</span>に意味がある。』
-                </p>
-                <ul className="mt-6 space-y-2">
-                  <li className="flex items-center">
-                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    全国で2,000名以上のスクール生が在籍
-                  </li>
-                  <li className="flex items-center">
-                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Jリーグ下部組織・海外クラブ合格者多数
-                  </li>
-                  <li className="flex items-center">
-                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    人間性・学校生活でも成長を実感
-                  </li>
-                </ul>
+              <div className="max-w-6xl mx-auto">
+                <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+                  {/* 画像 */}
+                  <div className="relative">
+                    <div className="rounded-2xl overflow-hidden shadow-xl">
+                      <Image
+                        src="/images/about.jpeg"
+                        alt="R.W.S ドリブル塾について"
+                        width={600}
+                        height={400}
+                        className="object-cover w-full h-full"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
+                    </div>
+                  </div>
+                  {/* テキスト */}
+                  <div className="space-y-6">
+                    <Card className="bg-white">
+                      <CardContent className="p-6 sm:p-8">
+                        <div className="text-center mb-6">
+                          <h3 className="text-xl sm:text-2xl font-bold text-blue-700 mb-4">私たちの理念</h3>
+                          <p className="text-lg text-gray-700 font-semibold leading-relaxed">
+                            『練習する事・チャレンジするだけでは意味がない。<br />
+                            <span className="text-blue-600 font-bold">練習し続ける事・チャレンジし続ける事</span>に意味がある。』
+                          </p>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-4 flex-shrink-0"></div>
+                            <span className="text-gray-800 font-medium">全国で2,000名以上のスクール生が在籍</span>
+                          </div>
+                          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-4 flex-shrink-0"></div>
+                            <span className="text-gray-800 font-medium">Jリーグ下部組織・海外クラブ合格者多数</span>
+                          </div>
+                          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-4 flex-shrink-0"></div>
+                            <span className="text-gray-800 font-medium">人間性・学校生活でも成長を実感</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
           {/* Staff セクション */}
-          <section id="staff" className="py-12 sm:py-16 lg:py-20">
+          <section id="staff" className="py-12 sm:py-16 lg:py-20" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">Staff</h2>
@@ -412,7 +437,7 @@ export default function HomePage() {
           </section>
 
           {/* Price セクション */}
-          <section id="price" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+          <section id="price" className="py-12 sm:py-16 lg:py-20 bg-gray-50" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">Price</h2>
@@ -510,7 +535,7 @@ export default function HomePage() {
           </section>
 
           {/* School List セクション */}
-          <section id="schoolList" className="py-12 sm:py-16 lg:py-20">
+          <section id="schoolList" className="py-12 sm:py-16 lg:py-20" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">School List</h2>
@@ -561,7 +586,7 @@ export default function HomePage() {
           </section>
 
           {/* Videos セクション */}
-          <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-white">
+          <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-white" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">Videos</h2>
@@ -609,7 +634,7 @@ export default function HomePage() {
           </section>
 
           {/* Present セクション */}
-          <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+          <section id="videos" className="py-12 sm:py-16 lg:py-20 bg-gray-50" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-2xl mx-auto">
                 <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-xl">
@@ -634,7 +659,7 @@ export default function HomePage() {
           </section>
 
           {/* SNS セクション */}
-          <section id="sns" className="py-12 sm:py-16 lg:py-20 bg-white">
+          <section id="sns" className="py-12 sm:py-16 lg:py-20 bg-white" style={{ scrollMarginTop: '5rem' }}>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4">SNS・公式アカウント</h2>

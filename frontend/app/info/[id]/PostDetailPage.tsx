@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 // import { Badge } from '@/components/ui/badge'; // 将来の拡張用にコメントアウト
@@ -150,12 +150,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                         <Calendar className="h-4 w-4 mr-1" />
                         {formatDate.toJapanese(post.published_at || post.created_at)}
                       </span>
-                      {post.meta?.reading_time_minutes && (
-                        <span className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          約{post.meta.reading_time_minutes}分
-                        </span>
-                      )}
+
                     </div>
                   </div>
 
@@ -179,9 +174,6 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                   {/* 記事フッター */}
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                      {post.meta?.content_length && (
-                        <span>文字数: {post.meta.content_length.toLocaleString()}文字</span>
-                      )}
                       {post.updated_at !== post.created_at && (
                         <span>最終更新: {formatDate.toJapanese(post.updated_at)}</span>
                       )}

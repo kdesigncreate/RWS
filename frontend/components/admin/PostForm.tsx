@@ -292,9 +292,7 @@ export function PostForm({
                         />
                       </FormControl>
                       <FormDescription>
-                        文字数: {charCount.toLocaleString()}文字 | 
-                        単語数: {wordCount.toLocaleString()}語 | 
-                        読了時間: 約{Math.max(1, Math.ceil(charCount / 400))}分
+                        単語数: {wordCount.toLocaleString()}語
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

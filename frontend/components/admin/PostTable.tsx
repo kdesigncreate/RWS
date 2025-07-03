@@ -8,7 +8,6 @@ import {
   Trash2, 
   MoreHorizontal, 
   // Calendar, // 将来の拡張用にコメントアウト
-  Clock,
   User,
   ArrowUpDown,
   ArrowUp,
@@ -226,12 +225,7 @@ export function PostTable({
                         {post.author.name}
                       </span>
                     )}
-                    {post.meta?.reading_time_minutes && (
-                      <span className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {post.meta?.reading_time_minutes}分
-                      </span>
-                    )}
+
                   </div>
                 </div>
               </TableCell>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Clock, User, Calendar, Eye, Edit, Trash2 } from 'lucide-react';
+import { User, Calendar, Eye, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -34,7 +34,7 @@ export function PostCard({
   showAuthor = true,
   showActions = false,
   showStatus = true,
-  showReadingTime = true,
+  showReadingTime = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   onEdit,
   onDelete,
   className,
@@ -55,12 +55,7 @@ export function PostCard({
                     {post.status_label}
                   </Badge>
                 )}
-                {showReadingTime && post.meta?.reading_time_minutes && (
-                  <span className="text-xs text-gray-500 flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    約{post.meta?.reading_time_minutes}分
-                  </span>
-                )}
+
               </div>
               
               <Link href={`/info/${post.id}`} className="block group">
@@ -142,12 +137,7 @@ export function PostCard({
                 {post.status_label}
               </Badge>
             )}
-            {showReadingTime && post.meta?.reading_time_minutes && (
-              <span className="text-sm text-gray-600 flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
-                約{post.meta?.reading_time_minutes}分
-              </span>
-            )}
+
           </div>
           
           <Link href={`/info/${post.id}`} className="block group">
@@ -232,12 +222,7 @@ export function PostCard({
               {post.status_label}
             </Badge>
           )}
-          {showReadingTime && post.meta?.reading_time_minutes && (
-            <span className="text-sm text-gray-500 flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              約{post.meta?.reading_time_minutes}分
-            </span>
-          )}
+
         </div>
         
         <Link href={`/info/${post.id}`} className="block group">
@@ -329,7 +314,7 @@ export function PostCardList({
   showAuthor = true,
   showActions = false,
   showStatus = true,
-  showReadingTime = true,
+  showReadingTime = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   onEdit,
   onDelete,
   className,

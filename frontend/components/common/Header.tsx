@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Settings, User, Menu } from 'lucide-react';
+import { LogOut, Settings, User } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,17 +59,17 @@ export function Header({ navigationItems = [] }: HeaderProps) {
   );
 
   return (
-    <nav className="bg-black text-white py-3 sm:py-4 fixed top-0 left-0 right-0 z-50 border-b border-gray-800">
+    <nav className="bg-black text-white py-3 sm:py-4 fixed top-0 left-0 right-0 z-50 border-b border-gray-800 h-16 sm:h-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <h1>
-            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider">
+          <h1 className="flex items-center">
+            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider flex items-center">
               <Image 
                 src="/images/logo_black_removebg.png" 
                 alt="R.W.S ドリブル塾" 
                 width={192}
                 height={48}
-                className="h-8 sm:h-10 lg:h-12 w-auto"
+                className="h-10 sm:h-12 w-auto object-contain"
                 priority
               />
             </Link>
@@ -90,15 +90,23 @@ export function Header({ navigationItems = [] }: HeaderProps) {
 
           {/* モバイルメニューボタン */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon" className="bg-transparent text-white hover:bg-white/10">
-                <Menu className="h-10 w-10 sm:h-6 sm:w-6" />
+            <SheetTrigger asChild className="lg:hidden flex items-center">
+              <Button 
+                variant="ghost" 
+                className="bg-transparent text-white hover:bg-white/10 h-12 sm:h-14 w-20 p-0 flex items-center justify-center"
+                aria-label="メニューを開く"
+              >
+                <div className="hamburger-menu">
+                  <span className="hamburger-line"></span>
+                  <span className="hamburger-line"></span>
+                  <span className="hamburger-line"></span>
+                </div>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="bg-white text-black w-80 flex flex-col px-0 py-0">
               {/* 上部：ロゴ＋カスタムバツ */}
               <div className="flex items-center justify-between px-6 py-4 border-b">
-                <Image src="/images/logo_black_removebg.png" alt="RWS" width={100} height={32} />
+                <Image src="/images/logo_white_removebg.png" alt="RWS" width={100} height={32} />
                 <SheetClose asChild>
                   <button
                     aria-label="メニューを閉じる"
@@ -121,13 +129,14 @@ export function Header({ navigationItems = [] }: HeaderProps) {
                 ))}
               </nav>
               {/* SNSアイコン：下部・横並び・大きめ */}
-              <div className="flex items-center justify-center gap-6 border-t py-4">
+              <div className="flex flex-col items-center justify-center gap-4 border-t py-4">
                 <a href="https://lin.ee/x1gvg8e" target="_blank" rel="noopener noreferrer" aria-label="LINE">
                   <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="48" height="48" rx="12" fill="#06C755"/>
                     <path d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z" fill="#fff"/>
                   </svg>
                 </a>
+                <p className="text-sm text-gray-600 font-medium">お問い合わせはこちらから</p>
               </div>
             </SheetContent>
           </Sheet>
