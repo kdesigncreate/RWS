@@ -86,6 +86,7 @@ jobs:
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
+          --restart=unless-stopped
 
     steps:
       - name: Checkout code
@@ -174,6 +175,7 @@ jobs:
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
+          --restart=unless-stopped
 
     steps:
       - name: Checkout code
@@ -273,6 +275,7 @@ jobs:
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
+          --restart=unless-stopped
 
     steps:
       - name: Checkout code
@@ -448,6 +451,7 @@ jobs:
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
+          --restart=unless-stopped
 
     steps:
       - name: Checkout code
