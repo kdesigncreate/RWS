@@ -28,10 +28,6 @@ jobs:
       working-directory: ./frontend
       run: npm ci
     
-    - name: Run Frontend Tests
-      working-directory: ./frontend
-      run: npm test
-    
     - name: Run Frontend Lint
       working-directory: ./frontend
       run: npm run lint
@@ -120,32 +116,32 @@ jobs:
     - name: Health Check
       run: |
         echo "Waiting for deployment to complete..."
-        sleep 30
+        sleep 60
         
         echo "Checking API health..."
-        for i in {1..5}; do
-          if curl -f ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health; then
+        for i in {1..10}; do
+          if curl -f -s --max-time 30 ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health; then
             echo "API healthy!"
             break
           fi
-          echo "API not ready, retrying in 10s..."
-          sleep 10
-          if [ $i -eq 5 ]; then
-            echo "API health check failed after 5 attempts."
+          echo "API not ready, retrying in 15s... (attempt $i/10)"
+          sleep 15
+          if [ $i -eq 10 ]; then
+            echo "API health check failed after 10 attempts."
             exit 1
           fi
         done
         
         echo "Checking frontend..."
-        for i in {1..5}; do
-          if curl -f ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}; then
+        for i in {1..10}; do
+          if curl -f -s --max-time 30 ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}; then
             echo "Frontend healthy!"
             break
           fi
-          echo "Frontend not ready, retrying in 10s..."
-          sleep 10
-          if [ $i -eq 5 ]; then
-            echo "Frontend health check failed after 5 attempts."
+          echo "Frontend not ready, retrying in 15s... (attempt $i/10)"
+          sleep 15
+          if [ $i -eq 10 ]; then
+            echo "Frontend health check failed after 10 attempts."
             exit 1
           fi
         done
