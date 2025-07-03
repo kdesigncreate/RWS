@@ -82,8 +82,8 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -162,8 +162,8 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -222,6 +222,13 @@ jobs:
           timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'
           timeout 60 bash -c 'until curl -s http://localhost:8000 > /dev/null; do sleep 1; done'
 
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
+            echo "Waiting for postgres at 127.0.0.1:5432..."
+            sleep 2
+          done
+
       - name: Run Playwright tests
         working-directory: ./frontend
         run: npx playwright test
@@ -254,8 +261,8 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -429,8 +436,8 @@ jobs:
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout code
