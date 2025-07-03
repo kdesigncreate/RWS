@@ -67,7 +67,7 @@ jobs:
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./backend
@@ -98,6 +98,14 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           extensions: bcmath, ctype, fileinfo, json, mbstring, openssl, pdo, pdo_pgsql, tokenizer, xml
           coverage: xdebug
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
+            echo "Waiting for postgres at 127.0.0.1:5432..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
 
       - name: Copy environment file
         run: cp .env.example .env.testing
@@ -146,13 +154,6 @@ jobs:
           path: |
             ./backend/test-results/
             ./backend/coverage-html/
-
-      - name: Wait for Postgres
-        run: |
-          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
-            echo "Waiting for postgres at 127.0.0.1:5432..."
-            sleep 2
-          done
 
   # End-to-End testing job
   e2e-tests:
