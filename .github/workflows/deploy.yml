@@ -168,7 +168,22 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       run: |
         echo "🚀 Starting Vercel deployment..."
-        vercel --prod --debug --yes
+        # より詳細なデバッグ情報を出力
+        echo "🔍 Vercel environment check:"
+        echo "  - VERCEL_TOKEN: ${VERCEL_TOKEN:0:10}..."
+        echo "  - VERCEL_ORG_ID: $VERCEL_ORG_ID"
+        echo "  - VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
+        
+        # プロジェクト設定を確認
+        if [ -f "vercel.json" ]; then
+          echo "✅ vercel.json found"
+          cat vercel.json
+        else
+          echo "⚠️ vercel.json not found, using default settings"
+        fi
+        
+        # デプロイ実行
+        vercel --prod --debug --yes --token $VERCEL_TOKEN
         echo "✅ Vercel deployment completed"
       timeout-minutes: 15
 
