@@ -7,46 +7,37 @@ on:
     branches: [ main, develop ]
 
 env:
-  NODE_VERSION: '18'
-  PHP_VERSION: '8.2'
+  NODE_VERSION: '20.x'
 
 jobs:
-  # Frontend testing job (完全安定化)
   frontend-tests:
     name: Frontend Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: './frontend/package-lock.json'
-
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
         timeout-minutes: 5
-
       - name: Run ESLint
         run: npm run lint
         timeout-minutes: 3
-
       - name: Run TypeScript type checking
         run: npm run type-check
         timeout-minutes: 3
-
       - name: Build Frontend
         run: npm run build
         timeout-minutes: 10
-
       - name: Check build artifacts exist
         run: |
           if [ ! -d ".next" ]; then
@@ -55,7 +46,6 @@ jobs:
           fi
           echo "✅ Build artifacts found"
           ls -la .next/
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -64,96 +54,48 @@ jobs:
           path: ./frontend/.next/
           retention-days: 7
 
-  # Backend testing job (完全安定化)
-  backend-tests:
-    name: Backend Tests
+  supabase-validation:
+    name: Supabase Functions Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    defaults:
-      run:
-        working-directory: ./backend
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: rws_test
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=10s
-          --health-retries=15
-          --restart=unless-stopped
-
+    timeout-minutes: 12
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: bcmath, ctype, fileinfo, json, mbstring, openssl, pdo, pdo_pgsql, tokenizer, xml
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --optimize-autoloader
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install Supabase CLI
+        run: npm install supabase --save-dev
         timeout-minutes: 5
-
-      - name: Wait for Postgres with retry
+      - name: Validate Supabase Functions
         run: |
-          echo "🔍 Waiting for PostgreSQL to be ready..."
-          for i in {1..30}; do
-            if pg_isready -h 127.0.0.1 -p 5432 -U postgres; then
-              echo "✅ PostgreSQL is ready!"
-              exit 0
-            fi
-            echo "⏳ Waiting for postgres at 127.0.0.1:5432... (attempt $i/30)"
-            sleep 3
-          done
-          echo "❌ PostgreSQL did not become ready in time!"
-          exit 1
-        timeout-minutes: 5
-
-      - name: Setup Laravel
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: rws_test
-          DB_USERNAME: postgres
-          DB_PASSWORD: password
-        run: |
-          echo "🔧 Setting up Laravel environment..."
-          cp .env.example .env.testing
-          php artisan key:generate --env=testing
-          php artisan config:cache --env=testing
-          echo "📊 Running database migrations..."
-          php artisan migrate:fresh --seed --env=testing
-          echo "✅ Laravel setup completed"
-        timeout-minutes: 5
-
-      - name: Run basic tests
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: rws_test
-          DB_USERNAME: postgres
-          DB_PASSWORD: password
-        run: |
-          echo "🧪 Running Laravel tests..."
-          php artisan test --stop-on-failure
-          echo "✅ Tests completed successfully"
-        timeout-minutes: 10
-
-      - name: Check test results
-        run: |
-          if [ -d "storage/logs" ]; then
-            echo "📋 Recent logs:"
-            tail -n 20 storage/logs/laravel.log || echo "No log file found"
+          echo "🔍 Validating Supabase Functions structure..."
+          if [ ! -f "supabase/functions/api/index.ts" ]; then
+            echo "❌ Main API function not found"
+            exit 1
           fi
-          echo "✅ Backend tests completed"
+          if [ ! -f "supabase/functions/api/deno.json" ]; then
+            echo "❌ Deno configuration not found"
+            exit 1
+          fi
+          curl -fsSL https://deno.land/install.sh | sh
+          export PATH="$HOME/.deno/bin:$PATH"
+          cd supabase/functions/api
+          deno check index.ts
+          deno check auth-handlers.ts
+          deno check post-handlers.ts
+          deno check utils.ts
+          deno check types.ts
+          echo "✅ Supabase Functions Deno validation completed"
+        timeout-minutes: 8
+      - name: Check Supabase configuration
+        run: |
+          echo "🔍 Checking Supabase configuration..."
+          if [ ! -f "supabase/config.toml" ]; then
+            echo "❌ Supabase config not found"
+            exit 1
+          fi
+          echo "✅ Supabase configuration validated"
+        timeout-minutes: 2

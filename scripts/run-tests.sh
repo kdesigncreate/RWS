@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # RWS Application Test Execution Script
-# This script runs all tests for the RWS (React Web Service) application
+# This script runs all tests for the RWS application (Frontend + Supabase Functions)
 
 set -e  # Exit on any error
 
@@ -42,7 +42,7 @@ port_in_use() {
 # Project root directory
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
-BACKEND_DIR="$PROJECT_ROOT/backend"
+SUPABASE_DIR="$PROJECT_ROOT/supabase"
 
 print_status "Starting RWS Application Test Suite"
 print_status "Project root: $PROJECT_ROOT"
@@ -60,21 +60,10 @@ if ! command_exists "npm"; then
     exit 1
 fi
 
-if ! command_exists "php"; then
-    print_error "PHP is not installed. Please install PHP first."
-    exit 1
-fi
-
-if ! command_exists "composer"; then
-    print_error "Composer is not installed. Please install Composer first."
-    exit 1
-fi
-
 print_success "All required dependencies are installed"
 
 # Parse command line arguments
 RUN_FRONTEND=true
-RUN_BACKEND=true
 RUN_E2E=false
 RUN_SECURITY=false
 COVERAGE=false
@@ -84,12 +73,6 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --frontend-only)
             RUN_FRONTEND=true
-            RUN_BACKEND=false
-            shift
-            ;;
-        --backend-only)
-            RUN_FRONTEND=false
-            RUN_BACKEND=true
             shift
             ;;
         --e2e)
@@ -113,12 +96,13 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --frontend-only    Run only frontend tests"
-            echo "  --backend-only     Run only backend tests"
             echo "  --e2e             Run end-to-end tests"
             echo "  --security        Run security tests"
             echo "  --coverage        Generate coverage reports"
             echo "  --watch           Run tests in watch mode"
             echo "  --help            Show this help message"
+            echo ""
+            echo "Note: Backend tests are handled by Supabase Functions"
             exit 0
             ;;
         *)
@@ -132,7 +116,6 @@ done
 # Create test results directories
 mkdir -p "$PROJECT_ROOT/test-results"
 mkdir -p "$FRONTEND_DIR/test-results"
-mkdir -p "$BACKEND_DIR/test-results"
 
 # Frontend tests
 if [ "$RUN_FRONTEND" = true ]; then
@@ -168,60 +151,17 @@ if [ "$RUN_FRONTEND" = true ]; then
     print_success "Frontend tests completed"
 fi
 
-# Backend tests
-if [ "$RUN_BACKEND" = true ]; then
-    print_status "Running Backend Tests..."
-    cd "$BACKEND_DIR"
-    
-    # Check if vendor directory exists
-    if [ ! -d "vendor" ]; then
-        print_status "Installing backend dependencies..."
-        composer install --no-dev --optimize-autoloader
-    fi
-    
-    # Set up test environment
-    if [ ! -f ".env.testing" ]; then
-        print_status "Creating test environment file..."
-        cp .env.example .env.testing
-        php artisan key:generate --env=testing
-    fi
-    
-    # Run database migrations for testing
-    print_status "Setting up test database..."
-    php artisan migrate:fresh --env=testing --seed
-    
-    # Run PHPUnit tests
-    if [ "$COVERAGE" = true ]; then
-        print_status "Running backend tests with coverage..."
-        ./vendor/bin/phpunit --coverage-html coverage-html --coverage-clover coverage-clover.xml
-    else
-        print_status "Running backend tests..."
-        ./vendor/bin/phpunit
-    fi
-    
-    print_success "Backend tests completed"
-fi
-
 # End-to-end tests
 if [ "$RUN_E2E" = true ]; then
     print_status "Running End-to-End Tests..."
     cd "$FRONTEND_DIR"
     
-    # Check if both servers are running
+    # Check if frontend server is running
     if ! port_in_use 3000; then
         print_warning "Frontend server not running on port 3000. Starting it..."
         npm run dev &
         FRONTEND_PID=$!
         sleep 10
-    fi
-    
-    if ! port_in_use 8000; then
-        print_warning "Backend server not running on port 8000. Starting it..."
-        cd "$BACKEND_DIR"
-        php artisan serve --port=8000 &
-        BACKEND_PID=$!
-        sleep 5
-        cd "$FRONTEND_DIR"
     fi
     
     # Wait for servers to be ready
@@ -235,9 +175,6 @@ if [ "$RUN_E2E" = true ]; then
     # Cleanup background processes
     if [ ! -z "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null || true
-    fi
-    if [ ! -z "$BACKEND_PID" ]; then
-        kill $BACKEND_PID 2>/dev/null || true
     fi
     
     print_success "End-to-end tests completed"
@@ -253,21 +190,13 @@ if [ "$RUN_SECURITY" = true ]; then
     else
         print_status "Starting OWASP ZAP security scan..."
         
-        # Ensure servers are running
+        # Ensure frontend server is running
         if ! port_in_use 3000; then
             print_warning "Frontend server not running. Starting it..."
             cd "$FRONTEND_DIR"
             npm run dev &
             FRONTEND_PID=$!
             sleep 10
-        fi
-        
-        if ! port_in_use 8000; then
-            print_warning "Backend server not running. Starting it..."
-            cd "$BACKEND_DIR"
-            php artisan serve --port=8000 &
-            BACKEND_PID=$!
-            sleep 5
         fi
         
         # Wait for servers to be ready
@@ -289,9 +218,6 @@ if [ "$RUN_SECURITY" = true ]; then
         if [ ! -z "$FRONTEND_PID" ]; then
             kill $FRONTEND_PID 2>/dev/null || true
         fi
-        if [ ! -z "$BACKEND_PID" ]; then
-            kill $BACKEND_PID 2>/dev/null || true
-        fi
         
         print_success "Security tests completed"
     fi
@@ -310,9 +236,7 @@ if [ "$RUN_FRONTEND" = true ]; then
     echo "✓ Frontend tests executed" >> "$REPORT_FILE"
 fi
 
-if [ "$RUN_BACKEND" = true ]; then
-    echo "✓ Backend tests executed" >> "$REPORT_FILE"
-fi
+echo "✓ Backend API: Supabase Functions (deployed separately)" >> "$REPORT_FILE"
 
 if [ "$RUN_E2E" = true ]; then
     echo "✓ End-to-end tests executed" >> "$REPORT_FILE"
@@ -325,12 +249,11 @@ fi
 echo "" >> "$REPORT_FILE"
 echo "Test artifacts are available in:" >> "$REPORT_FILE"
 echo "- Frontend: $FRONTEND_DIR/test-results/" >> "$REPORT_FILE"
-echo "- Backend: $BACKEND_DIR/test-results/" >> "$REPORT_FILE"
+echo "- Backend: Supabase Functions (check Supabase Dashboard logs)" >> "$REPORT_FILE"
 
 if [ "$COVERAGE" = true ]; then
     echo "- Coverage reports:" >> "$REPORT_FILE"
     echo "  - Frontend: $FRONTEND_DIR/coverage/" >> "$REPORT_FILE"
-    echo "  - Backend: $BACKEND_DIR/coverage-html/" >> "$REPORT_FILE"
 fi
 
 if [ "$RUN_SECURITY" = true ]; then
@@ -339,4 +262,5 @@ fi
 
 print_success "All tests completed successfully!"
 print_status "Test summary written to: $REPORT_FILE"
+print_status "Note: Backend is handled by Supabase Functions"
 print_status "Thank you for using the RWS test suite!"

@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+    types: [ opened, synchronize, reopened ]
 
 env:
   NODE_VERSION: '20.x'
@@ -13,7 +14,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     
     steps:
     - uses: actions/checkout@v4
@@ -54,7 +55,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
     - uses: actions/checkout@v4
@@ -80,8 +81,8 @@ jobs:
         npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
         echo "🗄️ Pushing database schema..."
         npx supabase db push
-        echo "⚡ Deploying Laravel API function..."
-        npx supabase functions deploy laravel-api
+        echo "⚡ Deploying API function..."
+        npx supabase functions deploy api
         echo "✅ Supabase deployment completed"
       timeout-minutes: 20
     
@@ -103,8 +104,8 @@ jobs:
   deploy-frontend:
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 20
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
     - uses: actions/checkout@v4
@@ -174,8 +175,8 @@ jobs:
   health-check:
     needs: [deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
     - name: Health Check
@@ -184,29 +185,29 @@ jobs:
         sleep 60
         
         echo "🔍 Checking API health..."
-        for i in {1..10}; do
-          if curl -f -s --max-time 30 ${{ secrets.SUPABASE_URL }}/functions/v1/laravel-api/api/health; then
+        for i in {1..6}; do
+          if curl -f -s --max-time 20 ${{ secrets.SUPABASE_URL }}/functions/v1/api/api/health; then
             echo "✅ API healthy!"
             break
           fi
-          echo "⏳ API not ready, retrying in 15s... (attempt $i/10)"
-          sleep 15
-          if [ $i -eq 10 ]; then
-            echo "❌ API health check failed after 10 attempts."
+          echo "⏳ API not ready, retrying in 10s... (attempt $i/6)"
+          sleep 10
+          if [ $i -eq 6 ]; then
+            echo "❌ API health check failed after 6 attempts."
             exit 1
           fi
         done
         
         echo "🔍 Checking frontend..."
-        for i in {1..10}; do
-          if curl -f -s --max-time 30 ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}; then
+        for i in {1..6}; do
+          if curl -f -s --max-time 20 ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}; then
             echo "✅ Frontend healthy!"
             break
           fi
-          echo "⏳ Frontend not ready, retrying in 15s... (attempt $i/10)"
-          sleep 15
-          if [ $i -eq 10 ]; then
-            echo "❌ Frontend health check failed after 10 attempts."
+          echo "⏳ Frontend not ready, retrying in 10s... (attempt $i/6)"
+          sleep 10
+          if [ $i -eq 6 ]; then
+            echo "❌ Frontend health check failed after 6 attempts."
             exit 1
           fi
         done

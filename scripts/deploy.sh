@@ -18,28 +18,44 @@ log_error() {
     echo -e "\033[31m[ERROR]\033[0m $1"
 }
 
+# 環境変数ファイルの読み込み
+load_env_file() {
+    local env_file="${1:-.env.deploy}"
+    
+    if [ -f "$env_file" ]; then
+        log_info "環境変数ファイルを読み込み中: $env_file"
+        # shellcheck source=/dev/null
+        set -a  # 自動エクスポートを有効化
+        source "$env_file"
+        set +a  # 自動エクスポートを無効化
+    else
+        log_warn "環境変数ファイルが見つかりません: $env_file"
+        log_info "使用方法: cp .env.deploy.example .env.deploy && vi .env.deploy"
+    fi
+}
+
 # 環境変数の確認
 check_env_vars() {
     log_info "環境変数の確認中..."
     
-    # Supabase環境変数
-    if [ -z "$SUPABASE_URL" ]; then
-        log_error "SUPABASE_URLが設定されていません"
-        exit 1
-    fi
+    local missing_vars=()
     
-    if [ -z "$SUPABASE_ANON_KEY" ]; then
-        log_error "SUPABASE_ANON_KEYが設定されていません"
-        exit 1
-    fi
+    # Supabase環境変数をチェック
+    [ -z "$SUPABASE_URL" ] && missing_vars+=("SUPABASE_URL")
+    [ -z "$SUPABASE_ANON_KEY" ] && missing_vars+=("SUPABASE_ANON_KEY")
+    [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && missing_vars+=("SUPABASE_SERVICE_ROLE_KEY")
+    [ -z "$JWT_SECRET" ] && missing_vars+=("JWT_SECRET")
     
-    if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-        log_error "SUPABASE_SERVICE_ROLE_KEYが設定されていません"
-        exit 1
-    fi
-    
-    if [ -z "$JWT_SECRET" ]; then
-        log_error "JWT_SECRETが設定されていません"
+    if [ ${#missing_vars[@]} -gt 0 ]; then
+        log_error "以下の環境変数が設定されていません:"
+        for var in "${missing_vars[@]}"; do
+            log_error "  - $var"
+        done
+        log_info "環境変数を設定してから再実行してください。"
+        log_info "設定方法:"
+        log_info "  1. cp .env.deploy.example .env.deploy"
+        log_info "  2. vi .env.deploy (値を設定)"
+        log_info "  3. source .env.deploy (現在のセッションに読み込み)"
         exit 1
     fi
     
@@ -100,7 +116,7 @@ deploy_backend() {
     
     # Edge Functionのデプロイ
     log_info "Edge Functionをデプロイ中..."
-    npx supabase functions deploy laravel-api
+    npx supabase functions deploy api
     
     # 環境変数の設定
     log_info "環境変数を設定中..."
@@ -108,7 +124,22 @@ deploy_backend() {
     npx supabase secrets set SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
     npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
     npx supabase secrets set JWT_SECRET="$JWT_SECRET"
-    npx supabase secrets set ALLOWED_ORIGINS="https://rws-3ygr4esxd-kentas-projects-9fa01438.vercel.app,http://localhost:3000"
+    
+    # 動的な許可オリジン設定
+    if [ -n "$ALLOWED_ORIGINS" ]; then
+        npx supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS"
+    else
+        # デフォルトオリジン設定
+        default_origins="http://localhost:3000"
+        if [ -n "$VERCEL_URL" ]; then
+            default_origins="$default_origins,https://$VERCEL_URL"
+        fi
+        if [ -n "$VERCEL_PROJECT_PRODUCTION_URL" ]; then
+            default_origins="$default_origins,https://$VERCEL_PROJECT_PRODUCTION_URL"
+        fi
+        npx supabase secrets set ALLOWED_ORIGINS="$default_origins"
+        log_warn "ALLOWED_ORIGINS not set, using defaults: $default_origins"
+    fi
     
     cd ..
     log_info "バックエンドのデプロイ完了"
@@ -119,7 +150,7 @@ setup_security() {
     log_info "セキュリティ設定を実行中..."
     
     # セキュリティ設定エンドポイントを呼び出し
-    curl -X POST "$SUPABASE_URL/functions/v1/laravel-api/api/setup-security" \
+    curl -X POST "$SUPABASE_URL/functions/v1/api/api/setup-security" \
         -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
         -H "Content-Type: application/json" \
         -d '{}' || log_warn "セキュリティ設定の実行に失敗しました"
@@ -132,7 +163,7 @@ health_check() {
     log_info "ヘルスチェックを実行中..."
     
     # APIのヘルスチェック
-    if curl -f "$SUPABASE_URL/functions/v1/laravel-api/api/health" > /dev/null 2>&1; then
+    if curl -f "$SUPABASE_URL/functions/v1/api/api/health" > /dev/null 2>&1; then
         log_info "APIヘルスチェック: OK"
     else
         log_error "APIヘルスチェック: FAILED"
@@ -145,8 +176,12 @@ health_check() {
 # メイン処理
 main() {
     local target="${1:-all}"
+    local env_file="${2:-.env.deploy}"
     
     log_info "R.W.S Blog デプロイスクリプトを開始"
+    
+    # 環境変数ファイルの読み込み
+    load_env_file "$env_file"
     
     # 環境変数の確認
     check_env_vars
@@ -166,7 +201,11 @@ main() {
             ;;
         *)
             log_error "無効なターゲット: $target"
-            log_info "使用方法: $0 [frontend|backend|all]"
+            log_info "使用方法: $0 [frontend|backend|all] [env-file]"
+            log_info "例:"
+            log_info "  $0 all                    # .env.deployを使用"
+            log_info "  $0 backend .env.prod      # .env.prodを使用"
+            log_info "  $0 frontend              # フロントエンドのみ"
             exit 1
             ;;
     esac

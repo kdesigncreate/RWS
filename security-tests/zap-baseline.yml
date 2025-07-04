@@ -6,25 +6,27 @@ env:
     - name: "RWS Application"
       urls:
         - "http://localhost:3000"
-        - "http://localhost:8000/api"
+        - "http://127.0.0.1:54321/functions/v1/api"
       includePaths:
         - "http://localhost:3000/*"
-        - "http://localhost:8000/api/*"
+        - "http://127.0.0.1:54321/functions/v1/api/*"
       excludePaths:
         - "http://localhost:3000/_next/*"
         - "http://localhost:3000/static/*"
-        - "http://localhost:8000/storage/*"
+        - "http://localhost:3000/images/*"
       authentication:
         method: "form"
-        loginUrl: "http://localhost:8000/api/login"
-        loginRequestData: "email=test@example.com&password=password"
+        loginUrl: "http://127.0.0.1:54321/functions/v1/api/login"
+        loginRequestData: '{"email":"test@example.com","password":"password"}'
         usernameParameter: "email"
         passwordParameter: "password"
+        headers:
+          - name: "Content-Type"
+            value: "application/json"
       sessionManagement:
-        method: "cookie"
+        method: "bearer"
         sessionTokens:
-          - "laravel_session"
-          - "XSRF-TOKEN"
+          - "Authorization"
 
   globalExclusions:
     - "*.css"

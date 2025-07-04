@@ -1,5 +1,32 @@
 {
+  "name": "rws-blog",
+  "version": "1.0.0",
+  "description": "Modern blog platform with Supabase Functions and Next.js",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "lint": "cd frontend && npm run lint",
+    "test": "cd frontend && npm run test",
+    "test:e2e": "cd frontend && npm run test:e2e",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:frontend": "./scripts/deploy.sh frontend",
+    "deploy:backend": "./scripts/deploy.sh backend"
+  },
   "dependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2"
-  }
+  },
+  "devDependencies": {
+    "supabase": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kdesigncreate/RWS.git"
+  },
+  "keywords": ["blog", "nextjs", "supabase", "typescript"],
+  "author": "K Design Create",
+  "license": "MIT"
 }

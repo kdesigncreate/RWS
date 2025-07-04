@@ -313,7 +313,7 @@ Authorization: Bearer your-jwt-token
 npx supabase init
 
 # Deploy functions
-npx supabase functions deploy laravel-api
+npx supabase functions deploy api
 
 # Set environment variables
 npx supabase secrets set JWT_SECRET="your-jwt-secret"
