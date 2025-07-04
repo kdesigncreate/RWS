@@ -125,6 +125,10 @@ deploy_backend() {
     npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
     npx supabase secrets set JWT_SECRET="$JWT_SECRET"
     
+    # フロントエンド用の環境変数も設定
+    npx supabase secrets set NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL"
+    npx supabase secrets set NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+    
     # 動的な許可オリジン設定
     if [ -n "$ALLOWED_ORIGINS" ]; then
         npx supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS"
