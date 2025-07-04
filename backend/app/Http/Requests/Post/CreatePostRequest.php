@@ -52,6 +52,11 @@ class CreatePostRequest extends FormRequest
                 'date',
                 'after_or_equal:now',
             ],
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+            ],
         ];
     }
 
@@ -81,6 +86,9 @@ class CreatePostRequest extends FormRequest
 
             'published_at.date' => '公開日時は有効な日付を入力してください。',
             'published_at.after_or_equal' => '公開日時は現在時刻以降を設定してください。',
+
+            'user_id.integer' => '作成者は正しいユーザーを選択してください。',
+            'user_id.exists' => '選択された作成者が存在しません。',
         ];
     }
 
@@ -97,6 +105,7 @@ class CreatePostRequest extends FormRequest
             'excerpt' => '抜粋',
             'status' => 'ステータス',
             'published_at' => '公開日時',
+            'user_id' => '作成者',
         ];
     }
 

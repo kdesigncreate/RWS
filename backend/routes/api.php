@@ -37,6 +37,9 @@ Route::middleware(['ensure.api.stateful'])->group(function () {
 
         // 認証状態の確認
         Route::get('/auth/check', [AuthController::class, 'check'])->name('auth.check');
+
+        // 管理者用: ユーザー一覧を取得（記事作成者選択用）
+        Route::get('/users', [AuthController::class, 'users'])->name('auth.users');
     });
 
     /*

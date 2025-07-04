@@ -19,7 +19,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
+        'Email',
         'password',
         'role', // Supabaseで追加されたフィールド
     ];
@@ -77,5 +77,18 @@ class User extends Authenticatable
     public function latestPosts()
     {
         return $this->hasMany(Post::class)->latest()->limit(5);
+    }
+
+    /**
+     * Email属性のアクセサ
+     */
+    public function getEmailAttribute()
+    {
+        return $this->attributes['Email'] ?? null;
+    }
+
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['Email'] = $value;
     }
 }

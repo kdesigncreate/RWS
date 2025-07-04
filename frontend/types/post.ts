@@ -36,6 +36,7 @@ export interface CreatePostData {
     excerpt?: string;
     status: PostStatus;
     published_at?: string;
+    user_id?: number | null;
   }
 
 export interface UpdatePostData extends CreatePostData {

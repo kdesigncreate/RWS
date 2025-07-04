@@ -112,13 +112,22 @@ class PostController extends Controller
     public function store(CreatePostRequest $request): PostResource
     {
         try {
+            // user_idが指定されていなければ、認証ユーザーのemailからusersテーブルのidを取得
+            $userId = $request->user_id;
+            if (!$userId && $request->user()) {
+                $user = \App\Models\User::where('Email', $request->user()->email)->first();
+                if ($user) {
+                    $userId = $user->id;
+                }
+            }
+
             $post = Post::create([
                 'title' => $request->title,
                 'content' => $request->content,
                 'excerpt' => $request->excerpt,
                 'status' => $request->status ?? Post::STATUS_DRAFT,
                 'published_at' => $request->status === Post::STATUS_PUBLISHED ? ($request->published_at ?? now()) : null,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
             ]);
 
             return new PostResource($post->load('user'));
@@ -153,6 +162,11 @@ class PostController extends Controller
                 'excerpt' => $validated['excerpt'] ?? null,
                 'status' => $validated['status'],
             ];
+
+            // 作成者の変更（指定された場合）
+            if (isset($validated['user_id'])) {
+                $updateData['user_id'] = $validated['user_id'];
+            }
 
             // ステータスが公開に変更された場合
             if ($validated['status'] === Post::STATUS_PUBLISHED && $post->status !== Post::STATUS_PUBLISHED) {

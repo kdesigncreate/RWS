@@ -19,7 +19,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         try {
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('Email', $request->email)->first();
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 throw ValidationException::withMessages([
@@ -129,5 +129,27 @@ class AuthController extends Controller
             'authenticated' => true,
             'user' => new UserResource($user),
         ]);
+    }
+
+    /**
+     * 管理者用: ユーザー一覧を取得（記事作成者選択用）
+     */
+    public function users(Request $request): JsonResponse
+    {
+        try {
+            $users = User::select('id', 'name', 'Email')
+                ->orderBy('name')
+                ->get();
+
+            return response()->json([
+                'users' => $users,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'ユーザー一覧の取得に失敗しました',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

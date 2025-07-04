@@ -54,6 +54,11 @@ class UpdatePostRequest extends FormRequest
                 // 更新時は過去の日付も許可（既に公開された記事の場合）
                 'before_or_equal:'.now()->addYears(1)->toDateString(),
             ],
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+            ],
         ];
     }
 
@@ -83,6 +88,9 @@ class UpdatePostRequest extends FormRequest
 
             'published_at.date' => '公開日時は有効な日付を入力してください。',
             'published_at.before_or_equal' => '公開日時は1年以内の日付を設定してください。',
+
+            'user_id.integer' => '作成者は正しいユーザーを選択してください。',
+            'user_id.exists' => '選択された作成者が存在しません。',
         ];
     }
 
@@ -99,6 +107,7 @@ class UpdatePostRequest extends FormRequest
             'excerpt' => '抜粋',
             'status' => 'ステータス',
             'published_at' => '公開日時',
+            'user_id' => '作成者',
         ];
     }
 

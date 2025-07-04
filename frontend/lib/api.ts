@@ -3,7 +3,7 @@ import type { ApiError, ApiEndpoints } from '@/types/api';
 import { AppError, ErrorUtils, ErrorType } from '@/lib/errors';
 
 // 環境変数から設定を取得
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ixrwzaasrxoshjnpxnme.supabase.co/functions/v1/laravel-api';
 
 // API エンドポイント定義
 export const apiEndpoints: ApiEndpoints = {
@@ -221,5 +221,17 @@ export const del = <T = unknown>(
 ): Promise<T> =>
   apiCall<T>(endpoint, { method: 'DELETE', ...options });
   
-  // 初期化
-  initializeAuth();
+/**
+ * ユーザー一覧を取得（管理者用）
+ */
+export const getUsers = async (): Promise<{ id: number; name: string; email: string }[]> => {
+  try {
+    const response = await api.get<{ users: { id: number; name: string; email: string }[] }>('/users');
+    return response.data.users;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};
+
+// 初期化
+initializeAuth();

@@ -29,6 +29,13 @@ export const createPostSchema = z.object({
       .optional()
       .or(z.literal(''))
       .or(z.null()),
+    
+    user_id: z
+      .number()
+      .int()
+      .positive('作成者は正しいユーザーを選択してください')
+      .optional()
+      .or(z.null()),
   });
 
 // 記事更新用スキーマ（部分更新用）
@@ -94,6 +101,13 @@ export const postFormSchema = z.object({
     
     published_at: z
       .date()
+      .optional()
+      .or(z.null()),
+    
+    user_id: z
+      .number()
+      .int()
+      .positive('作成者は正しいユーザーを選択してください')
       .optional()
       .or(z.null()),
   });

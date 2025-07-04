@@ -18,6 +18,14 @@ cd frontend
 npm run dev          # Start development server (with Turbopack)
 npm run build        # Build for production
 npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues automatically
+npm run type-check   # TypeScript type checking
+npm run test         # Run Jest unit tests
+npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
+npm run test:e2e     # Run Playwright E2E tests
+npm run test:e2e:headed # Run E2E tests with browser UI
+npm run test:e2e:debug # Debug E2E tests
 npm start            # Start production server
 ```
 
@@ -29,10 +37,30 @@ php artisan serve    # Start development server only
 php artisan test     # Run PHPUnit tests
 composer test        # Run tests (alias)
 php artisan migrate  # Run database migrations
+php artisan migrate:fresh --seed # Fresh migration with seeding
+php artisan config:clear # Clear configuration cache
+php artisan cache:clear  # Clear application cache
+./vendor/bin/pint    # Format PHP code with Laravel Pint
+```
+
+### Testing Commands
+```bash
+# Run all tests
+./scripts/run-tests.sh
+
+# Backend tests only
+cd backend && php artisan test
+
+# Frontend tests only
+cd frontend && npm run test && npm run test:e2e
+
+# Single test file
+php artisan test tests/Feature/PostApiTest.php
+npm test -- PostCard.test.tsx
 ```
 
 ### Root Level
-The root `package.json` appears to be empty - all development should be done in the respective frontend/backend directories.
+The root `package.json` contains minimal dependencies - all development should be done in the respective frontend/backend directories.
 
 ## Architecture & Key Components
 
@@ -91,3 +119,50 @@ This project follows comprehensive development guidelines including:
 - Database schema: `backend/database/migrations/`
 - Component library: `frontend/components/`
 - Type definitions: `frontend/types/`
+
+## Common Development Tasks
+
+### Adding New Features
+1. **Backend API**: Add routes in `backend/routes/api.php`, create controllers in `app/Http/Controllers/`
+2. **Frontend Components**: Create in appropriate `frontend/components/` subdirectory
+3. **Types**: Define TypeScript interfaces in `frontend/types/`
+4. **Testing**: Add tests in `tests/` directories for both frontend and backend
+
+### Database Changes
+```bash
+# Create migration
+php artisan make:migration create_new_table
+
+# Create model with migration
+php artisan make:model ModelName -m
+
+# Run migrations
+php artisan migrate
+
+# Rollback migrations
+php artisan migrate:rollback
+```
+
+### Component Development
+```bash
+# shadcn/ui components are in frontend/components/ui/
+# Custom components in frontend/components/common/, frontend/components/posts/, etc.
+# Admin components in frontend/components/admin/
+```
+
+### API Integration
+- Use `frontend/lib/api.ts` for all API calls
+- Follow existing patterns for error handling and authentication
+- API endpoints are prefixed with `/api/` and some require authentication
+
+### Deployment
+- Frontend deploys to Vercel automatically via GitHub Actions
+- Backend can be deployed to Supabase Functions
+- Use `scripts/deploy.sh` for automated deployment
+- Environment variables must be set in both frontend and backend
+
+### Debug and Troubleshooting
+- Check logs: `php artisan pail` (Laravel) or browser devtools (Next.js)
+- Clear caches: `php artisan config:clear && php artisan cache:clear`
+- Reset database: `php artisan migrate:fresh --seed`
+- CORS issues: Check `backend/config/cors.php` and `SANCTUM_STATEFUL_DOMAINS`

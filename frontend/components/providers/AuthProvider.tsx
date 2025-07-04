@@ -27,7 +27,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // 強制的に我々のAPIクライアントを使用
       const response = await api.post('/login', credentials);
-      const { user: userData, token: authToken } = response.data as { user: AuthUser; token: string; };
+      
+      // レスポンスデータの構造を確認
+      const responseData = response.data;
+      const userData = responseData.user || responseData.data?.user;
+      const authToken = responseData.token || responseData.data?.token;
+      
+      if (!userData || !authToken) {
+        throw new Error('ログインレスポンスの形式が不正です');
+      }
       
       console.log('AuthProvider: Login successful, user:', userData);
       

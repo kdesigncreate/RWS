@@ -146,7 +146,7 @@ jobs:
           DB_PASSWORD: password
         run: |
           echo "🧪 Running Laravel tests..."
-          php artisan test --stop-on-failure --verbose
+          php artisan test --stop-on-failure
           echo "✅ Tests completed successfully"
         timeout-minutes: 10
 

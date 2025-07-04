@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Eye, /* Calendar, Clock, */ AlertCircle } from 'lucide-react';
+import { Save, Eye, /* Calendar, Clock, */ AlertCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +34,7 @@ import { postFormSchema, type PostFormInput } from '@/lib/validation/postSchema'
 import type { Post, CreatePostData, UpdatePostData } from '@/types/post';
 import { formatDate, stringUtils } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { getUsers } from '@/lib/api';
 
 interface PostFormProps {
   post?: Post | null;
@@ -41,6 +42,12 @@ interface PostFormProps {
   onSave?: (data: CreatePostData | UpdatePostData) => Promise<{ success: boolean; error?: string }>;
   loading?: boolean;
   className?: string;
+}
+
+// 日付をdatetime-local用の文字列(YYYY-MM-DDTHH:mm)に変換する関数
+function toDatetimeLocalString(date: Date) {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function PostForm({
@@ -54,8 +61,28 @@ export function PostForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const isEditing = !!post;
+
+  // ユーザー一覧を取得
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setUsersLoading(true);
+      try {
+        const usersData = await getUsers();
+        setUsers(usersData || []);
+      } catch (error) {
+        console.error('ユーザー一覧の取得に失敗しました:', error);
+        setUsers([]); // エラー時は空配列を設定
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // フォーム初期化
   const form = useForm<PostFormInput>({
@@ -66,6 +93,7 @@ export function PostForm({
       excerpt: post?.excerpt || '',
       status: post?.status || 'draft',
       published_at: post?.published_at ? new Date(post.published_at) : null,
+      user_id: post?.user_id || null,
     },
   });
 
@@ -119,6 +147,7 @@ export function PostForm({
         published_at: data.status === 'published' 
           ? (data.published_at?.toISOString() || new Date().toISOString())
           : null,
+        user_id: data.user_id || null,
       };
 
       const result = isEditing 
@@ -308,6 +337,48 @@ export function PostForm({
                     <CardTitle className="text-lg">公開設定</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* 作成者 */}
+                    <FormField
+                      control={form.control}
+                      name="user_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            <User className="h-4 w-4 mr-1" />
+                            作成者
+                          </FormLabel>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value ? Number(value) : null)}
+                            value={field.value?.toString() || ''}
+                            disabled={usersLoading}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={usersLoading ? "読み込み中..." : "作成者を選択"} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {users && users.length > 0 ? (
+                                users.map((user) => (
+                                  <SelectItem key={user.id} value={user.id.toString()}>
+                                    {user.name} ({user.email})
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-users" disabled>
+                                  {usersLoading ? "読み込み中..." : "ユーザーが見つかりません"}
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            記事の作成者を選択してください。未選択の場合は現在のユーザーが設定されます。
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     {/* ステータス */}
                     <FormField
                       control={form.control}
@@ -345,7 +416,7 @@ export function PostForm({
                             <FormControl>
                               <Input
                                 type="datetime-local"
-                                value={field.value ? field.value.toISOString().slice(0, 16) : ''}
+                                value={field.value ? toDatetimeLocalString(field.value) : ''}
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(value ? new Date(value) : null);

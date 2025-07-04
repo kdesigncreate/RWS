@@ -559,7 +559,7 @@ Deno.serve(async (req) => {
       }
 
       const body = await req.json()
-      const { title, content, excerpt, status } = body
+      const { title, content, excerpt, status, user_id } = body
 
       // Basic validation
       if (!title || !content) {
@@ -589,7 +589,7 @@ Deno.serve(async (req) => {
         excerpt: excerpt || content.substring(0, 100) + '...',
         status: status || 'draft',
         published_at: status === 'published' ? now : null,
-        user_id: 1,
+        user_id: user_id || 1,
         created_at: now,
         updated_at: now
       }
@@ -648,7 +648,7 @@ Deno.serve(async (req) => {
 
       const postId = parseInt(path.split('/').pop() || '0')
       const body = await req.json()
-      const { title, content, excerpt, status } = body
+      const { title, content, excerpt, status, user_id } = body
 
       // Basic validation
       if (!title || !content) {
@@ -691,7 +691,8 @@ Deno.serve(async (req) => {
         excerpt: excerpt || content.substring(0, 100) + '...',
         status: status || 'draft',
         published_at,
-        updated_at: now
+        updated_at: now,
+        ...(user_id ? { user_id } : {})
       }
 
       const { data: updatedPost, error } = await supabase
