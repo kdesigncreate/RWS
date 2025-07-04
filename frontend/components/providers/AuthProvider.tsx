@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '@/lib/api';
-import type { AuthUser, LoginCredentials, AuthContextType } from '@/types/auth';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { api } from "@/lib/api";
+import type { AuthUser, LoginCredentials, AuthContextType } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -22,34 +28,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const login = async (credentials: LoginCredentials) => {
     try {
-      console.log('AuthProvider: Starting login with our API client');
-      console.log('AuthProvider: API base URL =', api.defaults.baseURL);
-      
+      console.log("AuthProvider: Starting login with our API client");
+      console.log("AuthProvider: API base URL =", api.defaults.baseURL);
+
       // 強制的に我々のAPIクライアントを使用
-      const response = await api.post('/login', credentials);
-      
+      const response = await api.post("/login", credentials);
+
       // レスポンスデータの構造を確認
-      const responseData = response.data;
+      const responseData = response.data as {
+        user?: AuthUser;
+        token?: string;
+        data?: { user?: AuthUser; token?: string };
+      };
       const userData = responseData.user || responseData.data?.user;
       const authToken = responseData.token || responseData.data?.token;
-      
+
       if (!userData || !authToken) {
-        throw new Error('ログインレスポンスの形式が不正です');
+        throw new Error("ログインレスポンスの形式が不正です");
       }
-      
-      console.log('AuthProvider: Login successful, user:', userData);
-      
+
+      console.log("AuthProvider: Login successful, user:", userData);
+
       setUser(userData);
       setToken(authToken);
-      
+
       // トークンをローカルストレージに保存
-      localStorage.setItem('auth_token', authToken);
-      
+      localStorage.setItem("auth_token", authToken);
+
       // APIクライアントにトークンを設定
-      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
     } catch (error) {
-      console.error('AuthProvider: Login error:', error);
-      throw new Error('ログインに失敗しました');
+      console.error("AuthProvider: Login error:", error);
+      throw new Error("ログインに失敗しました");
     }
   };
 
@@ -59,15 +69,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     try {
       if (token) {
-        await api.post('/logout');
+        await api.post("/logout");
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setUser(null);
       setToken(null);
-      localStorage.removeItem('auth_token');
-      delete api.defaults.headers.common['Authorization'];
+      localStorage.removeItem("auth_token");
+      delete api.defaults.headers.common["Authorization"];
     }
   };
 
@@ -76,25 +86,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const checkAuth = async () => {
     try {
-      const storedToken = localStorage.getItem('auth_token');
+      const storedToken = localStorage.getItem("auth_token");
       if (!storedToken) {
         setIsLoading(false);
         return;
       }
 
       // APIクライアントにトークンを設定
-      api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-      
-      const response = await api.get('/user');
-      const userData = (response.data as { user?: AuthUser }).user || response.data as AuthUser;
-      
+      api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+
+      const response = await api.get("/user");
+      const userData =
+        (response.data as { user?: AuthUser }).user ||
+        (response.data as AuthUser);
+
       setUser(userData);
       setToken(storedToken);
     } catch (error) {
-      console.error('Auth check error:', error);
+      console.error("Auth check error:", error);
       // トークンが無効な場合は削除
-      localStorage.removeItem('auth_token');
-      delete api.defaults.headers.common['Authorization'];
+      localStorage.removeItem("auth_token");
+      delete api.defaults.headers.common["Authorization"];
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 /**
@@ -128,7 +136,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuthContext(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
+    throw new Error("useAuthContext must be used within an AuthProvider");
   }
   return context;
 }
@@ -136,9 +144,7 @@ export function useAuthContext(): AuthContextType {
 /**
  * 認証が必要なコンポーネントをラップするHOC
  */
-export function withAuth<P extends object>(
-  Component: React.ComponentType<P>
-) {
+export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function AuthenticatedComponent(props: P) {
     const { isAuthenticated, isLoading } = useAuthContext();
 
@@ -152,4 +158,4 @@ export function withAuth<P extends object>(
 
     return <Component {...props} />;
   };
-} 
+}

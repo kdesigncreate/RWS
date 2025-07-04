@@ -1,20 +1,26 @@
-'use client';
+"use client";
 
-import React, { Component, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  AlertTriangle, 
-  RefreshCw, 
-  Home, 
-  Bug, 
-  ChevronDown, 
+import React, { Component, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertTriangle,
+  RefreshCw,
+  Home,
+  Bug,
+  ChevronDown,
   ChevronUp,
   Copy,
-  Check
-} from 'lucide-react';
-import { AppError, ErrorUtils, createErrorBoundaryError, ErrorType, ErrorSeverity } from '@/lib/errors';
+  Check,
+} from "lucide-react";
+import {
+  AppError,
+  ErrorUtils,
+  createErrorBoundaryError,
+  ErrorType,
+  ErrorSeverity,
+} from "@/lib/errors";
 
 interface ErrorInfo {
   componentStack: string;
@@ -34,7 +40,10 @@ interface ErrorBoundaryProps {
   showErrorDetails?: boolean;
 }
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -54,7 +63,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const appError = createErrorBoundaryError(error, errorInfo);
-    
+
     this.setState({
       error: appError,
     });
@@ -78,11 +87,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   handleToggleDetails = () => {
-    this.setState(prev => ({
+    this.setState((prev) => ({
       showDetails: !prev.showDetails,
     }));
   };
@@ -91,19 +100,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (!this.state.error) return;
 
     const errorText = JSON.stringify(this.state.error.toLogObject(), null, 2);
-    
+
     try {
       await navigator.clipboard.writeText(errorText);
       this.setState({ copied: true });
       setTimeout(() => this.setState({ copied: false }), 2000);
     } catch (err) {
-      console.error('Failed to copy error details:', err);
+      console.error("Failed to copy error details:", err);
     }
   };
 
   renderErrorContent() {
     const { error } = this.state;
-    const { showErrorDetails = process.env.NODE_ENV === 'development' } = this.props;
+    const { showErrorDetails = process.env.NODE_ENV === "development" } =
+      this.props;
 
     if (!error) {
       return this.renderGenericError();
@@ -122,9 +132,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <CardTitle className="text-xl font-bold text-gray-900">
               {this.getSeverityTitle(error.severity)}
             </CardTitle>
-            <p className="text-gray-600 mt-2">
-              {error.userMessage}
-            </p>
+            <p className="text-gray-600 mt-2">{error.userMessage}</p>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -140,23 +148,25 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {/* アクションボタン */}
             <div className="flex flex-col sm:flex-row gap-3">
               {isRetryable && (
-                <Button 
-                  onClick={this.handleRetry} 
+                <Button
+                  onClick={this.handleRetry}
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   再試行
                 </Button>
               )}
-              
+
               {recoveryActions.map((action, index) => (
                 <Button
                   key={index}
-                  variant={action.type === 'primary' ? 'default' : 'outline'}
+                  variant={action.type === "primary" ? "default" : "outline"}
                   onClick={action.action}
                   className="flex-1"
                 >
-                  {action.label === 'ホームに戻る' && <Home className="h-4 w-4 mr-2" />}
+                  {action.label === "ホームに戻る" && (
+                    <Home className="h-4 w-4 mr-2" />
+                  )}
                   {action.label}
                 </Button>
               ))}
@@ -199,11 +209,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                           )}
                         </Button>
                       </div>
-                      
+
                       <div className="text-xs text-gray-600 space-y-1">
-                        <p><strong>メッセージ:</strong> {error.technicalMessage}</p>
-                        <p><strong>タイムスタンプ:</strong> {error.timestamp.toISOString()}</p>
-                        
+                        <p>
+                          <strong>メッセージ:</strong> {error.technicalMessage}
+                        </p>
+                        <p>
+                          <strong>タイムスタンプ:</strong>{" "}
+                          {error.timestamp.toISOString()}
+                        </p>
+
                         {error.context && (
                           <div>
                             <strong>コンテキスト:</strong>
@@ -226,8 +241,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             {/* ヘルプテキスト */}
             <div className="text-center text-sm text-gray-500">
-              <p>問題が継続する場合は、しばらく待ってから再試行してください。</p>
-              <p>それでも解決しない場合は、サポートまでお問い合わせください。</p>
+              <p>
+                問題が継続する場合は、しばらく待ってから再試行してください。
+              </p>
+              <p>
+                それでも解決しない場合は、サポートまでお問い合わせください。
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -257,7 +276,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <RefreshCw className="h-4 w-4 mr-2" />
                 再試行
               </Button>
-              <Button variant="outline" onClick={this.handleGoHome} className="w-full">
+              <Button
+                variant="outline"
+                onClick={this.handleGoHome}
+                className="w-full"
+              >
                 <Home className="h-4 w-4 mr-2" />
                 ホームに戻る
               </Button>
@@ -271,38 +294,38 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   getSeverityTitle(severity: ErrorSeverity): string {
     switch (severity) {
       case ErrorSeverity.LOW:
-        return '軽微なエラー';
+        return "軽微なエラー";
       case ErrorSeverity.MEDIUM:
-        return 'エラーが発生しました';
+        return "エラーが発生しました";
       case ErrorSeverity.HIGH:
-        return '重要なエラー';
+        return "重要なエラー";
       case ErrorSeverity.CRITICAL:
-        return '深刻なエラー';
+        return "深刻なエラー";
       default:
-        return 'エラーが発生しました';
+        return "エラーが発生しました";
     }
   }
 
   getErrorTypeLabel(type: ErrorType): string {
     switch (type) {
       case ErrorType.NETWORK:
-        return 'ネットワークエラー';
+        return "ネットワークエラー";
       case ErrorType.AUTHENTICATION:
-        return '認証エラー';
+        return "認証エラー";
       case ErrorType.AUTHORIZATION:
-        return '認可エラー';
+        return "認可エラー";
       case ErrorType.VALIDATION:
-        return 'バリデーションエラー';
+        return "バリデーションエラー";
       case ErrorType.NOT_FOUND:
-        return 'リソースが見つかりません';
+        return "リソースが見つかりません";
       case ErrorType.SERVER:
-        return 'サーバーエラー';
+        return "サーバーエラー";
       case ErrorType.CLIENT:
-        return 'クライアントエラー';
+        return "クライアントエラー";
       case ErrorType.UNKNOWN:
-        return '不明なエラー';
+        return "不明なエラー";
       default:
-        return '不明なエラー';
+        return "不明なエラー";
     }
   }
 
@@ -326,9 +349,12 @@ interface SimpleErrorBoundaryProps {
   fallback?: ReactNode;
 }
 
-export function SimpleErrorBoundary({ children, fallback }: SimpleErrorBoundaryProps) {
+export function SimpleErrorBoundary({
+  children,
+  fallback,
+}: SimpleErrorBoundaryProps) {
   return (
-    <ErrorBoundary 
+    <ErrorBoundary
       fallback={fallback}
       onError={(error) => ErrorUtils.logError(error)}
     >
@@ -344,10 +370,10 @@ interface SectionErrorBoundaryProps {
   message?: string;
 }
 
-export function SectionErrorBoundary({ 
-  children, 
-  title = 'このセクションでエラーが発生しました',
-  message = 'データの読み込み中に問題が発生しました' 
+export function SectionErrorBoundary({
+  children,
+  title = "このセクションでエラーが発生しました",
+  message = "データの読み込み中に問題が発生しました",
 }: SectionErrorBoundaryProps) {
   return (
     <ErrorBoundary

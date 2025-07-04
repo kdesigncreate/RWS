@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { 
-  Eye, 
-  Edit, 
-  Trash2, 
-  MoreHorizontal, 
+import React from "react";
+import Link from "next/link";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
   // Calendar, // 将来の拡張用にコメントアウト
   User,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+  ArrowDown,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -22,24 +22,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
-import { TableRowSkeleton } from '@/components/common/LoadingSpinner';
-import type { 
-  // Post, // 将来の拡張用にコメントアウト 
-  PostTableProps, 
-  PostTableActionsProps, 
-  SortableField 
-} from '@/types/post';
-import { formatDate, stringUtils } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TableRowSkeleton } from "@/components/common/LoadingSpinner";
+import type {
+  // Post, // 将来の拡張用にコメントアウト
+  PostTableProps,
+  PostTableActionsProps,
+  SortableField,
+} from "@/types/post";
+import { formatDate, stringUtils } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export function PostTable({
   posts,
@@ -54,12 +54,14 @@ export function PostTable({
   sortDirection,
   className,
 }: PostTableProps) {
-  const isAllSelected = posts.length > 0 && selectedPosts.length === posts.length;
-  const isPartiallySelected = selectedPosts.length > 0 && selectedPosts.length < posts.length;
+  const isAllSelected =
+    posts.length > 0 && selectedPosts.length === posts.length;
+  const isPartiallySelected =
+    selectedPosts.length > 0 && selectedPosts.length < posts.length;
 
   const handleSelectAll = (checked: boolean) => {
     if (onSelectionChange) {
-      onSelectionChange(checked ? posts.map(post => post.id) : []);
+      onSelectionChange(checked ? posts.map((post) => post.id) : []);
     }
   };
 
@@ -67,28 +69,31 @@ export function PostTable({
     if (onSelectionChange) {
       const newSelection = checked
         ? [...selectedPosts, postId]
-        : selectedPosts.filter(id => id !== postId);
+        : selectedPosts.filter((id) => id !== postId);
       onSelectionChange(newSelection);
     }
   };
 
   const handleSort = (field: SortableField) => {
     if (!onSort) return;
-    
-    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+
+    const newDirection =
+      sortField === field && sortDirection === "asc" ? "desc" : "asc";
     onSort(field, newDirection);
   };
 
   const getSortIcon = (field: SortableField) => {
     if (sortField !== field) return <ArrowUpDown className="h-4 w-4" />;
-    return sortDirection === 'asc' 
-      ? <ArrowUp className="h-4 w-4" />
-      : <ArrowDown className="h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4" />
+    ) : (
+      <ArrowDown className="h-4 w-4" />
+    );
   };
 
   if (loading) {
     return (
-      <div className={cn('border rounded-lg', className)}>
+      <div className={cn("border rounded-lg", className)}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -114,10 +119,12 @@ export function PostTable({
 
   if (posts.length === 0) {
     return (
-      <div className={cn(
-        'border rounded-lg p-8 text-center text-gray-500',
-        className
-      )}>
+      <div
+        className={cn(
+          "border rounded-lg p-8 text-center text-gray-500",
+          className,
+        )}
+      >
         <p className="text-lg">記事が見つかりませんでした</p>
         <p className="text-sm mt-2">新しい記事を作成してみましょう</p>
       </div>
@@ -125,7 +132,7 @@ export function PostTable({
   }
 
   return (
-    <div className={cn('border rounded-lg overflow-hidden', className)}>
+    <div className={cn("border rounded-lg overflow-hidden", className)}>
       <Table>
         <TableHeader>
           <TableRow>
@@ -136,75 +143,77 @@ export function PostTable({
                 onCheckedChange={handleSelectAll}
               />
             </TableHead>
-            
+
             <TableHead>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleSort('title')}
+                onClick={() => handleSort("title")}
                 className="h-auto p-0 font-semibold hover:bg-transparent"
               >
                 タイトル
-                {onSort && getSortIcon('title')}
+                {onSort && getSortIcon("title")}
               </Button>
             </TableHead>
-            
+
             <TableHead>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort("status")}
                 className="h-auto p-0 font-semibold hover:bg-transparent"
               >
                 ステータス
-                {onSort && getSortIcon('status')}
+                {onSort && getSortIcon("status")}
               </Button>
             </TableHead>
-            
+
             <TableHead>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleSort('created_at')}
+                onClick={() => handleSort("created_at")}
                 className="h-auto p-0 font-semibold hover:bg-transparent"
               >
                 作成日
-                {onSort && getSortIcon('created_at')}
+                {onSort && getSortIcon("created_at")}
               </Button>
             </TableHead>
-            
+
             <TableHead>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleSort('published_at')}
+                onClick={() => handleSort("published_at")}
                 className="h-auto p-0 font-semibold hover:bg-transparent"
               >
                 公開日
-                {onSort && getSortIcon('published_at')}
+                {onSort && getSortIcon("published_at")}
               </Button>
             </TableHead>
-            
+
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
-        
+
         <TableBody>
           {posts.map((post) => (
-            <TableRow 
+            <TableRow
               key={post.id}
               className={cn(
-                'hover:bg-gray-50 transition-colors',
-                selectedPosts.includes(post.id) && 'bg-blue-50'
+                "hover:bg-gray-50 transition-colors",
+                selectedPosts.includes(post.id) && "bg-blue-50",
               )}
             >
               <TableCell>
                 <Checkbox
                   checked={selectedPosts.includes(post.id)}
-                  onCheckedChange={(checked) => handleSelectPost(post.id, !!checked)}
+                  onCheckedChange={(checked) =>
+                    handleSelectPost(post.id, !!checked)
+                  }
                 />
               </TableCell>
-              
+
               <TableCell className="max-w-0">
                 <div className="space-y-1">
                   <Link
@@ -225,17 +234,16 @@ export function PostTable({
                         {post.author.name}
                       </span>
                     )}
-
                   </div>
                 </div>
               </TableCell>
-              
+
               <TableCell>
-                <Badge variant={post.is_published ? 'default' : 'secondary'}>
+                <Badge variant={post.is_published ? "default" : "secondary"}>
                   {post.status_label}
                 </Badge>
               </TableCell>
-              
+
               <TableCell>
                 <div className="text-sm">
                   <div>{formatDate.toJapanese(post.created_at)}</div>
@@ -244,7 +252,7 @@ export function PostTable({
                   </div>
                 </div>
               </TableCell>
-              
+
               <TableCell>
                 <div className="text-sm">
                   {post.published_at ? (
@@ -259,7 +267,7 @@ export function PostTable({
                   )}
                 </div>
               </TableCell>
-              
+
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -275,18 +283,18 @@ export function PostTable({
                         表示
                       </Link>
                     </DropdownMenuItem>
-                    
+
                     <DropdownMenuItem asChild>
                       <Link href={`/admin/dashboard/info/${post.id}`}>
                         <Edit className="h-4 w-4 mr-2" />
                         管理画面で編集
                       </Link>
                     </DropdownMenuItem>
-                    
+
                     <DropdownMenuSeparator />
-                    
+
                     {onDelete && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => onDelete(post)}
                         className="text-red-600 focus:text-red-600"
                       >
@@ -319,32 +327,34 @@ export function PostTableActions({
   if (selectedCount === 0) return null;
 
   return (
-    <div className={cn(
-      'flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg',
-      className
-    )}>
+    <div
+      className={cn(
+        "flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg",
+        className,
+      )}
+    >
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium text-blue-900">
           {selectedCount}件の記事を選択中
         </span>
-        
+
         <div className="flex items-center space-x-2">
           {onBulkPublish && (
             <Button variant="outline" size="sm" onClick={onBulkPublish}>
               一括公開
             </Button>
           )}
-          
+
           {onBulkUnpublish && (
             <Button variant="outline" size="sm" onClick={onBulkUnpublish}>
               一括非公開
             </Button>
           )}
-          
+
           {onBulkDelete && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onBulkDelete}
               className="text-red-600 border-red-300 hover:bg-red-50"
             >
@@ -353,7 +363,7 @@ export function PostTableActions({
           )}
         </div>
       </div>
-      
+
       {onClearSelection && (
         <Button variant="ghost" size="sm" onClick={onClearSelection}>
           選択解除

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { ArrowLeft, User, Calendar, Edit, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import type { Post } from '@/types/post';
-import { formatDate, stringUtils } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import React from "react";
+import Link from "next/link";
+import { ArrowLeft, User, Calendar, Edit, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import type { Post } from "@/types/post";
+import { formatDate, stringUtils } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface PostDetailProps {
   post: Post;
@@ -28,11 +28,12 @@ export function PostDetail({
       try {
         await navigator.share({
           title: post.title,
-          text: post.excerpt || stringUtils.stripHtml(post.content).slice(0, 160),
+          text:
+            post.excerpt || stringUtils.stripHtml(post.content).slice(0, 160),
           url: window.location.href,
         });
       } catch (error) {
-        console.log('Share failed:', error);
+        console.log("Share failed:", error);
       }
     } else {
       // Fallback: Copy to clipboard
@@ -42,7 +43,7 @@ export function PostDetail({
   };
 
   return (
-    <article className={cn('mx-auto max-w-4xl', className)}>
+    <article className={cn("mx-auto max-w-4xl", className)}>
       {/* ヘッダー部分 */}
       <header className="mb-8">
         {/* ナビゲーション */}
@@ -57,10 +58,10 @@ export function PostDetail({
 
         {/* ステータス */}
         <div className="flex items-center justify-between mb-4">
-          <Badge variant={post.is_published ? 'default' : 'secondary'}>
+          <Badge variant={post.is_published ? "default" : "secondary"}>
             {post.status_label}
           </Badge>
-          
+
           <div className="flex items-center space-x-2">
             {showEditButton && onEdit && (
               <Button variant="outline" size="sm" onClick={() => onEdit(post)}>
@@ -95,24 +96,19 @@ export function PostDetail({
               <span>{post.author.name}</span>
             </div>
           )}
-          
+
           <div className="flex items-center">
             <Calendar className="h-4 w-4 mr-1" />
             <span>
-              {post.published_at 
+              {post.published_at
                 ? formatDate.toJapaneseDateTime(post.published_at)
-                : formatDate.toJapaneseDateTime(post.created_at)
-              }
+                : formatDate.toJapaneseDateTime(post.created_at)}
             </span>
           </div>
-          
 
-          
           {post.updated_at !== post.created_at && (
             <div className="flex items-center text-xs">
-              <span>
-                更新: {formatDate.toJapanese(post.updated_at)}
-              </span>
+              <span>更新: {formatDate.toJapanese(post.updated_at)}</span>
             </div>
           )}
         </div>
@@ -122,7 +118,7 @@ export function PostDetail({
 
       {/* 本文 */}
       <div className="prose prose-lg max-w-none mb-8">
-        <div 
+        <div
           className="prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900"
           dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
         />
@@ -134,9 +130,7 @@ export function PostDetail({
           {/* 記事情報 */}
           <div className="text-sm text-gray-500">
             {post.published_at && (
-              <p>
-                公開日: {formatDate.toJapanese(post.published_at)}
-              </p>
+              <p>公開日: {formatDate.toJapanese(post.published_at)}</p>
             )}
           </div>
 
@@ -147,9 +141,7 @@ export function PostDetail({
               この記事を共有
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/">
-                記事一覧
-              </Link>
+              <Link href="/">記事一覧</Link>
             </Button>
           </div>
         </div>
@@ -163,22 +155,22 @@ export function PostDetail({
  */
 function formatContent(content: string): string {
   // 改行をpタグに変換
-  const paragraphs = content.split('\n\n').filter(p => p.trim());
-  
+  const paragraphs = content.split("\n\n").filter((p) => p.trim());
+
   return paragraphs
-    .map(paragraph => {
+    .map((paragraph) => {
       const trimmed = paragraph.trim();
-      
+
       // 既にHTMLタグで囲まれている場合はそのまま
-      if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+      if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
         return trimmed;
       }
-      
+
       // 改行をbrタグに変換してpタグで囲む
-      const withBreaks = trimmed.replace(/\n/g, '<br>');
+      const withBreaks = trimmed.replace(/\n/g, "<br>");
       return `<p>${withBreaks}</p>`;
     })
-    .join('\n');
+    .join("\n");
 }
 
 /**
@@ -196,37 +188,38 @@ export function PostDetailSimple({
   className,
 }: PostDetailSimpleProps) {
   return (
-    <article className={cn('space-y-4', className)}>
+    <article className={cn("space-y-4", className)}>
       <header>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           {post.title}
         </h2>
-        
+
         {showMeta && (
           <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-4">
-            <Badge variant={post.is_published ? 'default' : 'secondary'} className="text-xs">
+            <Badge
+              variant={post.is_published ? "default" : "secondary"}
+              className="text-xs"
+            >
               {post.status_label}
             </Badge>
-            
+
             {post.author && (
               <span className="flex items-center">
                 <User className="h-3 w-3 mr-1" />
                 {post.author.name}
               </span>
             )}
-            
+
             <span className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
               {formatDate.toJapanese(post.published_at || post.created_at)}
             </span>
-            
-
           </div>
         )}
       </header>
 
       <div className="prose max-w-none">
-        <div 
+        <div
           className="prose-p:text-gray-700 prose-headings:text-gray-900"
           dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
         />

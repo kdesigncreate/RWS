@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { useAuthContext } from '@/components/providers/AuthProvider';
-import type { LoginCredentials, AuthUser } from '@/types/auth';
+import { useCallback } from "react";
+import { useAuthContext } from "@/components/providers/AuthProvider";
+import type { LoginCredentials, AuthUser } from "@/types/auth";
 
 /**
  * 認証関連のカスタムフック
@@ -21,15 +21,19 @@ export function useAuth() {
   /**
    * ログイン処理（エラーハンドリング付き）
    */
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    try {
-      await contextLogin(credentials);
-      return { success: true, error: null };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました';
-      return { success: false, error: errorMessage };
-    }
-  }, [contextLogin]);
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      try {
+        await contextLogin(credentials);
+        return { success: true, error: null };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "ログインに失敗しました";
+        return { success: false, error: errorMessage };
+      }
+    },
+    [contextLogin],
+  );
 
   /**
    * ログアウト処理
@@ -39,7 +43,8 @@ export function useAuth() {
       await contextLogout();
       return { success: true, error: null };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'ログアウトに失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : "ログアウトに失敗しました";
       return { success: false, error: errorMessage };
     }
   }, [contextLogout]);
@@ -52,7 +57,8 @@ export function useAuth() {
       await contextCheckAuth();
       return { success: true, error: null };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '認証確認に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : "認証確認に失敗しました";
       return { success: false, error: errorMessage };
     }
   }, [contextCheckAuth]);
@@ -78,21 +84,25 @@ export function useAuth() {
   /**
    * 認証が必要な処理を実行
    */
-  const requireAuth = useCallback(async <T,>(
-    callback: () => Promise<T>
-  ): Promise<{ success: boolean; data?: T; error?: string }> => {
-    if (!isAuthenticated) {
-      return { success: false, error: '認証が必要です' };
-    }
+  const requireAuth = useCallback(
+    async <T,>(
+      callback: () => Promise<T>,
+    ): Promise<{ success: boolean; data?: T; error?: string }> => {
+      if (!isAuthenticated) {
+        return { success: false, error: "認証が必要です" };
+      }
 
-    try {
-      const data = await callback();
-      return { success: true, data };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '処理に失敗しました';
-      return { success: false, error: errorMessage };
-    }
-  }, [isAuthenticated]);
+      try {
+        const data = await callback();
+        return { success: true, data };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "処理に失敗しました";
+        return { success: false, error: errorMessage };
+      }
+    },
+    [isAuthenticated],
+  );
 
   return {
     // 状態
@@ -101,12 +111,12 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     isAdmin: isAdmin(),
-    
+
     // アクション
     login,
     logout,
     checkAuth,
-    
+
     // ユーティリティ
     getUserInfo,
     requireAuth,
@@ -119,35 +129,40 @@ export function useAuth() {
 export function useAuthGuard() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  const renderForAuth = useCallback((
-    authenticatedContent: React.ReactNode,
-    unauthenticatedContent?: React.ReactNode
-  ) => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center p-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-        </div>
-      );
-    }
+  const renderForAuth = useCallback(
+    (
+      authenticatedContent: React.ReactNode,
+      unauthenticatedContent?: React.ReactNode,
+    ) => {
+      if (isLoading) {
+        return (
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+          </div>
+        );
+      }
 
-    return isAuthenticated ? authenticatedContent : (unauthenticatedContent || null);
-  }, [isAuthenticated, isLoading]);
+      return isAuthenticated
+        ? authenticatedContent
+        : unauthenticatedContent || null;
+    },
+    [isAuthenticated, isLoading],
+  );
 
-  const renderForGuest = useCallback((
-    guestContent: React.ReactNode,
-    authenticatedContent?: React.ReactNode
-  ) => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center p-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-        </div>
-      );
-    }
+  const renderForGuest = useCallback(
+    (guestContent: React.ReactNode, authenticatedContent?: React.ReactNode) => {
+      if (isLoading) {
+        return (
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+          </div>
+        );
+      }
 
-    return !isAuthenticated ? guestContent : (authenticatedContent || null);
-  }, [isAuthenticated, isLoading]);
+      return !isAuthenticated ? guestContent : authenticatedContent || null;
+    },
+    [isAuthenticated, isLoading],
+  );
 
   return {
     isAuthenticated,

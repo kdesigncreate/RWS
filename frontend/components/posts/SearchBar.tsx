@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback } from 'react';
-import { Search, X, Filter, SortAsc, SortDesc } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useCallback } from "react";
+import { Search, X, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,10 +19,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import { useSearchDebounce } from '@/hooks/useDebounce';
-import type { PostSearchParams } from '@/types/post';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { useSearchDebounce } from "@/hooks/useDebounce";
+import type { PostSearchParams } from "@/types/post";
+import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
   onSearch: (params: PostSearchParams) => Promise<void>;
@@ -35,17 +35,17 @@ interface SearchBarProps {
 
 export function SearchBar({
   onSearch,
-  placeholder = '記事を検索...',
+  placeholder = "記事を検索...",
   showStatusFilter = false,
   showSortOptions = true,
   defaultParams = {},
   className,
 }: SearchBarProps) {
   const [searchParams, setSearchParams] = useState<PostSearchParams>({
-    search: '',
-    status: 'all',
-    sort: 'created_at',
-    order: 'desc',
+    search: "",
+    status: "all",
+    sort: "created_at",
+    order: "desc",
     page: 1,
     limit: 10,
     ...defaultParams,
@@ -54,53 +54,54 @@ export function SearchBar({
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   // デバウンス付き検索
-  const {
-    query,
-    isSearching,
-    error,
-    setQuery,
-    clearSearch,
-  } = useSearchDebounce(
-    useCallback(async (searchQuery: string) => {
-      const newParams = { ...searchParams, search: searchQuery, page: 1 };
-      setSearchParams(newParams);
-      await onSearch(newParams);
-    }, [searchParams, onSearch]),
-    300
-  );
+  const { query, isSearching, error, setQuery, clearSearch } =
+    useSearchDebounce(
+      useCallback(
+        async (searchQuery: string) => {
+          const newParams = { ...searchParams, search: searchQuery, page: 1 };
+          setSearchParams(newParams);
+          await onSearch(newParams);
+        },
+        [searchParams, onSearch],
+      ),
+      300,
+    );
 
   // パラメータ更新
-  const updateSearchParams = useCallback(async (updates: Partial<PostSearchParams>) => {
-    const newParams = { ...searchParams, ...updates, page: 1 };
-    setSearchParams(newParams);
-    await onSearch(newParams);
-  }, [searchParams, onSearch]);
+  const updateSearchParams = useCallback(
+    async (updates: Partial<PostSearchParams>) => {
+      const newParams = { ...searchParams, ...updates, page: 1 };
+      setSearchParams(newParams);
+      await onSearch(newParams);
+    },
+    [searchParams, onSearch],
+  );
 
   // 検索クリア
   const handleClearSearch = useCallback(() => {
     const clearedParams = {
-      search: '',
-      status: 'all' as const,
-      sort: 'created_at' as const,
-      order: 'desc' as const,
+      search: "",
+      status: "all" as const,
+      sort: "created_at" as const,
+      order: "desc" as const,
       page: 1,
       limit: 10,
     };
     setSearchParams(clearedParams);
-    setQuery('');
+    setQuery("");
     clearSearch();
     onSearch(clearedParams);
   }, [setQuery, clearSearch, onSearch]);
 
   // アクティブフィルターの数を計算
   const activeFiltersCount = [
-    query && query.trim() !== '',
-    showStatusFilter && searchParams.status !== 'all',
-    searchParams.sort !== 'created_at' || searchParams.order !== 'desc',
+    query && query.trim() !== "",
+    showStatusFilter && searchParams.status !== "all",
+    searchParams.sort !== "created_at" || searchParams.order !== "desc",
   ].filter(Boolean).length;
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* メイン検索バー */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* 検索入力 */}
@@ -117,7 +118,7 @@ export function SearchBar({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setQuery('')}
+              onClick={() => setQuery("")}
               className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
             >
               <X className="h-3 w-3" />
@@ -139,8 +140,8 @@ export function SearchBar({
                 <Filter className="h-4 w-4 mr-2" />
                 フィルター
                 {activeFiltersCount > 0 && (
-                  <Badge 
-                    variant="default" 
+                  <Badge
+                    variant="default"
                     className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center"
                   >
                     {activeFiltersCount}
@@ -151,14 +152,20 @@ export function SearchBar({
             <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuLabel>フィルターオプション</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
+
               {/* ステータスフィルター */}
               {showStatusFilter && (
                 <div className="p-2">
-                  <label className="text-sm font-medium mb-2 block">ステータス</label>
+                  <label className="text-sm font-medium mb-2 block">
+                    ステータス
+                  </label>
                   <Select
                     value={searchParams.status}
-                    onValueChange={(value) => updateSearchParams({ status: value as 'published' | 'draft' | 'all' })}
+                    onValueChange={(value) =>
+                      updateSearchParams({
+                        status: value as "published" | "draft" | "all",
+                      })
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue />
@@ -176,10 +183,19 @@ export function SearchBar({
               {showSortOptions && (
                 <>
                   <div className="p-2">
-                    <label className="text-sm font-medium mb-2 block">並び順</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      並び順
+                    </label>
                     <Select
                       value={searchParams.sort}
-                      onValueChange={(value) => updateSearchParams({ sort: value as 'created_at' | 'published_at' | 'title' })}
+                      onValueChange={(value) =>
+                        updateSearchParams({
+                          sort: value as
+                            | "created_at"
+                            | "published_at"
+                            | "title",
+                        })
+                      }
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
@@ -191,23 +207,29 @@ export function SearchBar({
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="p-2">
-                    <label className="text-sm font-medium mb-2 block">順序</label>
+                    <label className="text-sm font-medium mb-2 block">
+                      順序
+                    </label>
                     <div className="flex space-x-1">
                       <Button
-                        variant={searchParams.order === 'desc' ? 'default' : 'outline'}
+                        variant={
+                          searchParams.order === "desc" ? "default" : "outline"
+                        }
                         size="sm"
-                        onClick={() => updateSearchParams({ order: 'desc' })}
+                        onClick={() => updateSearchParams({ order: "desc" })}
                         className="flex-1"
                       >
                         <SortDesc className="h-3 w-3 mr-1" />
                         降順
                       </Button>
                       <Button
-                        variant={searchParams.order === 'asc' ? 'default' : 'outline'}
+                        variant={
+                          searchParams.order === "asc" ? "default" : "outline"
+                        }
                         size="sm"
-                        onClick={() => updateSearchParams({ order: 'asc' })}
+                        onClick={() => updateSearchParams({ order: "asc" })}
                         className="flex-1"
                       >
                         <SortAsc className="h-3 w-3 mr-1" />
@@ -239,41 +261,45 @@ export function SearchBar({
       {/* アクティブフィルター表示 */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
-          {query && query.trim() !== '' && (
+          {query && query.trim() !== "" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               検索: &quot;{query}&quot;
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setQuery('')}
+                onClick={() => setQuery("")}
                 className="h-3 w-3 p-0 hover:bg-transparent"
               >
                 <X className="h-2 w-2" />
               </Button>
             </Badge>
           )}
-          
-          {showStatusFilter && searchParams.status !== 'all' && (
+
+          {showStatusFilter && searchParams.status !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              ステータス: {searchParams.status === 'published' ? '公開済み' : '下書き'}
+              ステータス:{" "}
+              {searchParams.status === "published" ? "公開済み" : "下書き"}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => updateSearchParams({ status: 'all' })}
+                onClick={() => updateSearchParams({ status: "all" })}
                 className="h-3 w-3 p-0 hover:bg-transparent"
               >
                 <X className="h-2 w-2" />
               </Button>
             </Badge>
           )}
-          
-          {(searchParams.sort !== 'created_at' || searchParams.order !== 'desc') && (
+
+          {(searchParams.sort !== "created_at" ||
+            searchParams.order !== "desc") && (
             <Badge variant="secondary" className="flex items-center gap-1">
               並び順: {getSortLabel(searchParams.sort!, searchParams.order!)}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => updateSearchParams({ sort: 'created_at', order: 'desc' })}
+                onClick={() =>
+                  updateSearchParams({ sort: "created_at", order: "desc" })
+                }
                 className="h-3 w-3 p-0 hover:bg-transparent"
               >
                 <X className="h-2 w-2" />
@@ -304,19 +330,14 @@ interface SimpleSearchBarProps {
 
 export function SimpleSearchBar({
   onSearch,
-  placeholder = '記事を検索...',
+  placeholder = "記事を検索...",
   className,
 }: SimpleSearchBarProps) {
-  const {
-    query,
-    isSearching,
-    error,
-    setQuery,
-    clearSearch,
-  } = useSearchDebounce(onSearch, 300);
+  const { query, isSearching, error, setQuery, clearSearch } =
+    useSearchDebounce(onSearch, 300);
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
       <Input
         type="text"
@@ -367,17 +388,18 @@ export function SearchResultsSummary({
 }: SearchResultsSummaryProps) {
   if (isLoading) {
     return (
-      <div className={cn('text-sm text-gray-500 animate-pulse', className)}>
+      <div className={cn("text-sm text-gray-500 animate-pulse", className)}>
         検索中...
       </div>
     );
   }
 
   return (
-    <div className={cn('text-sm text-gray-600', className)}>
+    <div className={cn("text-sm text-gray-600", className)}>
       {currentQuery ? (
         <span>
-          「<strong>{currentQuery}</strong>」の検索結果: <strong>{totalResults}</strong>件
+          「<strong>{currentQuery}</strong>」の検索結果:{" "}
+          <strong>{totalResults}</strong>件
         </span>
       ) : (
         <span>
@@ -391,11 +413,11 @@ export function SearchResultsSummary({
 // ヘルパー関数
 function getSortLabel(sort: string, order: string): string {
   const sortLabels = {
-    created_at: '作成日',
-    published_at: '公開日',
-    title: 'タイトル',
+    created_at: "作成日",
+    published_at: "公開日",
+    title: "タイトル",
   };
-  
-  const orderLabel = order === 'desc' ? '降順' : '昇順';
+
+  const orderLabel = order === "desc" ? "降順" : "昇順";
   return `${sortLabels[sort as keyof typeof sortLabels]}${orderLabel}`;
 }

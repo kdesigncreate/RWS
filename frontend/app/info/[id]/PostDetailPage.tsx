@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 // import { Badge } from '@/components/ui/badge'; // 将来の拡張用にコメントアウト
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ErrorDisplay } from '@/components/common/ErrorDisplay';
-import { Header } from '@/components/common/Header';
-import { Footer } from '@/components/common/Footer';
-import { api } from '@/lib/api';
-import { formatDate } from '@/lib/utils';
-import { generateStructuredData } from '@/lib/metadata';
-import type { Post } from '@/types/post';
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { Header } from "@/components/common/Header";
+import { Footer } from "@/components/common/Footer";
+import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
+import { generateStructuredData } from "@/lib/metadata";
+import type { Post } from "@/types/post";
 
 interface PostDetailPageProps {
   params: { id: string };
@@ -24,7 +24,7 @@ interface ApiResponse {
 
 export default function PostDetailPage({ params }: PostDetailPageProps) {
   const postId = params.id;
-  
+
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,15 +34,17 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.get<ApiResponse>(`/posts/${postId}`);
         setPost(response.data.data);
       } catch (err: unknown) {
-        console.error('記事の取得に失敗しました:', err);
-        const errorMessage = err instanceof Error && 'response' in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : '記事の取得に失敗しました';
-        setError(errorMessage || '記事の取得に失敗しました');
+        console.error("記事の取得に失敗しました:", err);
+        const errorMessage =
+          err instanceof Error && "response" in err
+            ? (err as { response?: { data?: { message?: string } } }).response
+                ?.data?.message
+            : "記事の取得に失敗しました";
+        setError(errorMessage || "記事の取得に失敗しました");
       } finally {
         setLoading(false);
       }
@@ -54,18 +56,21 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
   }, [postId]);
 
   // 構造化データの生成
-  const structuredData: Record<string, unknown> | null = post ? generateStructuredData({
-    type: 'Article',
-    data: {
-      title: post.title,
-      description: post.excerpt || post.content.replace(/<[^>]*>/g, '').slice(0, 160),
-      author: post.author?.name,
-      publishedTime: post.published_at,
-      modifiedTime: post.updated_at,
-      url: `/info/${post.id}`,
-      image: '/images/og-image.jpg',
-    },
-  }) : null;
+  const structuredData: Record<string, unknown> | null = post
+    ? generateStructuredData({
+        type: "Article",
+        data: {
+          title: post.title,
+          description:
+            post.excerpt || post.content.replace(/<[^>]*>/g, "").slice(0, 160),
+          author: post.author?.name,
+          publishedTime: post.published_at,
+          modifiedTime: post.updated_at,
+          url: `/info/${post.id}`,
+          image: "/images/og-image.jpg",
+        },
+      })
+    : null;
 
   if (loading) {
     return (
@@ -89,8 +94,8 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         <Header />
         <div className="pt-16 sm:pt-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <ErrorDisplay 
-              message={error || '記事が見つかりませんでした'} 
+            <ErrorDisplay
+              message={error || "記事が見つかりませんでした"}
               onRetry={() => window.location.reload()}
             />
           </div>
@@ -114,13 +119,13 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
 
       <div className="min-h-screen bg-white">
         <Header />
-        
+
         <main className="pt-16 sm:pt-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* 戻るボタン */}
             <div className="mb-6 sm:mb-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => window.history.back()}
                 className="flex items-center text-gray-600 hover:text-gray-900"
               >
@@ -138,7 +143,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                       {post.title}
                     </h1>
-                    
+
                     <div className="flex items-center space-x-6 text-sm text-gray-500">
                       {post.author && (
                         <span className="flex items-center">
@@ -148,9 +153,10 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                       )}
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate.toJapanese(post.published_at || post.created_at)}
+                        {formatDate.toJapanese(
+                          post.published_at || post.created_at,
+                        )}
                       </span>
-
                     </div>
                   </div>
 
@@ -165,7 +171,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
 
                   {/* 記事本文 */}
                   <div className="prose prose-gray max-w-none">
-                    <div 
+                    <div
                       className="text-gray-800 leading-relaxed text-sm sm:text-base"
                       dangerouslySetInnerHTML={{ __html: post.content }}
                     />
@@ -175,7 +181,9 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                       {post.updated_at !== post.created_at && (
-                        <span>最終更新: {formatDate.toJapanese(post.updated_at)}</span>
+                        <span>
+                          最終更新: {formatDate.toJapanese(post.updated_at)}
+                        </span>
                       )}
                     </div>
                   </div>

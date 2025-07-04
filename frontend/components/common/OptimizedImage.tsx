@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { LazyImage } from '@/components/common/LazyLoadWrapper';
+import React, { useState } from "react";
+import Image from "next/image";
+import { LazyImage } from "@/components/common/LazyLoadWrapper";
 
 interface OptimizedImageProps {
   src: string;
@@ -11,7 +11,7 @@ interface OptimizedImageProps {
   height?: number;
   className?: string;
   priority?: boolean;
-  placeholder?: 'blur' | 'empty';
+  placeholder?: "blur" | "empty";
   blurDataURL?: string;
   sizes?: string;
   quality?: number;
@@ -23,7 +23,7 @@ interface OptimizedImageProps {
   lazy?: boolean;
   responsive?: boolean;
   aspectRatio?: string;
-  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
 }
 
 export function OptimizedImage({
@@ -31,9 +31,9 @@ export function OptimizedImage({
   alt,
   width,
   height,
-  className = '',
+  className = "",
   priority = false,
-  placeholder = 'empty',
+  placeholder = "empty",
   blurDataURL,
   sizes,
   quality = 80,
@@ -44,7 +44,7 @@ export function OptimizedImage({
   lazy = true,
   responsive = true,
   aspectRatio,
-  objectFit = 'cover',
+  objectFit = "cover",
 }: OptimizedImageProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -60,19 +60,20 @@ export function OptimizedImage({
   };
 
   // エラー時のフォールバック画像
-  const fallbackSrc = '/images/placeholder.jpg';
+  const fallbackSrc = "/images/placeholder.jpg";
 
   // レスポンシブ対応のsizes設定
-  const responsiveSizes = responsive && !sizes
-    ? '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-    : sizes;
+  const responsiveSizes =
+    responsive && !sizes
+      ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      : sizes;
 
   // アスペクト比の計算
   const aspectRatioStyle = aspectRatio
     ? { aspectRatio }
     : width && height
-    ? { aspectRatio: `${width}/${height}` }
-    : {};
+      ? { aspectRatio: `${width}/${height}` }
+      : {};
 
   const imageStyle: React.CSSProperties = {
     objectFit,
@@ -83,14 +84,17 @@ export function OptimizedImage({
   // Next.js Imageコンポーネント使用（最適化）
   if (!lazy && !imageError) {
     return (
-      <div className={`relative overflow-hidden ${className}`} style={aspectRatioStyle}>
+      <div
+        className={`relative overflow-hidden ${className}`}
+        style={aspectRatioStyle}
+      >
         <Image
           src={src}
           alt={alt}
           width={width}
           height={height}
           className={`transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
+            isLoaded ? "opacity-100" : "opacity-0"
           }`}
           priority={priority}
           placeholder={placeholder}
@@ -102,7 +106,7 @@ export function OptimizedImage({
           onLoad={handleLoad}
           onError={handleError}
         />
-        
+
         {/* ローディング状態 */}
         {!isLoaded && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
@@ -127,11 +131,16 @@ export function OptimizedImage({
 }
 
 // プリセット付きの最適化画像コンポーネント
-interface AvatarImageProps extends Omit<OptimizedImageProps, 'width' | 'height' | 'aspectRatio'> {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+interface AvatarImageProps
+  extends Omit<OptimizedImageProps, "width" | "height" | "aspectRatio"> {
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
-export function AvatarImage({ size = 'md', className = '', ...props }: AvatarImageProps) {
+export function AvatarImage({
+  size = "md",
+  className = "",
+  ...props
+}: AvatarImageProps) {
   const sizeMap = {
     sm: { width: 32, height: 32 },
     md: { width: 48, height: 48 },
@@ -153,15 +162,20 @@ export function AvatarImage({ size = 'md', className = '', ...props }: AvatarIma
   );
 }
 
-interface HeroImageProps extends Omit<OptimizedImageProps, 'aspectRatio' | 'objectFit'> {
-  variant?: 'wide' | 'standard' | 'square';
+interface HeroImageProps
+  extends Omit<OptimizedImageProps, "aspectRatio" | "objectFit"> {
+  variant?: "wide" | "standard" | "square";
 }
 
-export function HeroImage({ variant = 'wide', priority = true, ...props }: HeroImageProps) {
+export function HeroImage({
+  variant = "wide",
+  priority = true,
+  ...props
+}: HeroImageProps) {
   const aspectRatioMap = {
-    wide: '16/9',
-    standard: '4/3',
-    square: '1/1',
+    wide: "16/9",
+    standard: "4/3",
+    square: "1/1",
   };
 
   return (
@@ -176,15 +190,19 @@ export function HeroImage({ variant = 'wide', priority = true, ...props }: HeroI
   );
 }
 
-interface ThumbnailImageProps extends Omit<OptimizedImageProps, 'aspectRatio' | 'objectFit'> {
-  variant?: 'square' | 'landscape' | 'portrait';
+interface ThumbnailImageProps
+  extends Omit<OptimizedImageProps, "aspectRatio" | "objectFit"> {
+  variant?: "square" | "landscape" | "portrait";
 }
 
-export function ThumbnailImage({ variant = 'landscape', ...props }: ThumbnailImageProps) {
+export function ThumbnailImage({
+  variant = "landscape",
+  ...props
+}: ThumbnailImageProps) {
   const aspectRatioMap = {
-    square: '1/1',
-    landscape: '4/3',
-    portrait: '3/4',
+    square: "1/1",
+    landscape: "4/3",
+    portrait: "3/4",
   };
 
   return (
@@ -203,23 +221,23 @@ interface WebPImageProps extends OptimizedImageProps {
   fallbackSrc?: string;
 }
 
-export function WebPImage({ 
-  src, 
-  webpSrc, 
-  fallbackSrc, 
-  alt, 
-  ...props 
+export function WebPImage({
+  src,
+  webpSrc,
+  fallbackSrc,
+  alt,
+  ...props
 }: WebPImageProps) {
   const [supportsWebP, setSupportsWebP] = useState<boolean | null>(null);
 
   React.useEffect(() => {
     // WebP対応チェック
     const checkWebPSupport = () => {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = 1;
       canvas.height = 1;
-      const dataURL = canvas.toDataURL('image/webp');
-      setSupportsWebP(dataURL.indexOf('data:image/webp') === 0);
+      const dataURL = canvas.toDataURL("image/webp");
+      setSupportsWebP(dataURL.indexOf("data:image/webp") === 0);
     };
 
     checkWebPSupport();
@@ -236,13 +254,7 @@ export function WebPImage({
 
   const imageSrc = supportsWebP && webpSrc ? webpSrc : fallbackSrc || src;
 
-  return (
-    <OptimizedImage
-      src={imageSrc}
-      alt={alt}
-      {...props}
-    />
-  );
+  return <OptimizedImage src={imageSrc} alt={alt} {...props} />;
 }
 
 // 画像ギャラリー用の最適化コンポーネント
@@ -251,11 +263,11 @@ interface GalleryImageProps extends OptimizedImageProps {
   onLightboxOpen?: (src: string) => void;
 }
 
-export function GalleryImage({ 
-  lightbox = false, 
-  onLightboxOpen, 
-  className = '',
-  ...props 
+export function GalleryImage({
+  lightbox = false,
+  onLightboxOpen,
+  className = "",
+  ...props
 }: GalleryImageProps) {
   const handleClick = () => {
     if (lightbox && onLightboxOpen) {
@@ -266,7 +278,7 @@ export function GalleryImage({
   return (
     <div
       className={`group relative overflow-hidden rounded-lg ${
-        lightbox ? 'cursor-pointer' : ''
+        lightbox ? "cursor-pointer" : ""
       } ${className}`}
       onClick={handleClick}
     >
@@ -276,12 +288,22 @@ export function GalleryImage({
         objectFit="cover"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
-      
+
       {lightbox && (
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+              />
             </svg>
           </div>
         </div>

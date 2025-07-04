@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { Suspense } from 'react';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { SectionErrorBoundary } from '@/components/common/ErrorBoundary';
-import Image from 'next/image';
+import React, { Suspense } from "react";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { SectionErrorBoundary } from "@/components/common/ErrorBoundary";
+import Image from "next/image";
 
 // 汎用的なLazy Loading ラッパー
 interface LazyLoadWrapperProps {
@@ -12,16 +12,14 @@ interface LazyLoadWrapperProps {
   errorFallback?: React.ReactNode;
 }
 
-export function LazyLoadWrapper({ 
-  children, 
+export function LazyLoadWrapper({
+  children,
   fallback = <LoadingSpinner />,
-  errorFallback: _errorFallback 
+  errorFallback: _errorFallback,
 }: LazyLoadWrapperProps) {
   return (
     <SectionErrorBoundary>
-      <Suspense fallback={fallback}>
-        {children}
-      </Suspense>
+      <Suspense fallback={fallback}>{children}</Suspense>
     </SectionErrorBoundary>
   );
 }
@@ -54,13 +52,13 @@ interface LazySectionProps {
   className?: string;
 }
 
-export function LazySection({ 
-  children, 
-  height = 200, 
-  className = ''
+export function LazySection({
+  children,
+  height = 200,
+  className = "",
 }: LazySectionProps) {
   const defaultPlaceholder = (
-    <div 
+    <div
       className={`flex items-center justify-center bg-gray-50 ${className}`}
       style={{ height }}
     >
@@ -69,9 +67,7 @@ export function LazySection({
   );
 
   return (
-    <LazyLoadWrapper fallback={defaultPlaceholder}>
-      {children}
-    </LazyLoadWrapper>
+    <LazyLoadWrapper fallback={defaultPlaceholder}>{children}</LazyLoadWrapper>
   );
 }
 
@@ -86,10 +82,10 @@ interface IntersectionLazyLoadProps {
 
 export function IntersectionLazyLoad({
   children,
-  rootMargin = '50px',
+  rootMargin = "50px",
   threshold = 0.1,
   fallback = <LoadingSpinner />,
-  className = ''
+  className = "",
 }: IntersectionLazyLoadProps) {
   const [isVisible, setIsVisible] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -105,7 +101,7 @@ export function IntersectionLazyLoad({
       {
         rootMargin,
         threshold,
-      }
+      },
     );
 
     if (ref.current) {
@@ -135,9 +131,9 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export function LazyImage({
   src,
   alt,
-  placeholder: _placeholder = '/images/placeholder.jpg',
+  placeholder: _placeholder = "/images/placeholder.jpg",
   blurDataURL,
-  className = '',
+  className = "",
   onLoad,
   onError,
   ...props
@@ -155,7 +151,7 @@ export function LazyImage({
           observer.disconnect();
         }
       },
-      { rootMargin: '50px' }
+      { rootMargin: "50px" },
     );
 
     if (imgRef.current) {
@@ -217,7 +213,7 @@ export function LazyImage({
           onError={handleError}
           fill
           className={`transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
+            isLoaded ? "opacity-100" : "opacity-0"
           } ${className}`}
           {...rest}
         />
@@ -240,7 +236,7 @@ export function LazyDataLoader<T>({
   render,
   fallback = <LoadingSpinner />,
   errorFallback,
-  dependencies = []
+  dependencies = [],
 }: LazyDataLoaderProps<T>) {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -254,13 +250,13 @@ export function LazyDataLoader<T>({
         setLoading(true);
         setError(null);
         const result = await loadData();
-        
+
         if (!isCancelled) {
           setData(result);
         }
       } catch (err) {
         if (!isCancelled) {
-          setError(err instanceof Error ? err : new Error('Unknown error'));
+          setError(err instanceof Error ? err : new Error("Unknown error"));
         }
       } finally {
         if (!isCancelled) {
@@ -274,11 +270,16 @@ export function LazyDataLoader<T>({
     return () => {
       isCancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadData, ...dependencies]);
 
   if (loading) return <>{fallback}</>;
-  if (error) return <>{errorFallback ? errorFallback(error) : <div>エラーが発生しました</div>}</>;
+  if (error)
+    return (
+      <>
+        {errorFallback ? errorFallback(error) : <div>エラーが発生しました</div>}
+      </>
+    );
   if (data === null) return <>{fallback}</>;
 
   return <>{render(data)}</>;
@@ -292,7 +293,12 @@ interface LazyModalProps {
   className?: string;
 }
 
-export function LazyModal({ isOpen, onClose, children, className = '' }: LazyModalProps) {
+export function LazyModal({
+  isOpen,
+  onClose,
+  children,
+  className = "",
+}: LazyModalProps) {
   if (!isOpen) return null;
 
   return (

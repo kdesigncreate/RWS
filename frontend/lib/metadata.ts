@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export interface SEOConfig {
   title: string;
@@ -6,7 +6,7 @@ export interface SEOConfig {
   keywords?: string[];
   image?: string;
   url?: string;
-  type?: 'website' | 'article';
+  type?: "website" | "article";
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;
@@ -15,11 +15,19 @@ export interface SEOConfig {
 }
 
 const DEFAULT_METADATA = {
-  siteName: 'R.W.Sドリブル塾',
-  description: 'R.W.Sドリブル塾は、全国でサッカーのドリブル技術向上を目的としたスクールを開催しています。',
-  keywords: ['サッカー', 'ドリブル', 'スクール', 'RWS', 'サッカー教室', 'ドリブル塾'],
-  image: '/images/og-image.jpg',
-  twitterCreator: '@rwsdribble',
+  siteName: "R.W.Sドリブル塾",
+  description:
+    "R.W.Sドリブル塾は、全国でサッカーのドリブル技術向上を目的としたスクールを開催しています。",
+  keywords: [
+    "サッカー",
+    "ドリブル",
+    "スクール",
+    "RWS",
+    "サッカー教室",
+    "ドリブル塾",
+  ],
+  image: "/images/og-image.jpg",
+  twitterCreator: "@rwsdribble",
 };
 
 export function generateMetadata({
@@ -28,27 +36,29 @@ export function generateMetadata({
   keywords = [],
   image,
   url,
-  type = 'website',
+  type = "website",
   publishedTime,
   modifiedTime,
   author,
   section,
   noindex = false,
 }: SEOConfig): Metadata {
-  const metaTitle = title.includes(DEFAULT_METADATA.siteName) 
-    ? title 
+  const metaTitle = title.includes(DEFAULT_METADATA.siteName)
+    ? title
     : `${title} | ${DEFAULT_METADATA.siteName}`;
 
   const metaDescription = description || DEFAULT_METADATA.description;
   const metaKeywords = [...DEFAULT_METADATA.keywords, ...keywords];
   const metaImage = image || DEFAULT_METADATA.image;
-  const metaUrl = url || '/';
+  const metaUrl = url || "/";
 
   const metadata: Metadata = {
     title: metaTitle,
     description: metaDescription,
     keywords: metaKeywords,
-    authors: author ? [{ name: author }] : [{ name: DEFAULT_METADATA.siteName }],
+    authors: author
+      ? [{ name: author }]
+      : [{ name: DEFAULT_METADATA.siteName }],
     creator: DEFAULT_METADATA.siteName,
     publisher: DEFAULT_METADATA.siteName,
     formatDetection: {
@@ -58,7 +68,7 @@ export function generateMetadata({
     },
     openGraph: {
       type,
-      locale: 'ja_JP',
+      locale: "ja_JP",
       url: metaUrl,
       title: metaTitle,
       description: metaDescription,
@@ -71,7 +81,7 @@ export function generateMetadata({
           alt: metaTitle,
         },
       ],
-      ...(type === 'article' && {
+      ...(type === "article" && {
         publishedTime,
         modifiedTime,
         authors: author ? [author] : [],
@@ -79,7 +89,7 @@ export function generateMetadata({
       }),
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: metaTitle,
       description: metaDescription,
       creator: DEFAULT_METADATA.twitterCreator,
@@ -96,9 +106,9 @@ export function generateMetadata({
           googleBot: {
             index: true,
             follow: true,
-            'max-video-preview': -1,
-            'max-image-preview': 'large',
-            'max-snippet': -1,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
           },
         },
   };
@@ -121,20 +131,19 @@ export function generatePostMetadata({
   };
   url: string;
 }): Metadata {
-  const description = 
-    post.excerpt || 
-    post.content.replace(/<[^>]*>/g, '').slice(0, 160) + '...';
+  const description =
+    post.excerpt || post.content.replace(/<[^>]*>/g, "").slice(0, 160) + "...";
 
   return generateMetadata({
     title: post.title,
     description,
-    keywords: ['サッカー記事', 'ドリブル技術', 'サッカー情報'],
+    keywords: ["サッカー記事", "ドリブル技術", "サッカー情報"],
     url,
-    type: 'article',
+    type: "article",
     publishedTime: post.published_at,
     modifiedTime: post.updated_at,
     author: post.author?.name,
-    section: 'サッカー',
+    section: "サッカー",
   });
 }
 
@@ -142,7 +151,7 @@ export function generatePostMetadata({
 interface OrganizationData {
   sameAs?: string[];
   address?: {
-    '@type': string;
+    "@type": string;
     addressCountry?: string;
     addressRegion?: string;
   };
@@ -164,74 +173,75 @@ interface WebSiteData {
   [key: string]: unknown;
 }
 
-type StructuredDataConfig = 
-  | { type: 'Organization'; data: OrganizationData }
-  | { type: 'Article'; data: ArticleData }
-  | { type: 'WebSite'; data: WebSiteData };
+type StructuredDataConfig =
+  | { type: "Organization"; data: OrganizationData }
+  | { type: "Article"; data: ArticleData }
+  | { type: "WebSite"; data: WebSiteData };
 
 // 構造化データの生成
 export function generateStructuredData(config: StructuredDataConfig) {
-  const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
-  
+  const baseUrl =
+    process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
   switch (config.type) {
-    case 'Organization':
+    case "Organization":
       return {
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
+        "@context": "https://schema.org",
+        "@type": "Organization",
         name: DEFAULT_METADATA.siteName,
         url: baseUrl,
         logo: `${baseUrl}/images/logo.png`,
         description: DEFAULT_METADATA.description,
         contactPoint: {
-          '@type': 'ContactPoint',
-          contactType: 'Customer Service',
-          availableLanguage: 'Japanese',
+          "@type": "ContactPoint",
+          contactType: "Customer Service",
+          availableLanguage: "Japanese",
         },
         ...config.data,
       };
-    
-    case 'Article':
+
+    case "Article":
       return {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
+        "@context": "https://schema.org",
+        "@type": "Article",
         headline: config.data.title,
         author: {
-          '@type': 'Person',
+          "@type": "Person",
           name: config.data.author || DEFAULT_METADATA.siteName,
         },
         publisher: {
-          '@type': 'Organization',
+          "@type": "Organization",
           name: DEFAULT_METADATA.siteName,
           logo: {
-            '@type': 'ImageObject',
+            "@type": "ImageObject",
             url: `${baseUrl}/images/logo.png`,
           },
         },
         datePublished: config.data.publishedTime,
         dateModified: config.data.modifiedTime,
         mainEntityOfPage: {
-          '@type': 'WebPage',
-          '@id': `${baseUrl}${config.data.url}`,
+          "@type": "WebPage",
+          "@id": `${baseUrl}${config.data.url}`,
         },
         image: `${baseUrl}${config.data.image || DEFAULT_METADATA.image}`,
         ...config.data,
       };
-    
-    case 'WebSite':
+
+    case "WebSite":
       return {
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
+        "@context": "https://schema.org",
+        "@type": "WebSite",
         name: DEFAULT_METADATA.siteName,
         url: baseUrl,
         description: DEFAULT_METADATA.description,
         potentialAction: {
-          '@type': 'SearchAction',
+          "@type": "SearchAction",
           target: `${baseUrl}/search?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
+          "query-input": "required name=search_term_string",
         },
         ...config.data,
       };
-    
+
     default:
       return null;
   }

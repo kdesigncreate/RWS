@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema } from '@/lib/validation/authSchema';
-import type { LoginCredentials } from '@/types/auth';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { useAuth } from "@/hooks/useAuth";
+import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@/lib/validation/authSchema";
+import type { LoginCredentials } from "@/types/auth";
+import Link from "next/link";
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,28 +30,28 @@ export default function AdminLoginPage() {
   } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
   // 既にログイン済みの場合はダッシュボードにリダイレクト
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      router.push('/admin/dashboard');
+      router.push("/admin/dashboard");
     }
   }, [isAuthenticated, authLoading, router]);
 
   const onSubmit = async (data: LoginCredentials) => {
     setLoginError(null);
-    
+
     const result = await login(data);
-    
+
     if (result.success) {
       reset();
-      router.push('/admin/dashboard');
+      router.push("/admin/dashboard");
     } else {
-      setLoginError(result.error || 'ログインに失敗しました');
+      setLoginError(result.error || "ログインに失敗しました");
     }
   };
 
@@ -78,7 +78,9 @@ export default function AdminLoginPage() {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-lg font-semibold text-gray-900">管理者ログイン</h1>
+            <h1 className="text-lg font-semibold text-gray-900">
+              管理者ログイン
+            </h1>
             <div className="w-24"> {/* スペーサー */}</div>
           </div>
         </div>
@@ -100,20 +102,21 @@ export default function AdminLoginPage() {
                   管理画面にアクセスするためにログインしてください
                 </p>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {loginError && (
                   <Alert variant="destructive">
-                    <AlertDescription>
-                      {loginError}
-                    </AlertDescription>
+                    <AlertDescription>{loginError}</AlertDescription>
                   </Alert>
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   {/* メールアドレス */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-gray-700"
+                    >
                       メールアドレス
                     </Label>
                     <Input
@@ -122,30 +125,39 @@ export default function AdminLoginPage() {
                       autoComplete="email"
                       placeholder="admin@example.com"
                       className={`w-full ${
-                        errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-300'
+                        errors.email
+                          ? "border-red-300 focus:border-red-500"
+                          : "border-gray-300"
                       }`}
-                      {...register('email')}
+                      {...register("email")}
                     />
                     {errors.email && (
-                      <p className="text-sm text-red-600">{errors.email.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
 
                   {/* パスワード */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    <Label
+                      htmlFor="password"
+                      className="text-sm font-medium text-gray-700"
+                    >
                       パスワード
                     </Label>
                     <div className="relative">
                       <Input
                         id="password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? "text" : "password"}
                         autoComplete="current-password"
                         placeholder="••••••••"
                         className={`w-full pr-10 ${
-                          errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-300'
+                          errors.password
+                            ? "border-red-300 focus:border-red-500"
+                            : "border-gray-300"
                         }`}
-                        {...register('password')}
+                        {...register("password")}
                       />
                       <Button
                         type="button"
@@ -162,7 +174,9 @@ export default function AdminLoginPage() {
                       </Button>
                     </div>
                     {errors.password && (
-                      <p className="text-sm text-red-600">{errors.password.message}</p>
+                      <p className="text-sm text-red-600">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
 
@@ -199,8 +213,8 @@ export default function AdminLoginPage() {
 
             {/* 戻るリンク */}
             <div className="text-center mt-8">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 ← サイトトップに戻る

@@ -1,20 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Settings, User } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 interface HeaderProps {
   navigationItems?: Array<{ href: string; label: string }>;
@@ -25,25 +30,28 @@ export function Header({ navigationItems = [] }: HeaderProps) {
   const router = useRouter();
 
   const defaultNavigationItems = [
-    { href: '/', label: 'Top' },
-    { href: '/#posts', label: 'News' },
-    { href: '/#about', label: 'About' },
-    { href: '/#staff', label: 'Staff' },
-    { href: '/#price', label: 'Price' },
-    { href: '/#schoolList', label: 'School List' },
-    { href: '/#videos', label: 'Videos' },
+    { href: "/", label: "Top" },
+    { href: "/#posts", label: "News" },
+    { href: "/#about", label: "About" },
+    { href: "/#staff", label: "Staff" },
+    { href: "/#price", label: "Price" },
+    { href: "/#schoolList", label: "School List" },
+    { href: "/#videos", label: "Videos" },
   ];
 
-  const items = navigationItems.length > 0 ? navigationItems : defaultNavigationItems;
+  const items =
+    navigationItems.length > 0 ? navigationItems : defaultNavigationItems;
 
   const Navigation = ({ mobile = false }: { mobile?: boolean }) => (
-    <ul className={`${mobile ? 'flex flex-col space-y-8' : 'hidden lg:flex space-x-8 xl:space-x-12'}`}>
+    <ul
+      className={`${mobile ? "flex flex-col space-y-8" : "hidden lg:flex space-x-8 xl:space-x-12"}`}
+    >
       {items.map((item) => (
         <li key={item.label}>
           <button
             onClick={() => {
               if (mobile) setIsOpen(false);
-              if (item.href.startsWith('/#')) {
+              if (item.href.startsWith("/#")) {
                 router.push(item.href);
               } else {
                 router.push(item.href);
@@ -63,10 +71,13 @@ export function Header({ navigationItems = [] }: HeaderProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1 className="flex items-center">
-            <Link href="/" className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider flex items-center">
-              <Image 
-                src="/images/logo_black_removebg.png" 
-                alt="R.W.S ドリブル塾" 
+            <Link
+              href="/"
+              className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider flex items-center"
+            >
+              <Image
+                src="/images/logo_black_removebg.png"
+                alt="R.W.S ドリブル塾"
                 width={192}
                 height={48}
                 className="h-10 sm:h-12 w-auto object-contain"
@@ -74,15 +85,29 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               />
             </Link>
           </h1>
-          
+
           {/* デスクトップナビゲーション */}
           <div className="hidden lg:flex items-center space-x-8">
             <Navigation />
             <div className="flex items-center space-x-4">
-              <a href="https://lin.ee/x1gvg8e" target="_blank" rel="noopener noreferrer" aria-label="LINE">
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="48" height="48" rx="12" fill="#06C755"/>
-                  <path d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z" fill="#fff"/>
+              <a
+                href="https://lin.ee/x1gvg8e"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LINE"
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect width="48" height="48" rx="12" fill="#06C755" />
+                  <path
+                    d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z"
+                    fill="#fff"
+                  />
                 </svg>
               </a>
             </div>
@@ -91,8 +116,8 @@ export function Header({ navigationItems = [] }: HeaderProps) {
           {/* モバイルメニューボタン */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="lg:hidden flex items-center">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="bg-transparent text-white hover:bg-white/10 h-12 sm:h-14 w-20 p-0 flex items-center justify-center"
                 aria-label="メニューを開く"
               >
@@ -103,10 +128,18 @@ export function Header({ navigationItems = [] }: HeaderProps) {
                 </div>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-white text-black w-80 flex flex-col px-0 py-0">
+            <SheetContent
+              side="right"
+              className="bg-white text-black w-80 flex flex-col px-0 py-0"
+            >
               {/* 上部：ロゴ＋カスタムバツ */}
               <div className="flex items-center justify-between px-6 py-4 border-b">
-                <Image src="/images/logo_white_removebg.png" alt="RWS" width={100} height={32} />
+                <Image
+                  src="/images/logo_white_removebg.png"
+                  alt="RWS"
+                  width={100}
+                  height={32}
+                />
                 <SheetClose asChild>
                   <button
                     aria-label="メニューを閉じる"
@@ -118,7 +151,7 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               </div>
               {/* メニュー：左寄せ・太字・ホバーで青下線 */}
               <nav className="flex-1 flex flex-col gap-2 px-6 py-8">
-                {items.map(item => (
+                {items.map((item) => (
                   <a
                     key={item.label}
                     href={item.href}
@@ -130,13 +163,29 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               </nav>
               {/* SNSアイコン：下部・横並び・大きめ */}
               <div className="flex flex-col items-center justify-center gap-4 border-t py-4">
-                <a href="https://lin.ee/x1gvg8e" target="_blank" rel="noopener noreferrer" aria-label="LINE">
-                  <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="48" height="48" rx="12" fill="#06C755"/>
-                    <path d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z" fill="#fff"/>
+                <a
+                  href="https://lin.ee/x1gvg8e"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LINE"
+                >
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 48 48"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="48" height="48" rx="12" fill="#06C755" />
+                    <path
+                      d="M24 10C15.16 10 8 15.82 8 22.5c0 4.1 2.98 7.7 7.5 9.7-.32 1.1-1.1 3.7-1.24 4.26-.2.8.3.8.62.58.25-.17 3.98-2.62 5.6-3.7.84.12 1.7.18 2.52.18 8.84 0 16-5.82 16-12.5S32.84 10 24 10z"
+                      fill="#fff"
+                    />
                   </svg>
                 </a>
-                <p className="text-sm text-gray-600 font-medium">お問い合わせはこちらから</p>
+                <p className="text-sm text-gray-600 font-medium">
+                  お問い合わせはこちらから
+                </p>
               </div>
             </SheetContent>
           </Sheet>
@@ -154,25 +203,28 @@ interface AdminHeaderProps {
   className?: string;
 }
 
-export function AdminHeader({ title = '管理画面', className }: AdminHeaderProps) {
+export function AdminHeader({
+  title = "管理画面",
+  className,
+}: AdminHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
-      router.push('/');
+      router.push("/");
     }
   };
 
   return (
-    <header className={`border-b bg-white shadow-sm ${className || ''}`}>
+    <header className={`border-b bg-white shadow-sm ${className || ""}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* タイトルとパンくずリスト */}
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-sm text-gray-500 hover:text-gray-700"
             >
               サイトトップ
@@ -186,7 +238,7 @@ export function AdminHeader({ title = '管理画面', className }: AdminHeaderPr
             <div className="hidden sm:block text-sm text-gray-600">
               こんにちは、{user?.name}さん
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -209,7 +261,10 @@ export function AdminHeader({ title = '管理画面', className }: AdminHeaderPr
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600"
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   ログアウト
                 </DropdownMenuItem>

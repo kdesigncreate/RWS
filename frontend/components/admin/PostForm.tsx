@@ -1,20 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Eye, /* Calendar, Clock, */ AlertCircle, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Save,
+  Eye,
+  /* Calendar, Clock, */ AlertCircle,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -23,30 +28,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PostDetailSimple } from '@/components/posts/PostDetail';
-import { ButtonSpinner } from '@/components/common/LoadingSpinner';
-import { useAutoSave } from '@/hooks/useDebounce';
-import { postFormSchema, type PostFormInput } from '@/lib/validation/postSchema';
-import type { Post, CreatePostData, UpdatePostData } from '@/types/post';
-import { formatDate, stringUtils } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-import { getUsers } from '@/lib/api';
+} from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PostDetailSimple } from "@/components/posts/PostDetail";
+import { ButtonSpinner } from "@/components/common/LoadingSpinner";
+import { useAutoSave } from "@/hooks/useDebounce";
+import {
+  postFormSchema,
+  type PostFormInput,
+} from "@/lib/validation/postSchema";
+import type { Post, CreatePostData, UpdatePostData } from "@/types/post";
+import { formatDate, stringUtils } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { getUsers } from "@/lib/api";
 
 interface PostFormProps {
   post?: Post | null;
-  onSubmit: (data: CreatePostData | UpdatePostData) => Promise<{ success: boolean; error?: string }>;
-  onSave?: (data: CreatePostData | UpdatePostData) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (
+    data: CreatePostData | UpdatePostData,
+  ) => Promise<{ success: boolean; error?: string }>;
+  onSave?: (
+    data: CreatePostData | UpdatePostData,
+  ) => Promise<{ success: boolean; error?: string }>;
   loading?: boolean;
   className?: string;
 }
 
 // 日付をdatetime-local用の文字列(YYYY-MM-DDTHH:mm)に変換する関数
 function toDatetimeLocalString(date: Date) {
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const pad = (n: number) => n.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -61,7 +73,9 @@ export function PostForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
-  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [users, setUsers] = useState<
+    { id: number; name: string; email: string }[]
+  >([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
   const isEditing = !!post;
@@ -74,7 +88,7 @@ export function PostForm({
         const usersData = await getUsers();
         setUsers(usersData || []);
       } catch (error) {
-        console.error('ユーザー一覧の取得に失敗しました:', error);
+        console.error("ユーザー一覧の取得に失敗しました:", error);
         setUsers([]); // エラー時は空配列を設定
       } finally {
         setUsersLoading(false);
@@ -88,97 +102,106 @@ export function PostForm({
   const form = useForm<PostFormInput>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      title: post?.title || '',
-      content: post?.content || '',
-      excerpt: post?.excerpt || '',
-      status: post?.status || 'draft',
+      title: post?.title || "",
+      content: post?.content || "",
+      excerpt: post?.excerpt || "",
+      status: post?.status || "draft",
       published_at: post?.published_at ? new Date(post.published_at) : null,
       user_id: post?.user_id || null,
     },
   });
 
-  const { watch, handleSubmit, formState: { /* errors, isDirty */ } } = form;
+  const {
+    watch,
+    handleSubmit,
+    formState: {
+      /* errors, isDirty */
+    },
+  } = form;
   const watchedValues = watch();
 
   // 文字数カウント
   useEffect(() => {
-    const content = watchedValues.content || '';
+    const content = watchedValues.content || "";
     const plainText = stringUtils.stripHtml(content);
     setCharCount(plainText.length);
-    setWordCount(plainText.split(/\s+/).filter(word => word.length > 0).length);
+    setWordCount(
+      plainText.split(/\s+/).filter((word) => word.length > 0).length,
+    );
   }, [watchedValues.content]);
 
   // 自動保存機能
-  const {
-    isSaving,
-    lastSaved,
-    saveError,
-    hasChanges,
-    forceSave,
-  } = useAutoSave(
+  const { isSaving, lastSaved, saveError, hasChanges, forceSave } = useAutoSave(
     watchedValues,
     async (data) => {
       if (!onSave || !isEditing) return;
-      
+
       const formData = {
         ...data,
         published_at: data.published_at?.toISOString() || null,
       };
-      
+
       const result = await onSave(formData as UpdatePostData);
       if (!result.success) {
-        throw new Error(result.error || '保存に失敗しました');
+        throw new Error(result.error || "保存に失敗しました");
       }
     },
     2000, // 2秒後に自動保存
-    isEditing && !!onSave // 編集時かつonSaveが提供されている場合のみ有効
+    isEditing && !!onSave, // 編集時かつonSaveが提供されている場合のみ有効
   );
 
   // フォーム送信
   const onFormSubmit = async (data: PostFormInput) => {
     setSubmitError(null);
-    
+
     try {
       const formData = {
         title: data.title,
         content: data.content,
-        excerpt: data.excerpt || '',
+        excerpt: data.excerpt || "",
         status: data.status,
-        published_at: data.status === 'published' 
-          ? (data.published_at?.toISOString() || new Date().toISOString())
-          : null,
+        published_at:
+          data.status === "published"
+            ? data.published_at?.toISOString() || new Date().toISOString()
+            : null,
         user_id: data.user_id || null,
       };
 
-      const result = isEditing 
+      const result = isEditing
         ? await onSubmit({ ...formData, id: post!.id } as UpdatePostData)
         : await onSubmit(formData as CreatePostData);
 
       if (!result.success) {
-        setSubmitError(result.error || '保存に失敗しました');
+        setSubmitError(result.error || "保存に失敗しました");
       }
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : '予期しないエラーが発生しました');
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "予期しないエラーが発生しました",
+      );
     }
   };
 
   // プレビュー用の記事データ
   const previewPost: Post = {
     id: post?.id || 0,
-    title: watchedValues.title || 'タイトル未入力',
-    content: watchedValues.content || '本文未入力',
-    excerpt: watchedValues.excerpt || '',
-    status: watchedValues.status || 'draft',
-    status_label: watchedValues.status === 'published' ? '公開' : '下書き',
+    title: watchedValues.title || "タイトル未入力",
+    content: watchedValues.content || "本文未入力",
+    excerpt: watchedValues.excerpt || "",
+    status: watchedValues.status || "draft",
+    status_label: watchedValues.status === "published" ? "公開" : "下書き",
     published_at: watchedValues.published_at?.toISOString() || null,
-    published_at_formatted: watchedValues.published_at 
+    published_at_formatted: watchedValues.published_at
       ? formatDate.toJapaneseDateTime(watchedValues.published_at.toISOString())
       : null,
-    is_published: watchedValues.status === 'published',
-    is_draft: watchedValues.status === 'draft',
+    is_published: watchedValues.status === "published",
+    is_draft: watchedValues.status === "draft",
     created_at: post?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    created_at_formatted: formatDate.toJapanese(post?.created_at || new Date().toISOString()),
+    created_at_formatted: formatDate.toJapanese(
+      post?.created_at || new Date().toISOString(),
+    ),
     updated_at_formatted: formatDate.toJapanese(new Date().toISOString()),
     meta: {
       title_length: watchedValues.title?.length || 0,
@@ -190,12 +213,12 @@ export function PostForm({
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn("space-y-6", className)}>
       {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isEditing ? '記事を編集' : '新しい記事を作成'}
+            {isEditing ? "記事を編集" : "新しい記事を作成"}
           </h1>
           {isEditing && post && (
             <p className="text-sm text-gray-600 mt-1">
@@ -208,12 +231,12 @@ export function PostForm({
           {/* プレビューボタン */}
           <Button
             type="button"
-            variant={isPreviewMode ? 'default' : 'outline'}
+            variant={isPreviewMode ? "default" : "outline"}
             size="sm"
             onClick={() => setIsPreviewMode(!isPreviewMode)}
           >
             <Eye className="h-4 w-4 mr-2" />
-            {isPreviewMode ? 'フォームに戻る' : 'プレビュー'}
+            {isPreviewMode ? "フォームに戻る" : "プレビュー"}
           </Button>
 
           {/* 保存状態表示 */}
@@ -347,26 +370,39 @@ export function PostForm({
                             <User className="h-4 w-4 mr-1" />
                             作成者
                           </FormLabel>
-                          <Select 
-                            onValueChange={(value) => field.onChange(value ? Number(value) : null)}
-                            value={field.value?.toString() || ''}
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(value ? Number(value) : null)
+                            }
+                            value={field.value?.toString() || ""}
                             disabled={usersLoading}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={usersLoading ? "読み込み中..." : "作成者を選択"} />
+                                <SelectValue
+                                  placeholder={
+                                    usersLoading
+                                      ? "読み込み中..."
+                                      : "作成者を選択"
+                                  }
+                                />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {users && users.length > 0 ? (
                                 users.map((user) => (
-                                  <SelectItem key={user.id} value={user.id.toString()}>
+                                  <SelectItem
+                                    key={user.id}
+                                    value={user.id.toString()}
+                                  >
                                     {user.name} ({user.email})
                                   </SelectItem>
                                 ))
                               ) : (
                                 <SelectItem value="no-users" disabled>
-                                  {usersLoading ? "読み込み中..." : "ユーザーが見つかりません"}
+                                  {usersLoading
+                                    ? "読み込み中..."
+                                    : "ユーザーが見つかりません"}
                                 </SelectItem>
                               )}
                             </SelectContent>
@@ -386,8 +422,8 @@ export function PostForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>ステータス</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -406,7 +442,7 @@ export function PostForm({
                     />
 
                     {/* 公開日時（公開時のみ表示） */}
-                    {watchedValues.status === 'published' && (
+                    {watchedValues.status === "published" && (
                       <FormField
                         control={form.control}
                         name="published_at"
@@ -416,10 +452,16 @@ export function PostForm({
                             <FormControl>
                               <Input
                                 type="datetime-local"
-                                value={field.value ? toDatetimeLocalString(field.value) : ''}
+                                value={
+                                  field.value
+                                    ? toDatetimeLocalString(field.value)
+                                    : ""
+                                }
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  field.onChange(value ? new Date(value) : null);
+                                  field.onChange(
+                                    value ? new Date(value) : null,
+                                  );
                                 }}
                               />
                             </FormControl>
@@ -434,8 +476,16 @@ export function PostForm({
 
                     {/* ステータス表示 */}
                     <div className="pt-2">
-                      <Badge variant={watchedValues.status === 'published' ? 'default' : 'secondary'}>
-                        {watchedValues.status === 'published' ? '公開' : '下書き'}
+                      <Badge
+                        variant={
+                          watchedValues.status === "published"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {watchedValues.status === "published"
+                          ? "公開"
+                          : "下書き"}
                       </Badge>
                     </div>
                   </CardContent>
@@ -486,7 +536,11 @@ export function PostForm({
                         disabled={!hasChanges || isSaving}
                         className="w-full"
                       >
-                        {isSaving ? <ButtonSpinner /> : <Save className="h-4 w-4 mr-2" />}
+                        {isSaving ? (
+                          <ButtonSpinner />
+                        ) : (
+                          <Save className="h-4 w-4 mr-2" />
+                        )}
                         手動保存
                       </Button>
                     </CardContent>
@@ -500,7 +554,7 @@ export function PostForm({
               <Button type="submit" disabled={loading} size="lg">
                 {loading && <ButtonSpinner />}
                 <Save className="h-4 w-4 mr-2" />
-                {isEditing ? '更新' : '作成'}
+                {isEditing ? "更新" : "作成"}
               </Button>
             </div>
           </form>
@@ -514,22 +568,32 @@ export function PostForm({
  * シンプルな記事フォーム（クイック作成用）
  */
 interface QuickPostFormProps {
-  onSubmit: (data: Pick<CreatePostData, 'title' | 'content' | 'status'>) => Promise<void>;
+  onSubmit: (
+    data: Pick<CreatePostData, "title" | "content" | "status">,
+  ) => Promise<void>;
   loading?: boolean;
   className?: string;
 }
 
-export function QuickPostForm({ onSubmit, loading = false, className }: QuickPostFormProps) {
-  const form = useForm<Pick<PostFormInput, 'title' | 'content' | 'status'>>({
-    resolver: zodResolver(postFormSchema.pick({ title: true, content: true, status: true })),
+export function QuickPostForm({
+  onSubmit,
+  loading = false,
+  className,
+}: QuickPostFormProps) {
+  const form = useForm<Pick<PostFormInput, "title" | "content" | "status">>({
+    resolver: zodResolver(
+      postFormSchema.pick({ title: true, content: true, status: true }),
+    ),
     defaultValues: {
-      title: '',
-      content: '',
-      status: 'draft',
+      title: "",
+      content: "",
+      status: "draft",
     },
   });
 
-  const onFormSubmit = async (data: Pick<PostFormInput, 'title' | 'content' | 'status'>) => {
+  const onFormSubmit = async (
+    data: Pick<PostFormInput, "title" | "content" | "status">,
+  ) => {
     await onSubmit(data);
     form.reset();
   };
@@ -541,7 +605,10 @@ export function QuickPostForm({ onSubmit, loading = false, className }: QuickPos
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onFormSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -574,7 +641,10 @@ export function QuickPostForm({ onSubmit, loading = false, className }: QuickPos
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="w-32">
                           <SelectValue />

@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  AlertTriangle, 
-  RefreshCw, 
-  Home, 
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertTriangle,
+  RefreshCw,
+  Home,
   ArrowLeft,
   Bug,
   ChevronDown,
   ChevronUp,
   Copy,
-  Check
-} from 'lucide-react';
-import { AppError, ErrorUtils, ErrorType, ErrorSeverity } from '@/lib/errors';
-import { useState } from 'react';
+  Check,
+} from "lucide-react";
+import { AppError, ErrorUtils, ErrorType, ErrorSeverity } from "@/lib/errors";
+import { useState } from "react";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -31,7 +31,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   const appError = new AppError({
     type: ErrorType.CLIENT,
     severity: ErrorSeverity.HIGH,
-    userMessage: 'ページの読み込み中にエラーが発生しました',
+    userMessage: "ページの読み込み中にエラーが発生しました",
     technicalMessage: error.message,
     context: {
       digest: error.digest,
@@ -43,24 +43,28 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   ErrorUtils.logError(appError);
 
   const handleCopyError = async () => {
-    const errorText = JSON.stringify({
-      message: error.message,
-      digest: error.digest,
-      stack: error.stack,
-      timestamp: new Date().toISOString(),
-    }, null, 2);
+    const errorText = JSON.stringify(
+      {
+        message: error.message,
+        digest: error.digest,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      },
+      null,
+      2,
+    );
 
     try {
       await navigator.clipboard.writeText(errorText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy error details:', err);
+      console.error("Failed to copy error details:", err);
     }
   };
 
   const handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   const isRetryable = ErrorUtils.isRetryable(appError);
@@ -76,9 +80,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           <CardTitle className="text-xl font-bold text-gray-900">
             ページでエラーが発生しました
           </CardTitle>
-          <p className="text-gray-600 mt-2">
-            {appError.userMessage}
-          </p>
+          <p className="text-gray-600 mt-2">{appError.userMessage}</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -98,15 +100,15 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           {/* アクションボタン */}
           <div className="flex flex-col sm:flex-row gap-3">
             {isRetryable && (
-              <Button 
-                onClick={reset} 
+              <Button
+                onClick={reset}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 再試行
               </Button>
             )}
-            
+
             <Button
               variant="outline"
               onClick={() => window.history.back()}
@@ -116,18 +118,14 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
               前のページに戻る
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={handleGoHome}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={handleGoHome} className="flex-1">
               <Home className="h-4 w-4 mr-2" />
               ホームに戻る
             </Button>
           </div>
 
           {/* エラー詳細（開発環境のみ） */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <div className="border-t pt-4">
               <Button
                 variant="ghost"
@@ -163,13 +161,17 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
                         )}
                       </Button>
                     </div>
-                    
+
                     <div className="text-xs text-gray-600 space-y-1">
-                      <p><strong>メッセージ:</strong> {error.message}</p>
+                      <p>
+                        <strong>メッセージ:</strong> {error.message}
+                      </p>
                       {error.digest && (
-                        <p><strong>ダイジェスト:</strong> {error.digest}</p>
+                        <p>
+                          <strong>ダイジェスト:</strong> {error.digest}
+                        </p>
                       )}
-                      
+
                       {error.stack && (
                         <div>
                           <strong>スタックトレース:</strong>
@@ -194,7 +196,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           <div className="text-center text-sm text-gray-500 space-y-1">
             <p>問題が継続する場合は、ページを再読み込みしてください。</p>
             <p>それでも解決しない場合は、サポートまでお問い合わせください。</p>
-            
+
             {/* 連絡先情報があれば表示 */}
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-xs">

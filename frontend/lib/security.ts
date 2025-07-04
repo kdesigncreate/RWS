@@ -13,16 +13,16 @@ export const SECURITY_CONFIG = {
   PASSWORD_REQUIRE_LOWERCASE: true,
   PASSWORD_REQUIRE_NUMBERS: true,
   PASSWORD_REQUIRE_SYMBOLS: true,
-  
+
   // セッション設定
   SESSION_TIMEOUT: 30 * 60 * 1000, // 30分
   MAX_LOGIN_ATTEMPTS: 5,
   LOCKOUT_DURATION: 15 * 60 * 1000, // 15分
-  
+
   // CSRF設定
   CSRF_TOKEN_LENGTH: 32,
   CSRF_TOKEN_TIMEOUT: 60 * 60 * 1000, // 1時間
-  
+
   // レート制限
   API_RATE_LIMIT: 100, // 1分間のリクエスト数
   LOGIN_RATE_LIMIT: 5, // 1分間のログイン試行数
@@ -34,7 +34,7 @@ export class InputSanitizer {
    * HTMLタグを除去
    */
   static stripHtml(input: string): string {
-    return input.replace(/<[^>]*>/g, '');
+    return input.replace(/<[^>]*>/g, "");
   }
 
   /**
@@ -42,14 +42,14 @@ export class InputSanitizer {
    */
   static escapeHtml(input: string): string {
     const entityMap: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-      '/': '&#x2F;',
-      '`': '&#x60;',
-      '=': '&#x3D;',
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+      "/": "&#x2F;",
+      "`": "&#x60;",
+      "=": "&#x3D;",
     };
 
     return input.replace(/[&<>"'`=/]/g, (char) => entityMap[char] || char);
@@ -61,17 +61,25 @@ export class InputSanitizer {
   static escapeSql(input: string): string {
     return input.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, (char) => {
       switch (char) {
-        case '\0': return '\\0';
-        case '\x08': return '\\b';
-        case '\x09': return '\\t';
-        case '\x1a': return '\\z';
-        case '\n': return '\\n';
-        case '\r': return '\\r';
+        case "\0":
+          return "\\0";
+        case "\x08":
+          return "\\b";
+        case "\x09":
+          return "\\t";
+        case "\x1a":
+          return "\\z";
+        case "\n":
+          return "\\n";
+        case "\r":
+          return "\\r";
         case '"':
         case "'":
-        case '\\':
-        case '%': return '\\' + char;
-        default: return char;
+        case "\\":
+        case "%":
+          return "\\" + char;
+        default:
+          return char;
       }
     });
   }
@@ -81,14 +89,17 @@ export class InputSanitizer {
    */
   static removeJavaScript(input: string): string {
     // javascript: プロトコルの除去
-    let sanitized = input.replace(/javascript:/gi, '');
-    
+    let sanitized = input.replace(/javascript:/gi, "");
+
     // on* イベントハンドラの除去
-    sanitized = sanitized.replace(/\bon\w+\s*=/gi, '');
-    
+    sanitized = sanitized.replace(/\bon\w+\s*=/gi, "");
+
     // script タグの除去
-    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    
+    sanitized = sanitized.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      "",
+    );
+
     return sanitized;
   }
 
@@ -98,16 +109,16 @@ export class InputSanitizer {
   static sanitizeUrl(url: string): string {
     try {
       const urlObject = new URL(url);
-      
+
       // 許可されたプロトコルのみ
-      const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:'];
+      const allowedProtocols = ["http:", "https:", "mailto:", "tel:"];
       if (!allowedProtocols.includes(urlObject.protocol)) {
-        throw new Error('Invalid protocol');
+        throw new Error("Invalid protocol");
       }
 
       return urlObject.toString();
     } catch {
-      return '#';
+      return "#";
     }
   }
 
@@ -117,8 +128,8 @@ export class InputSanitizer {
   static sanitizeFilename(filename: string): string {
     // 危険な文字を除去
     return filename
-      .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
-      .replace(/^\.+/, '')
+      .replace(/[<>:"/\\|?*\x00-\x1f]/g, "")
+      .replace(/^\.+/, "")
       .substring(0, 255);
   }
 }
@@ -138,53 +149,66 @@ export class PasswordValidator {
 
     // 長さチェック
     if (password.length < SECURITY_CONFIG.PASSWORD_MIN_LENGTH) {
-      errors.push(`パスワードは${SECURITY_CONFIG.PASSWORD_MIN_LENGTH}文字以上である必要があります`);
+      errors.push(
+        `パスワードは${SECURITY_CONFIG.PASSWORD_MIN_LENGTH}文字以上である必要があります`,
+      );
     } else {
       score += 1;
     }
 
     // 大文字チェック
     if (SECURITY_CONFIG.PASSWORD_REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
-      errors.push('大文字を含む必要があります');
+      errors.push("大文字を含む必要があります");
     } else if (/[A-Z]/.test(password)) {
       score += 1;
     }
 
     // 小文字チェック
     if (SECURITY_CONFIG.PASSWORD_REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
-      errors.push('小文字を含む必要があります');
+      errors.push("小文字を含む必要があります");
     } else if (/[a-z]/.test(password)) {
       score += 1;
     }
 
     // 数字チェック
     if (SECURITY_CONFIG.PASSWORD_REQUIRE_NUMBERS && !/[0-9]/.test(password)) {
-      errors.push('数字を含む必要があります');
+      errors.push("数字を含む必要があります");
     } else if (/[0-9]/.test(password)) {
       score += 1;
     }
 
     // 記号チェック
-    if (SECURITY_CONFIG.PASSWORD_REQUIRE_SYMBOLS && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push('記号を含む必要があります');
+    if (
+      SECURITY_CONFIG.PASSWORD_REQUIRE_SYMBOLS &&
+      !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
+      errors.push("記号を含む必要があります");
     } else if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
       score += 1;
     }
 
     // 一般的なパスワードチェック
     const commonPasswords = [
-      'password', '123456', '123456789', 'qwerty', 'abc123',
-      'password123', 'admin', 'root', 'user', 'guest'
+      "password",
+      "123456",
+      "123456789",
+      "qwerty",
+      "abc123",
+      "password123",
+      "admin",
+      "root",
+      "user",
+      "guest",
     ];
-    
+
     if (commonPasswords.includes(password.toLowerCase())) {
-      errors.push('一般的すぎるパスワードです');
+      errors.push("一般的すぎるパスワードです");
       score -= 2;
     }
 
     // 連続文字チェック
     if (/(.)\1{2,}/.test(password)) {
-      errors.push('同じ文字の連続は避けてください');
+      errors.push("同じ文字の連続は避けてください");
       score -= 1;
     }
 
@@ -204,12 +228,18 @@ export class PasswordValidator {
   static getStrengthText(score: number): string {
     switch (score) {
       case 0:
-      case 1: return '非常に弱い';
-      case 2: return '弱い';
-      case 3: return '普通';
-      case 4: return '強い';
-      case 5: return '非常に強い';
-      default: return '不明';
+      case 1:
+        return "非常に弱い";
+      case 2:
+        return "弱い";
+      case 3:
+        return "普通";
+      case 4:
+        return "強い";
+      case 5:
+        return "非常に強い";
+      default:
+        return "不明";
     }
   }
 
@@ -219,12 +249,18 @@ export class PasswordValidator {
   static getStrengthColor(score: number): string {
     switch (score) {
       case 0:
-      case 1: return 'text-red-600';
-      case 2: return 'text-orange-600';
-      case 3: return 'text-yellow-600';
-      case 4: return 'text-blue-600';
-      case 5: return 'text-green-600';
-      default: return 'text-gray-600';
+      case 1:
+        return "text-red-600";
+      case 2:
+        return "text-orange-600";
+      case 3:
+        return "text-yellow-600";
+      case 4:
+        return "text-blue-600";
+      case 5:
+        return "text-green-600";
+      default:
+        return "text-gray-600";
     }
   }
 }
@@ -247,7 +283,7 @@ export class CSRFProtection {
    */
   static validateToken(token: string): boolean {
     const timestamp = this.tokens.get(token);
-    
+
     if (!timestamp) {
       return false;
     }
@@ -274,8 +310,9 @@ export class CSRFProtection {
   }
 
   private static generateRandomString(length: number): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -285,7 +322,10 @@ export class CSRFProtection {
 
 // レート制限
 export class RateLimiter {
-  private static requests = new Map<string, { count: number; resetTime: number }>();
+  private static requests = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
 
   /**
    * レート制限チェック
@@ -293,7 +333,7 @@ export class RateLimiter {
   static checkLimit(
     identifier: string,
     limit: number,
-    windowMs: number = 60000
+    windowMs: number = 60000,
   ): { allowed: boolean; remaining: number; resetTime: number } {
     const now = Date.now();
     const entry = this.requests.get(identifier);
@@ -304,7 +344,7 @@ export class RateLimiter {
         count: 1,
         resetTime: now + windowMs,
       });
-      
+
       return {
         allowed: true,
         remaining: limit - 1,
@@ -321,7 +361,7 @@ export class RateLimiter {
     }
 
     entry.count++;
-    
+
     return {
       allowed: true,
       remaining: limit - entry.count,
@@ -362,8 +402,8 @@ export class SessionManager {
    * セッションを更新
    */
   static updateSession(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('lastActivity', Date.now().toString());
+    if (typeof window !== "undefined") {
+      localStorage.setItem("lastActivity", Date.now().toString());
     }
   }
 
@@ -371,9 +411,9 @@ export class SessionManager {
    * セッションをクリア
    */
   static clearSession(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('lastActivity');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("lastActivity");
       sessionStorage.clear();
     }
   }
@@ -382,21 +422,27 @@ export class SessionManager {
    * 最後のアクティビティ時間を取得
    */
   static getLastActivity(): number {
-    if (typeof window === 'undefined') return 0;
-    
-    const lastActivity = localStorage.getItem('lastActivity');
+    if (typeof window === "undefined") return 0;
+
+    const lastActivity = localStorage.getItem("lastActivity");
     return lastActivity ? parseInt(lastActivity, 10) : 0;
   }
 }
 
 // ブルートフォース攻撃対策
 export class BruteForceProtection {
-  private static attempts = new Map<string, { count: number; lockedUntil?: number }>();
+  private static attempts = new Map<
+    string,
+    { count: number; lockedUntil?: number }
+  >();
 
   /**
    * ログイン試行を記録
    */
-  static recordAttempt(identifier: string, success: boolean): {
+  static recordAttempt(
+    identifier: string,
+    success: boolean,
+  ): {
     allowed: boolean;
     attemptsRemaining: number;
     lockedUntil?: number;
@@ -426,7 +472,7 @@ export class BruteForceProtection {
     if (entry.count >= SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS) {
       entry.lockedUntil = Date.now() + SECURITY_CONFIG.LOCKOUT_DURATION;
       this.attempts.set(identifier, entry);
-      
+
       return {
         allowed: false,
         attemptsRemaining: 0,
@@ -435,7 +481,7 @@ export class BruteForceProtection {
     }
 
     this.attempts.set(identifier, entry);
-    
+
     return {
       allowed: true,
       attemptsRemaining: SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS - entry.count,
@@ -468,42 +514,49 @@ export class SecurityLogger {
    * セキュリティイベントをログ出力
    */
   static logEvent(
-    eventType: 'auth_failure' | 'rate_limit' | 'csp_violation' | 'xss_attempt' | 'suspicious_activity',
-    details: Record<string, unknown>
+    eventType:
+      | "auth_failure"
+      | "rate_limit"
+      | "csp_violation"
+      | "xss_attempt"
+      | "suspicious_activity",
+    details: Record<string, unknown>,
   ): void {
     const logEntry = {
       timestamp: new Date().toISOString(),
       type: eventType,
-      userAgent: typeof window !== 'undefined' ? navigator.userAgent : '',
-      url: typeof window !== 'undefined' ? window.location.href : '',
+      userAgent: typeof window !== "undefined" ? navigator.userAgent : "",
+      url: typeof window !== "undefined" ? window.location.href : "",
       ...details,
     };
 
     // 開発環境ではコンソールに出力
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Security Event]', logEntry);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[Security Event]", logEntry);
     }
 
     // 本番環境では外部サービスに送信
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       this.sendToSecurityService(logEntry);
     }
   }
 
-  private static async sendToSecurityService(logEntry: Record<string, unknown>): Promise<void> {
+  private static async sendToSecurityService(
+    logEntry: Record<string, unknown>,
+  ): Promise<void> {
     try {
       // セキュリティ監視サービスへの送信
       if (process.env.NEXT_PUBLIC_SECURITY_ENDPOINT) {
         await fetch(process.env.NEXT_PUBLIC_SECURITY_ENDPOINT, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(logEntry),
         });
       }
     } catch (error) {
-      console.error('Failed to send security log:', error);
+      console.error("Failed to send security log:", error);
     }
   }
 }
@@ -522,29 +575,29 @@ export class SecurityMiddleware {
     const errors: string[] = [];
 
     // Content-Type チェック
-    if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
-      const contentType = request.headers['content-type'];
-      if (!contentType || !contentType.includes('application/json')) {
-        errors.push('Invalid Content-Type');
+    if (["POST", "PUT", "PATCH"].includes(request.method)) {
+      const contentType = request.headers["content-type"];
+      if (!contentType || !contentType.includes("application/json")) {
+        errors.push("Invalid Content-Type");
       }
     }
 
     // Origin チェック
-    const origin = request.headers['origin'];
+    const origin = request.headers["origin"];
     const allowedOrigins = [
       process.env.NEXT_PUBLIC_FRONTEND_URL,
-      'http://localhost:3000',
-      'https://rws-dribble.com',
+      "http://localhost:3000",
+      "https://rws-dribble.com",
     ].filter(Boolean);
 
     if (origin && !allowedOrigins.includes(origin)) {
-      errors.push('Invalid Origin');
+      errors.push("Invalid Origin");
     }
 
     // User-Agent チェック
-    const userAgent = request.headers['user-agent'];
+    const userAgent = request.headers["user-agent"];
     if (!userAgent || userAgent.length < 10) {
-      errors.push('Invalid User-Agent');
+      errors.push("Invalid User-Agent");
     }
 
     return {
@@ -555,11 +608,14 @@ export class SecurityMiddleware {
 }
 
 // 定期的なクリーンアップ
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // 5分ごとにクリーンアップ実行
-  setInterval(() => {
-    CSRFProtection.cleanup();
-    RateLimiter.cleanup();
-    BruteForceProtection.cleanup();
-  }, 5 * 60 * 1000);
+  setInterval(
+    () => {
+      CSRFProtection.cleanup();
+      RateLimiter.cleanup();
+      BruteForceProtection.cleanup();
+    },
+    5 * 60 * 1000,
+  );
 }

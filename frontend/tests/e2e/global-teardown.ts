@@ -1,17 +1,17 @@
-import { FullConfig } from '@playwright/test';
+import { FullConfig } from "@playwright/test";
 
 async function globalTeardown(config: FullConfig) {
-  console.log('🧹 Starting global teardown for E2E tests...');
-  
+  console.log("🧹 Starting global teardown for E2E tests...");
+
   try {
     // Clean up test data if needed
-    console.log('🔧 Cleaning up test data...');
-    
+    console.log("🔧 Cleaning up test data...");
+
     // You can add cleanup logic here, such as:
     // - Deleting test users
     // - Clearing test posts
     // - Resetting database state
-    
+
     // Example cleanup (commented out as it depends on your backend implementation):
     /*
     const { chromium } = require('@playwright/test');
@@ -33,11 +33,10 @@ async function globalTeardown(config: FullConfig) {
     await context.close();
     await browser.close();
     */
-    
-    console.log('✅ Global teardown completed successfully');
-    
+
+    console.log("✅ Global teardown completed successfully");
   } catch (error) {
-    console.error('❌ Global teardown encountered an error:', error);
+    console.error("❌ Global teardown encountered an error:", error);
     // Don't throw the error as it might prevent other cleanup from running
   }
 }

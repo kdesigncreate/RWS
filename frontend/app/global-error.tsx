@@ -1,15 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  AlertTriangle, 
-  RefreshCw, 
-  Home, 
-  Bug,
-  RotateCcw
-} from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, RefreshCw, Home, Bug, RotateCcw } from "lucide-react";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -19,7 +13,7 @@ interface GlobalErrorProps {
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   React.useEffect(() => {
     // グローバルエラーをログに記録
-    console.error('Global error occurred:', {
+    console.error("Global error occurred:", {
       message: error.message,
       digest: error.digest,
       stack: error.stack,
@@ -27,7 +21,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     });
 
     // 本番環境では外部サービスにログを送信
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       // TODO: 外部ログサービス（Sentry、LogRocket等）への送信
       // sendErrorToLoggingService(error);
     }
@@ -38,7 +32,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   };
 
   const handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return (
@@ -92,7 +86,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
               {/* アクションボタン */}
               <div className="space-y-2">
-                <Button 
+                <Button
                   onClick={reset}
                   className="w-full bg-red-600 text-white hover:bg-red-700"
                 >
@@ -100,7 +94,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   アプリを再起動
                 </Button>
 
-                <Button 
+                <Button
                   onClick={handleReloadPage}
                   variant="outline"
                   className="w-full border-red-300 text-red-700 hover:bg-red-50"
@@ -109,7 +103,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   ページを再読み込み
                 </Button>
 
-                <Button 
+                <Button
                   onClick={handleGoHome}
                   variant="outline"
                   className="w-full"
@@ -124,18 +118,22 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 <p>問題が継続する場合は、以下の情報をお控えの上、</p>
                 <p>サポートまでお問い合わせください:</p>
                 <div className="mt-2 p-2 bg-gray-100 rounded font-mono text-xs">
-                  {error.digest ? `エラーID: ${error.digest}` : `時刻: ${new Date().toISOString()}`}
+                  {error.digest
+                    ? `エラーID: ${error.digest}`
+                    : `時刻: ${new Date().toISOString()}`}
                 </div>
               </div>
 
               {/* 開発環境での詳細表示 */}
-              {process.env.NODE_ENV === 'development' && (
+              {process.env.NODE_ENV === "development" && (
                 <details className="mt-4">
                   <summary className="text-xs text-gray-500 cursor-pointer">
                     開発者向け詳細情報
                   </summary>
                   <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono">
-                    <div><strong>Message:</strong> {error.message}</div>
+                    <div>
+                      <strong>Message:</strong> {error.message}
+                    </div>
                     {error.stack && (
                       <div className="mt-2">
                         <strong>Stack:</strong>

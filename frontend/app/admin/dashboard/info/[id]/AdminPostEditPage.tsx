@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, notFound } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { PostForm } from '@/components/admin/PostForm';
+import React, { useEffect, useState } from "react";
+import { useRouter, notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { PostForm } from "@/components/admin/PostForm";
 // import { LoadingSpinner } from '@/components/common/LoadingSpinner'; // 将来の拡張用にコメントアウト
-import { ErrorDisplay } from '@/components/common/ErrorDisplay';
-import { usePosts } from '@/hooks/usePosts';
-import { 
-  ArrowLeft, 
-  Save, 
-  Eye, 
-  Trash2, 
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { usePosts } from "@/hooks/usePosts";
+import {
+  ArrowLeft,
+  Save,
+  Eye,
+  Trash2,
   AlertTriangle,
-  CheckCircle 
-} from 'lucide-react';
-import type { CreatePostData, UpdatePostData } from '@/types/post';
-import Link from 'next/link';
+  CheckCircle,
+} from "lucide-react";
+import type { CreatePostData, UpdatePostData } from "@/types/post";
+import Link from "next/link";
 
 interface AdminPostEditPageProps {
   params: { id: string };
@@ -38,18 +38,18 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
   } = usePosts();
 
   const [saveStatus, setSaveStatus] = useState<{
-    type: 'success' | 'error' | null;
+    type: "success" | "error" | null;
     message: string;
-  }>({ type: null, message: '' });
+  }>({ type: null, message: "" });
 
-  const postId = params.id === 'new' ? null : Number(params.id);
+  const postId = params.id === "new" ? null : Number(params.id);
   const isCreating = postId === null;
   const isEditing = !isCreating;
 
   // 記事データの取得（編集時のみ）
   useEffect(() => {
     if (isEditing && postId && !isNaN(postId)) {
-      console.log('Fetching admin post with ID:', postId);
+      console.log("Fetching admin post with ID:", postId);
       fetchAdminPost(postId);
     }
   }, [isEditing, postId, fetchAdminPost]);
@@ -61,17 +61,17 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
 
   // 記事の保存（作成・更新）
   const handleSubmit = async (data: CreatePostData | UpdatePostData) => {
-    setSaveStatus({ type: null, message: '' });
+    setSaveStatus({ type: null, message: "" });
 
     try {
       let result;
-      
+
       if (isCreating) {
         result = await createPost(data as CreatePostData);
         if (result.success && result.post) {
-          setSaveStatus({ 
-            type: 'success', 
-            message: '記事が正常に作成されました' 
+          setSaveStatus({
+            type: "success",
+            message: "記事が正常に作成されました",
           });
           // 作成後は編集ページにリダイレクト
           router.push(`/admin/dashboard/info/${result.post.id}`);
@@ -80,26 +80,29 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
       } else {
         result = await updatePost(postId!, data as UpdatePostData);
         if (result.success) {
-          setSaveStatus({ 
-            type: 'success', 
-            message: '記事が正常に更新されました' 
+          setSaveStatus({
+            type: "success",
+            message: "記事が正常に更新されました",
           });
         }
       }
 
       if (!result.success) {
-        setSaveStatus({ 
-          type: 'error', 
-          message: result.error || '保存に失敗しました' 
+        setSaveStatus({
+          type: "error",
+          message: result.error || "保存に失敗しました",
         });
       }
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '予期しないエラーが発生しました';
-      setSaveStatus({ 
-        type: 'error', 
-        message: errorMessage 
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "予期しないエラーが発生しました";
+      setSaveStatus({
+        type: "error",
+        message: errorMessage,
       });
       return { success: false, error: errorMessage };
     }
@@ -107,15 +110,17 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
 
   // 自動保存用（編集時のみ）
   const handleAutoSave = async (data: CreatePostData | UpdatePostData) => {
-    if (!isEditing) return { success: false, error: '新規作成時は自動保存できません' };
-    
+    if (!isEditing)
+      return { success: false, error: "新規作成時は自動保存できません" };
+
     try {
       const result = await updatePost(postId!, data as UpdatePostData);
       return { success: result.success, error: result.error };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : '自動保存に失敗しました' 
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "自動保存に失敗しました",
       };
     }
   };
@@ -125,15 +130,15 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
     if (!isEditing || !currentPost) return;
 
     const confirmMessage = `記事「${currentPost.title}」を削除しますか？\n\nこの操作は取り消せません。`;
-    
+
     if (confirm(confirmMessage)) {
       const result = await deletePost(postId!);
       if (result.success) {
-        router.push('/admin/dashboard');
+        router.push("/admin/dashboard");
       } else {
-        setSaveStatus({ 
-          type: 'error', 
-          message: result.error || '削除に失敗しました' 
+        setSaveStatus({
+          type: "error",
+          message: result.error || "削除に失敗しました",
         });
       }
     }
@@ -142,13 +147,13 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
   // プレビュー表示
   const handlePreview = () => {
     if (isEditing && currentPost) {
-      window.open(`/info/${currentPost.id}`, '_blank');
+      window.open(`/info/${currentPost.id}`, "_blank");
     }
   };
 
   return (
-    <AdminLayout 
-      title={isCreating ? '新しい記事' : '記事編集'}
+    <AdminLayout
+      title={isCreating ? "新しい記事" : "記事編集"}
       loading={loading && isEditing}
       error={error}
     >
@@ -157,21 +162,28 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/dashboard" className="text-gray-600 hover:text-gray-900">
+              <Link
+                href="/admin/dashboard"
+                className="text-gray-600 hover:text-gray-900"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 ダッシュボードに戻る
               </Link>
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {isCreating ? '新しい記事を作成' : '記事を編集'}
+                {isCreating ? "新しい記事を作成" : "記事を編集"}
               </h1>
               {isEditing && currentPost && (
                 <p className="text-gray-600 text-sm mt-1">
-                  作成日: {new Date(currentPost.created_at).toLocaleDateString('ja-JP')}
+                  作成日:{" "}
+                  {new Date(currentPost.created_at).toLocaleDateString("ja-JP")}
                   {currentPost.updated_at !== currentPost.created_at && (
                     <span className="ml-4">
-                      最終更新: {new Date(currentPost.updated_at).toLocaleDateString('ja-JP')}
+                      最終更新:{" "}
+                      {new Date(currentPost.updated_at).toLocaleDateString(
+                        "ja-JP",
+                      )}
                     </span>
                   )}
                 </p>
@@ -183,11 +195,7 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
           <div className="flex items-center space-x-2">
             {isEditing && currentPost && (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePreview}
-                >
+                <Button variant="outline" size="sm" onClick={handlePreview}>
                   <Eye className="h-4 w-4 mr-2" />
                   プレビュー
                 </Button>
@@ -207,16 +215,22 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
 
         {/* 保存ステータス表示 */}
         {saveStatus.type && (
-          <Alert 
-            variant={saveStatus.type === 'error' ? 'destructive' : 'default'}
-            className={saveStatus.type === 'success' ? 'border-green-200 bg-green-50' : ''}
+          <Alert
+            variant={saveStatus.type === "error" ? "destructive" : "default"}
+            className={
+              saveStatus.type === "success"
+                ? "border-green-200 bg-green-50"
+                : ""
+            }
           >
-            {saveStatus.type === 'success' ? (
+            {saveStatus.type === "success" ? (
               <CheckCircle className="h-4 w-4" />
             ) : (
               <AlertTriangle className="h-4 w-4" />
             )}
-            <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : ''}>
+            <AlertDescription
+              className={saveStatus.type === "success" ? "text-green-800" : ""}
+            >
               {saveStatus.message}
             </AlertDescription>
           </Alert>
@@ -224,8 +238,8 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
 
         {/* エラー表示 */}
         {error && (
-          <ErrorDisplay 
-            message={error} 
+          <ErrorDisplay
+            message={error}
             onRetry={() => isEditing && postId && fetchAdminPost(postId)}
           />
         )}
@@ -236,7 +250,7 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Save className="h-5 w-5 mr-2" />
-                {isCreating ? '記事作成フォーム' : '記事編集フォーム'}
+                {isCreating ? "記事作成フォーム" : "記事編集フォーム"}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -262,26 +276,26 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
                 指定された記事は存在しないか、削除された可能性があります。
               </p>
               <Button asChild>
-                <Link href="/admin/dashboard">
-                  ダッシュボードに戻る
-                </Link>
+                <Link href="/admin/dashboard">ダッシュボードに戻る</Link>
               </Button>
             </CardContent>
           </Card>
         )}
 
         {/* 開発用情報（開発モードでのみ表示） */}
-        {process.env.NODE_ENV === 'development' && (
+        {process.env.NODE_ENV === "development" && (
           <Card className="border-dashed border-gray-300">
             <CardHeader>
-              <CardTitle className="text-sm text-gray-500">開発用情報</CardTitle>
+              <CardTitle className="text-sm text-gray-500">
+                開発用情報
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-xs text-gray-500 space-y-1">
-              <p>Mode: {isCreating ? 'Create' : 'Edit'}</p>
-              <p>Post ID: {postId || 'N/A'}</p>
-              <p>Loading: {loading ? 'Yes' : 'No'}</p>
-              <p>Has Post: {currentPost ? 'Yes' : 'No'}</p>
-              <p>Error: {error || 'None'}</p>
+              <p>Mode: {isCreating ? "Create" : "Edit"}</p>
+              <p>Post ID: {postId || "N/A"}</p>
+              <p>Loading: {loading ? "Yes" : "No"}</p>
+              <p>Has Post: {currentPost ? "Yes" : "No"}</p>
+              <p>Error: {error || "None"}</p>
             </CardContent>
           </Card>
         )}

@@ -1,40 +1,40 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 // import { useRouter } from 'next/navigation'; // 将来の拡張用にコメントアウト
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { PostTable } from '@/components/admin/PostTable';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { PostTable } from "@/components/admin/PostTable";
 // import { SearchBar } from '@/components/posts/SearchBar'; // 未使用のため一時的にコメントアウト
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ErrorDisplay } from '@/components/common/ErrorDisplay';
-import { usePosts } from '@/hooks/usePosts';
-import { useDebounce } from '@/hooks/useDebounce';
-import { 
-  Plus, 
-  Search, 
-  // Filter, 
-  // BarChart3, 
-  FileText, 
-  Eye, 
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { usePosts } from "@/hooks/usePosts";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  Plus,
+  Search,
+  // Filter,
+  // BarChart3,
+  FileText,
+  Eye,
   Edit,
   TrendingUp,
   // Users,
   // Calendar
-} from 'lucide-react';
-import type { PostSearchParams } from '@/types/post';
-import Link from 'next/link';
+} from "lucide-react";
+import type { PostSearchParams } from "@/types/post";
+import Link from "next/link";
 
 export default function AdminDashboardPage() {
   // const router = useRouter(); // 将来の拡張用にコメントアウト
@@ -49,12 +49,12 @@ export default function AdminDashboardPage() {
 
   // 検索パラメータの状態
   const [searchParams, setSearchParams] = useState<PostSearchParams>({
-    search: '',
+    search: "",
     status: undefined,
     page: 1,
     limit: 10,
-    sort: 'created_at',
-    order: 'desc',
+    sort: "created_at",
+    order: "desc",
   });
 
   // 選択された記事のID管理
@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
 
   // 検索パラメータの更新
   const updateSearchParams = (updates: Partial<PostSearchParams>) => {
-    setSearchParams(prev => ({
+    setSearchParams((prev) => ({
       ...prev,
       ...updates,
       page: updates.page || 1, // ページはリセット（pageの直接指定時は除く）
@@ -111,12 +111,15 @@ export default function AdminDashboardPage() {
   // 統計データ（モック）
   const stats = {
     totalPosts: pagination.total,
-    publishedPosts: posts.filter(p => p.is_published).length,
-    draftPosts: posts.filter(p => p.is_draft).length,
-    thisMonth: posts.filter(p => {
+    publishedPosts: posts.filter((p) => p.is_published).length,
+    draftPosts: posts.filter((p) => p.is_draft).length,
+    thisMonth: posts.filter((p) => {
       const postDate = new Date(p.created_at);
       const now = new Date();
-      return postDate.getMonth() === now.getMonth() && postDate.getFullYear() === now.getFullYear();
+      return (
+        postDate.getMonth() === now.getMonth() &&
+        postDate.getFullYear() === now.getFullYear()
+      );
     }).length,
   };
 
@@ -129,10 +132,7 @@ export default function AdminDashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
             <p className="text-gray-600">記事の管理と統計情報</p>
           </div>
-          <Button 
-            asChild
-            className="bg-black text-white hover:bg-gray-800"
-          >
+          <Button asChild className="bg-black text-white hover:bg-gray-800">
             <Link href="/admin/dashboard/info/new">
               <Plus className="h-4 w-4 mr-2" />
               新しい記事
@@ -147,7 +147,9 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">総記事数</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalPosts}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.totalPosts}
+                  </p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-full">
                   <FileText className="h-6 w-6 text-blue-600" />
@@ -161,7 +163,9 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">公開中</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.publishedPosts}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.publishedPosts}
+                  </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
                   <Eye className="h-6 w-6 text-green-600" />
@@ -175,7 +179,9 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">下書き</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.draftPosts}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.draftPosts}
+                  </p>
                 </div>
                 <div className="p-3 bg-yellow-100 rounded-full">
                   <Edit className="h-6 w-6 text-yellow-600" />
@@ -188,8 +194,12 @@ export default function AdminDashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">今月の投稿</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.thisMonth}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    今月の投稿
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats.thisMonth}
+                  </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
                   <TrendingUp className="h-6 w-6 text-purple-600" />
@@ -216,7 +226,9 @@ export default function AdminDashboardPage() {
                   id="search"
                   placeholder="タイトルや本文で検索..."
                   value={searchParams.search}
-                  onChange={(e) => updateSearchParams({ search: e.target.value })}
+                  onChange={(e) =>
+                    updateSearchParams({ search: e.target.value })
+                  }
                 />
               </div>
 
@@ -224,9 +236,14 @@ export default function AdminDashboardPage() {
               <div className="space-y-2">
                 <Label htmlFor="status">ステータス</Label>
                 <Select
-                  value={searchParams.status || 'all'}
-                  onValueChange={(value) => 
-                    updateSearchParams({ status: value === 'all' ? undefined : value as 'published' | 'draft' })
+                  value={searchParams.status || "all"}
+                  onValueChange={(value) =>
+                    updateSearchParams({
+                      status:
+                        value === "all"
+                          ? undefined
+                          : (value as "published" | "draft"),
+                    })
                   }
                 >
                   <SelectTrigger>
@@ -245,7 +262,7 @@ export default function AdminDashboardPage() {
                 <Label htmlFor="limit">表示件数</Label>
                 <Select
                   value={String(searchParams.limit)}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     updateSearchParams({ limit: Number(value) })
                   }
                 >
@@ -288,8 +305,13 @@ export default function AdminDashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">記事一覧</CardTitle>
             <Badge variant="outline">
-              {pagination.total}件中 {((pagination.currentPage - 1) * pagination.perPage) + 1}-
-              {Math.min(pagination.currentPage * pagination.perPage, pagination.total)}件を表示
+              {pagination.total}件中{" "}
+              {(pagination.currentPage - 1) * pagination.perPage + 1}-
+              {Math.min(
+                pagination.currentPage * pagination.perPage,
+                pagination.total,
+              )}
+              件を表示
             </Badge>
           </CardHeader>
           <CardContent>
@@ -298,8 +320,8 @@ export default function AdminDashboardPage() {
                 <LoadingSpinner />
               </div>
             ) : error ? (
-              <ErrorDisplay 
-                message={error} 
+              <ErrorDisplay
+                message={error}
                 onRetry={() => fetchAdminPosts(searchParams)}
               />
             ) : (
@@ -307,11 +329,14 @@ export default function AdminDashboardPage() {
                 posts={posts}
                 selectedPosts={selectedPosts}
                 onSelectionChange={handleSelectionChange}
-                onSort={(field, order) => 
-                  updateSearchParams({ sort: field as 'created_at' | 'published_at' | 'title', order })
+                onSort={(field, order) =>
+                  updateSearchParams({
+                    sort: field as "created_at" | "published_at" | "title",
+                    order,
+                  })
                 }
-                sortField={searchParams.sort || 'created_at'}
-                sortDirection={searchParams.order || 'desc'}
+                sortField={searchParams.sort || "created_at"}
+                sortDirection={searchParams.order || "desc"}
               />
             )}
 
@@ -326,9 +351,11 @@ export default function AdminDashboardPage() {
                     variant="outline"
                     size="sm"
                     disabled={pagination.currentPage <= 1}
-                    onClick={() => updateSearchParams({ 
-                      page: pagination.currentPage - 1 
-                    })}
+                    onClick={() =>
+                      updateSearchParams({
+                        page: pagination.currentPage - 1,
+                      })
+                    }
                   >
                     前へ
                   </Button>
@@ -336,9 +363,11 @@ export default function AdminDashboardPage() {
                     variant="outline"
                     size="sm"
                     disabled={pagination.currentPage >= pagination.lastPage}
-                    onClick={() => updateSearchParams({ 
-                      page: pagination.currentPage + 1 
-                    })}
+                    onClick={() =>
+                      updateSearchParams({
+                        page: pagination.currentPage + 1,
+                      })
+                    }
                   >
                     次へ
                   </Button>

@@ -3,8 +3,8 @@
  * 認証、レート制限、エラーハンドリング、ログを含む
  */
 
-import { AppError, ErrorType, ErrorSeverity } from '@/lib/errors';
-import { SecurityLogger } from '@/lib/security';
+import { AppError, ErrorType, ErrorSeverity } from "@/lib/errors";
+import { SecurityLogger } from "@/lib/security";
 
 interface SecureApiConfig {
   baseUrl: string;
@@ -36,7 +36,7 @@ class SecureApiClient {
 
   constructor(config: Partial<SecureApiConfig> = {}) {
     this.config = {
-      baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
+      baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000",
       timeout: 30000, // 30秒
       retries: 3,
       retryDelay: 1000, // 1秒
@@ -46,31 +46,33 @@ class SecureApiClient {
   }
 
   private getAuthToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
+    if (typeof window === "undefined") return null;
+
     try {
-      return localStorage.getItem('auth_token');
+      return localStorage.getItem("auth_token");
     } catch (error) {
-      console.warn('Failed to get auth token:', error);
+      console.warn("Failed to get auth token:", error);
       return null;
     }
   }
 
   private getCSRFToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
+    if (typeof window === "undefined") return null;
+
     try {
-      const metaTag = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      const metaTag = document.querySelector(
+        'meta[name="csrf-token"]',
+      ) as HTMLMetaElement;
       return metaTag?.content || null;
     } catch (error) {
-      console.warn('Failed to get CSRF token:', error);
+      console.warn("Failed to get CSRF token:", error);
       return null;
     }
   }
 
   private async makeRequest<T>(
     url: string,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<ApiResponse<T>> {
     const controller = new AbortController();
     this.activeRequests.add(controller);
@@ -81,15 +83,16 @@ class SecureApiClient {
         throw new AppError({
           type: ErrorType.CLIENT,
           severity: ErrorSeverity.MEDIUM,
-          userMessage: 'リクエストが多すぎます。しばらく待ってから再試行してください。',
-          technicalMessage: 'Too many concurrent requests',
+          userMessage:
+            "リクエストが多すぎます。しばらく待ってから再試行してください。",
+          technicalMessage: "Too many concurrent requests",
         });
       }
 
       // ヘッダーの設定
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
         ...(options.headers as Record<string, string>),
       };
 
@@ -102,10 +105,12 @@ class SecureApiClient {
       }
 
       // CSRFトークンの追加（POST、PUT、DELETE時）
-      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method || 'GET')) {
+      if (
+        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method || "GET")
+      ) {
         const csrfToken = this.getCSRFToken();
         if (csrfToken) {
-          headers['X-CSRF-Token'] = csrfToken;
+          headers["X-CSRF-Token"] = csrfToken;
         }
       }
 
@@ -131,9 +136,9 @@ class SecureApiClient {
 
       // レスポンスデータの取得
       let data: T;
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType?.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+
+      if (contentType?.includes("application/json")) {
         const jsonData: unknown = await response.json();
         data = jsonData as T;
       } else {
@@ -141,10 +146,10 @@ class SecureApiClient {
       }
 
       // セキュリティログ
-      SecurityLogger.logEvent('suspicious_activity', {
-        type: 'api_request',
-        method: options.method || 'GET',
-        url: url.replace(/\/\d+/g, '/:id'), // IDをマスク
+      SecurityLogger.logEvent("suspicious_activity", {
+        type: "api_request",
+        method: options.method || "GET",
+        url: url.replace(/\/\d+/g, "/:id"), // IDをマスク
         status: response.status,
         duration: Date.now() - performance.now(),
       });
@@ -155,18 +160,17 @@ class SecureApiClient {
         statusText: response.statusText,
         headers: response.headers,
       };
-
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
       }
 
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === "AbortError") {
         throw new AppError({
           type: ErrorType.NETWORK,
           severity: ErrorSeverity.MEDIUM,
-          userMessage: 'リクエストがタイムアウトしました。',
-          technicalMessage: 'Request timeout',
+          userMessage: "リクエストがタイムアウトしました。",
+          technicalMessage: "Request timeout",
         });
       }
 
@@ -174,10 +178,10 @@ class SecureApiClient {
       throw new AppError({
         type: ErrorType.NETWORK,
         severity: ErrorSeverity.HIGH,
-        userMessage: 'ネットワークエラーが発生しました。',
-        technicalMessage: error instanceof Error ? error.message : 'Unknown network error',
+        userMessage: "ネットワークエラーが発生しました。",
+        technicalMessage:
+          error instanceof Error ? error.message : "Unknown network error",
       });
-
     } finally {
       this.activeRequests.delete(controller);
     }
@@ -185,12 +189,15 @@ class SecureApiClient {
 
   private async handleErrorResponse(response: Response): Promise<void> {
     let errorData: Record<string, unknown> = {};
-    
+
     try {
-      const contentType = response.headers.get('content-type');
-      if (contentType?.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
         const parsedData: unknown = await response.json();
-        errorData = typeof parsedData === 'object' && parsedData !== null ? parsedData as Record<string, unknown> : {};
+        errorData =
+          typeof parsedData === "object" && parsedData !== null
+            ? (parsedData as Record<string, unknown>)
+            : {};
       }
     } catch {
       // JSONパースエラーは無視
@@ -201,61 +208,64 @@ class SecureApiClient {
         throw new AppError({
           type: ErrorType.VALIDATION,
           severity: ErrorSeverity.LOW,
-          userMessage: (errorData.message as string) || '入力内容に問題があります。',
+          userMessage:
+            (errorData.message as string) || "入力内容に問題があります。",
           technicalMessage: `Bad Request: ${response.statusText}`,
           context: errorData,
         });
 
       case 401:
         // 認証エラー - トークンをクリア
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login';
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("auth_token");
+          window.location.href = "/login";
         }
         throw new AppError({
           type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
-          userMessage: '認証が必要です。ログインしてください。',
-          technicalMessage: 'Unauthorized',
+          userMessage: "認証が必要です。ログインしてください。",
+          technicalMessage: "Unauthorized",
         });
 
       case 403:
         throw new AppError({
           type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
-          userMessage: 'このリソースにアクセスする権限がありません。',
-          technicalMessage: 'Forbidden',
+          userMessage: "このリソースにアクセスする権限がありません。",
+          technicalMessage: "Forbidden",
         });
 
       case 404:
         throw new AppError({
           type: ErrorType.CLIENT,
           severity: ErrorSeverity.MEDIUM,
-          userMessage: '要求されたリソースが見つかりません。',
-          technicalMessage: 'Not Found',
+          userMessage: "要求されたリソースが見つかりません。",
+          technicalMessage: "Not Found",
         });
 
       case 429:
         throw new AppError({
           type: ErrorType.CLIENT,
           severity: ErrorSeverity.MEDIUM,
-          userMessage: 'リクエストの頻度が高すぎます。しばらく待ってから再試行してください。',
-          technicalMessage: 'Too Many Requests',
+          userMessage:
+            "リクエストの頻度が高すぎます。しばらく待ってから再試行してください。",
+          technicalMessage: "Too Many Requests",
         });
 
       case 500:
         throw new AppError({
           type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
-          userMessage: 'サーバーエラーが発生しました。しばらく待ってから再試行してください。',
-          technicalMessage: 'Internal Server Error',
+          userMessage:
+            "サーバーエラーが発生しました。しばらく待ってから再試行してください。",
+          technicalMessage: "Internal Server Error",
         });
 
       default:
         throw new AppError({
           type: ErrorType.SERVER,
           severity: ErrorSeverity.HIGH,
-          userMessage: '予期しないエラーが発生しました。',
+          userMessage: "予期しないエラーが発生しました。",
           technicalMessage: `HTTP ${response.status}: ${response.statusText}`,
         });
     }
@@ -264,19 +274,19 @@ class SecureApiClient {
   private async retryRequest<T>(
     url: string,
     options: RequestOptions,
-    attempt: number = 1
+    attempt: number = 1,
   ): Promise<ApiResponse<T>> {
     try {
       return await this.makeRequest<T>(url, options);
     } catch (error) {
       const maxRetries = options.retries ?? this.config.retries;
-      
+
       if (attempt < maxRetries && this.shouldRetry(error)) {
         const delay = this.config.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return this.retryRequest<T>(url, options, attempt + 1);
       }
-      
+
       throw error;
     }
   }
@@ -284,59 +294,83 @@ class SecureApiClient {
   private shouldRetry(error: unknown): boolean {
     if (error instanceof AppError) {
       // サーバーエラーまたはネットワークエラーの場合のみリトライ
-      return error.type === ErrorType.SERVER || error.type === ErrorType.NETWORK;
+      return (
+        error.type === ErrorType.SERVER || error.type === ErrorType.NETWORK
+      );
     }
     return false;
   }
 
   // パブリックAPIメソッド
-  async get<T>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    return this.retryRequest<T>(url, { ...options, method: 'GET' });
+  async get<T>(
+    url: string,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
+    return this.retryRequest<T>(url, { ...options, method: "GET" });
   }
 
-  async post<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async post<T>(
+    url: string,
+    data?: unknown,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async put<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async put<T>(
+    url: string,
+    data?: unknown,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async patch<T>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async patch<T>(
+    url: string,
+    data?: unknown,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
     return this.retryRequest<T>(url, {
       ...options,
-      method: 'PATCH',
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async delete<T>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    return this.retryRequest<T>(url, { ...options, method: 'DELETE' });
+  async delete<T>(
+    url: string,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
+    return this.retryRequest<T>(url, { ...options, method: "DELETE" });
   }
 
   // ファイルアップロード用
-  async upload<T>(url: string, formData: FormData, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async upload<T>(
+    url: string,
+    formData: FormData,
+    options: RequestOptions = {},
+  ): Promise<ApiResponse<T>> {
     const uploadOptions = { ...options };
     delete uploadOptions.headers; // Content-Typeを自動設定させる
 
     return this.retryRequest<T>(url, {
       ...uploadOptions,
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
   }
 
   // すべてのリクエストをキャンセル
   cancelAllRequests(): void {
-    this.activeRequests.forEach(controller => {
+    this.activeRequests.forEach((controller) => {
       controller.abort();
     });
     this.activeRequests.clear();
@@ -345,7 +379,7 @@ class SecureApiClient {
   // ヘルスチェック
   async healthCheck(): Promise<boolean> {
     try {
-      await this.get('/health', { timeout: 5000, retries: 1 });
+      await this.get("/health", { timeout: 5000, retries: 1 });
       return true;
     } catch {
       return false;

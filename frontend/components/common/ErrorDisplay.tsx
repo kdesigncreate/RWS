@@ -1,8 +1,8 @@
-import React from 'react';
-import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { AlertCircle, RefreshCw, Home, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 interface ErrorDisplayProps {
   title?: string;
@@ -12,33 +12,33 @@ interface ErrorDisplayProps {
   onGoHome?: () => void;
   onGoBack?: () => void;
   className?: string;
-  variant?: 'inline' | 'card' | 'page';
+  variant?: "inline" | "card" | "page";
   showActions?: boolean;
 }
 
 export function ErrorDisplay({
-  title = 'エラーが発生しました',
+  title = "エラーが発生しました",
   message,
   error,
   onRetry,
   onGoHome,
   onGoBack,
   className,
-  variant = 'inline',
+  variant = "inline",
   showActions = true,
 }: ErrorDisplayProps) {
   // エラーメッセージを解析
   const getErrorMessage = () => {
     if (message) return message;
-    if (typeof error === 'string') return error;
+    if (typeof error === "string") return error;
     if (error instanceof Error) return error.message;
-    return 'よくわからないエラーが発生しました。しばらく待ってからもう一度お試しください。';
+    return "よくわからないエラーが発生しました。しばらく待ってからもう一度お試しください。";
   };
 
   // インライン表示（Alert使用）
-  if (variant === 'inline') {
+  if (variant === "inline") {
     return (
-      <Alert className={cn('border-red-200 bg-red-50', className)}>
+      <Alert className={cn("border-red-200 bg-red-50", className)}>
         <AlertCircle className="h-4 w-4 text-red-600" />
         <AlertDescription className="text-red-800">
           <div className="flex flex-col space-y-2">
@@ -77,21 +77,19 @@ export function ErrorDisplay({
   }
 
   // カード表示
-  if (variant === 'card') {
+  if (variant === "card") {
     return (
-      <div className={cn(
-        'border border-red-200 rounded-lg p-6 bg-red-50',
-        className
-      )}>
+      <div
+        className={cn(
+          "border border-red-200 rounded-lg p-6 bg-red-50",
+          className,
+        )}
+      >
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-red-900 mb-2">
-              {title}
-            </h3>
-            <p className="text-red-800 mb-4">
-              {getErrorMessage()}
-            </p>
+            <h3 className="text-lg font-medium text-red-900 mb-2">{title}</h3>
+            <p className="text-red-800 mb-4">{getErrorMessage()}</p>
             {showActions && (
               <div className="flex flex-wrap gap-2">
                 {onRetry && (
@@ -137,21 +135,19 @@ export function ErrorDisplay({
 
   // ページ全体表示
   return (
-    <div className={cn(
-      'min-h-screen flex items-center justify-center bg-gray-50 px-4',
-      className
-    )}>
+    <div
+      className={cn(
+        "min-h-screen flex items-center justify-center bg-gray-50 px-4",
+        className,
+      )}
+    >
       <div className="max-w-md w-full text-center">
         <div className="mb-6">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {title}
-          </h1>
-          <p className="text-gray-600">
-            {getErrorMessage()}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+          <p className="text-gray-600">{getErrorMessage()}</p>
         </div>
-        
+
         {showActions && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             {onRetry && (
@@ -161,8 +157,8 @@ export function ErrorDisplay({
               </Button>
             )}
             {onGoBack && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onGoBack}
                 className="w-full sm:w-auto"
               >
@@ -171,8 +167,8 @@ export function ErrorDisplay({
               </Button>
             )}
             {onGoHome && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onGoHome}
                 className="w-full sm:w-auto"
               >
@@ -199,18 +195,23 @@ interface ApiErrorDisplayProps {
   className?: string;
 }
 
-export function ApiErrorDisplay({ error, onRetry, className }: ApiErrorDisplayProps) {
-  const hasValidationErrors = error.errors && Object.keys(error.errors).length > 0;
+export function ApiErrorDisplay({
+  error,
+  onRetry,
+  className,
+}: ApiErrorDisplayProps) {
+  const hasValidationErrors =
+    error.errors && Object.keys(error.errors).length > 0;
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       <ErrorDisplay
         title="API エラー"
         message={error.message}
         onRetry={onRetry}
         variant="card"
       />
-      
+
       {hasValidationErrors && (
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -220,7 +221,8 @@ export function ApiErrorDisplay({ error, onRetry, className }: ApiErrorDisplayPr
               <ul className="list-disc list-inside space-y-1 text-sm">
                 {Object.entries(error.errors!).map(([field, messages]) => (
                   <li key={field}>
-                    <span className="font-medium">{field}:</span> {messages.join(', ')}
+                    <span className="font-medium">{field}:</span>{" "}
+                    {messages.join(", ")}
                   </li>
                 ))}
               </ul>
@@ -242,11 +244,11 @@ interface NotFoundErrorProps {
   className?: string;
 }
 
-export function NotFoundError({ 
-  resource = 'ページ', 
-  onGoHome, 
-  onGoBack, 
-  className 
+export function NotFoundError({
+  resource = "ページ",
+  onGoHome,
+  onGoBack,
+  className,
 }: NotFoundErrorProps) {
   return (
     <ErrorDisplay
@@ -271,10 +273,12 @@ interface AuthErrorProps {
 
 export function AuthError({ onLogin, onGoHome, className }: AuthErrorProps) {
   return (
-    <div className={cn(
-      'min-h-screen flex items-center justify-center bg-gray-50 px-4',
-      className
-    )}>
+    <div
+      className={cn(
+        "min-h-screen flex items-center justify-center bg-gray-50 px-4",
+        className,
+      )}
+    >
       <div className="max-w-md w-full text-center">
         <div className="mb-6">
           <AlertCircle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
@@ -285,7 +289,7 @@ export function AuthError({ onLogin, onGoHome, className }: AuthErrorProps) {
             このページにアクセスするには、ログインが必要です。
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {onLogin && (
             <Button onClick={onLogin} className="w-full sm:w-auto">
@@ -293,8 +297,8 @@ export function AuthError({ onLogin, onGoHome, className }: AuthErrorProps) {
             </Button>
           )}
           {onGoHome && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onGoHome}
               className="w-full sm:w-auto"
             >
@@ -311,7 +315,13 @@ export function AuthError({ onLogin, onGoHome, className }: AuthErrorProps) {
 /**
  * ネットワークエラー専用コンポーネント
  */
-export function NetworkError({ onRetry, className }: { onRetry?: () => void; className?: string }) {
+export function NetworkError({
+  onRetry,
+  className,
+}: {
+  onRetry?: () => void;
+  className?: string;
+}) {
   return (
     <ErrorDisplay
       title="接続エラー"
@@ -326,7 +336,13 @@ export function NetworkError({ onRetry, className }: { onRetry?: () => void; cla
 /**
  * サーバーエラー専用コンポーネント
  */
-export function ServerError({ onRetry, className }: { onRetry?: () => void; className?: string }) {
+export function ServerError({
+  onRetry,
+  className,
+}: {
+  onRetry?: () => void;
+  className?: string;
+}) {
   return (
     <ErrorDisplay
       title="サーバーエラー"

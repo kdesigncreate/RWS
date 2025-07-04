@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 /**
  * デバウンス処理用カスタムフック
@@ -26,7 +26,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  */
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
-  delay: number
+  delay: number,
 ): T {
   const callbackRef = useRef(callback);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -55,7 +55,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
         callbackRef.current(...args);
       }, delay);
     },
-    [delay]
+    [delay],
   ) as T;
 
   return debouncedCallback;
@@ -66,9 +66,9 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
  */
 export function useSearchDebounce(
   searchFunction: (query: string) => Promise<void>,
-  delay: number = 300
+  delay: number = 300,
 ) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -77,7 +77,7 @@ export function useSearchDebounce(
 
   // デバウンス後に検索実行
   useEffect(() => {
-    if (debouncedQuery.trim() === '') {
+    if (debouncedQuery.trim() === "") {
       setIsSearching(false);
       setError(null);
       return;
@@ -98,8 +98,8 @@ export function useSearchDebounce(
       try {
         await searchFunction(debouncedQuery);
       } catch (err) {
-        if (err instanceof Error && err.name !== 'AbortError') {
-          setError(err.message || '検索中にエラーが発生しました');
+        if (err instanceof Error && err.name !== "AbortError") {
+          setError(err.message || "検索中にエラーが発生しました");
         }
       } finally {
         setIsSearching(false);
@@ -119,7 +119,7 @@ export function useSearchDebounce(
   }, []);
 
   const clearSearch = useCallback(() => {
-    setQuery('');
+    setQuery("");
     setError(null);
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -149,7 +149,7 @@ export function useAutoSave<T>(
   data: T,
   saveFunction: (data: T) => Promise<void>,
   delay: number = 2000,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -158,28 +158,27 @@ export function useAutoSave<T>(
   const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // データが変更されたかチェック
-  const hasChanges = JSON.stringify(data) !== JSON.stringify(initialDataRef.current);
+  const hasChanges =
+    JSON.stringify(data) !== JSON.stringify(initialDataRef.current);
 
-  const debouncedSave = useDebouncedCallback(
-    async (dataToSave: T) => {
-      if (!enabled || !hasChanges) return;
+  const debouncedSave = useDebouncedCallback(async (dataToSave: T) => {
+    if (!enabled || !hasChanges) return;
 
-      setIsSaving(true);
-      setSaveError(null);
+    setIsSaving(true);
+    setSaveError(null);
 
-      try {
-        await saveFunction(dataToSave);
-        setLastSaved(new Date());
-        initialDataRef.current = dataToSave;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '保存に失敗しました';
-        setSaveError(errorMessage);
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    delay
-  );
+    try {
+      await saveFunction(dataToSave);
+      setLastSaved(new Date());
+      initialDataRef.current = dataToSave;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "保存に失敗しました";
+      setSaveError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  }, delay);
 
   // データ変更時に自動保存をトリガー
   useEffect(() => {
@@ -200,7 +199,8 @@ export function useAutoSave<T>(
       initialDataRef.current = data;
       return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '保存に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : "保存に失敗しました";
       setSaveError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -231,12 +231,15 @@ export function useThrottle<T>(value: T, limit: number): T {
   const lastRan = useRef(Date.now());
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (Date.now() - lastRan.current >= limit) {
-        setThrottledValue(value);
-        lastRan.current = Date.now();
-      }
-    }, limit - (Date.now() - lastRan.current));
+    const handler = setTimeout(
+      () => {
+        if (Date.now() - lastRan.current >= limit) {
+          setThrottledValue(value);
+          lastRan.current = Date.now();
+        }
+      },
+      limit - (Date.now() - lastRan.current),
+    );
 
     return () => {
       clearTimeout(handler);
@@ -252,7 +255,7 @@ export function useThrottle<T>(value: T, limit: number): T {
 export function useDebounceValidation<T>(
   value: T,
   validator: (value: T) => Promise<string | null>,
-  delay: number = 500
+  delay: number = 500,
 ) {
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -274,7 +277,7 @@ export function useDebounceValidation<T>(
         setValidationError(error);
         setIsValid(error === null);
       } catch (err) {
-        setValidationError('バリデーション中にエラーが発生しました');
+        setValidationError("バリデーション中にエラーが発生しました");
         setIsValid(false);
       } finally {
         setIsValidating(false);
