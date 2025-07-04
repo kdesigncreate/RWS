@@ -28,7 +28,7 @@ port = 54322
 shadow_port = 54320
 # The database major version to use. This has to be the same as your remote database's. Run `SHOW
 # server_version;` on the remote database to check.
-major_version = 17
+major_version = 16
 
 [db.pooler]
 enabled = false
@@ -279,8 +279,7 @@ enabled = false
 # user_pool_region = "us-east-1"
 
 # Use Clerk as a third-party provider alongside Supabase Auth.
-[auth.third_party.clerk]
-enabled = false
+# [auth.third_party.clerk]
 # Obtain from https://clerk.com/setup/supabase
 # domain = "example.clerk.accounts.dev"
 
@@ -291,8 +290,6 @@ enabled = true
 policy = "oneshot"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
-# The Deno major version to use.
-deno_version = 1
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
