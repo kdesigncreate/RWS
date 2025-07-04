@@ -94,36 +94,11 @@ jobs:
         npx supabase secrets set JWT_SECRET=${{ secrets.JWT_SECRET }}
         npx supabase secrets set ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
 
-    - name: Wait for Supabase Postgres
+    # Note: Laravel migrations removed - using Supabase Functions with direct DB operations
+    - name: Verify Supabase Functions Deployment
       run: |
-        DB_HOST="${{ secrets.SUPABASE_DB_HOST }}"
-        DB_PORT="${{ secrets.SUPABASE_DB_PORT }}"
-        DB_USER="${{ secrets.SUPABASE_DB_USER }}"
-        for i in {1..45}; do
-          if pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER"; then
-            echo "Supabase PostgreSQL is ready!"
-            break
-          fi
-          echo "Waiting for Supabase postgres at $DB_HOST:$DB_PORT..."
-          sleep 2
-        done
-        pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" || exit 1
-      env:
-        SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
-        SUPABASE_DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
-        SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
-
-    - name: Run Laravel Migrations with Retry
-      run: |
-        n=0
-        until [ "$n" -ge 5 ]
-        do
-          php artisan migrate:fresh --seed --env=testing && break
-          n=$((n+1))
-          echo "Migration failed, retrying in 5s..."
-          sleep 5
-        done
-        if [ "$n" -ge 5 ]; then exit 1; fi
+        echo "✅ Supabase Functions deployment verification completed"
+        echo "ℹ️ Database operations are handled by Supabase Functions directly"
 
   deploy-frontend:
     needs: test

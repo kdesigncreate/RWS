@@ -4,11 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a simple blog website built with a separated frontend and backend architecture:
+This is a modern blog website built with a **Supabase Functions-centric architecture**:
 - **Frontend**: Next.js 15 with TypeScript, Tailwind CSS, and shadcn/ui components
-- **Backend**: Laravel 12 with PHP 8.2, using Sanctum for API authentication
-- **Database**: SQLite (development), can be deployed with Supabase
-- **Architecture**: API-first design with full separation between frontend and backend
+- **Backend**: Supabase Functions (TypeScript/Deno) with Edge Runtime
+- **Database**: Supabase PostgreSQL with real-time capabilities
+- **Authentication**: Supabase Auth with JWT tokens
+- **Architecture**: Serverless, edge-deployed API with full separation between frontend and backend
+
+**Note**: Laravel components are preserved for local development but production uses Supabase Functions exclusively.
 
 ## Development Commands
 
@@ -29,17 +32,19 @@ npm run test:e2e:debug # Debug E2E tests
 npm start            # Start production server
 ```
 
-### Backend (Laravel)
+### Backend (Supabase Functions)
 ```bash
+# Production backend (Supabase Functions)
+cd supabase
+npx supabase start           # Start local Supabase
+npx supabase functions serve # Serve functions locally
+npx supabase functions deploy laravel-api # Deploy to production
+
+# Local development (Laravel - optional)
 cd backend
-composer dev         # Start all services (server, queue, logs, vite)
+composer dev         # Start all services (server, queue, logs, vite) 
 php artisan serve    # Start development server only
 php artisan test     # Run PHPUnit tests
-composer test        # Run tests (alias)
-php artisan migrate  # Run database migrations
-php artisan migrate:fresh --seed # Fresh migration with seeding
-php artisan config:clear # Clear configuration cache
-php artisan cache:clear  # Clear application cache
 ./vendor/bin/pint    # Format PHP code with Laravel Pint
 ```
 
@@ -64,13 +69,18 @@ The root `package.json` contains minimal dependencies - all development should b
 
 ## Architecture & Key Components
 
-### Backend Structure (Laravel)
-- **Controllers**: `app/Http/Controllers/Auth/AuthController.php` and `app/Http/Controllers/Post/PostController.php`
-- **Models**: `app/Models/User.php` and `app/Models/Post.php`
-- **Resources**: API response formatting in `app/Http/Resources/`
-- **Requests**: Form validation in `app/Http/Requests/Auth/` and `app/Http/Requests/Post/`
-- **Authentication**: Laravel Sanctum for SPA authentication
+### Production Backend (Supabase Functions)
+- **Main API**: `supabase/functions/laravel-api/index.ts` - Single TypeScript file handling all API routes
+- **Authentication**: Supabase Auth with `supabase.auth.signInWithPassword()`
+- **Database**: Direct Supabase PostgreSQL operations with `supabase.from('posts')`
+- **Deployment**: Edge functions deployed globally via Supabase CLI
+- **CORS**: Built-in CORS handling for frontend integration
+
+### Local Development (Laravel - Optional)
+- **Models**: Simplified `app/Models/User.php` and `app/Models/Post.php` for local dev
+- **Routes**: Basic health check routes in `backend/routes/api.php`
 - **Database**: SQLite with migrations in `database/migrations/`
+- **Note**: Production traffic bypasses Laravel entirely
 
 ### Frontend Structure (Next.js App Router)
 - **App Router**: Uses Next.js 15 App Router with TypeScript
@@ -85,11 +95,13 @@ The root `package.json` contains minimal dependencies - all development should b
 - **Admin**: Authentication-protected admin dashboard for post management (CRUD operations)
 - **API Endpoints**: RESTful API with separate public and admin routes
 
-### API Architecture
+### API Architecture (Supabase Functions)
+- **Production Endpoint**: `https://[project-id].supabase.co/functions/v1/laravel-api/`
+- **Vercel Proxy**: `/api/*` routes proxied to Supabase Functions via `vercel.json`
 - **Public Routes**: `/api/posts` (list), `/api/posts/{id}` (show)
-- **Auth Routes**: `/api/login`, `/api/logout`, `/api/user`
+- **Auth Routes**: `/api/login`, `/api/logout`, `/api/user` (uses Supabase Auth)
 - **Admin Routes**: `/api/admin/posts/*` (full CRUD operations)
-- **Utilities**: Health check at `/api/health`, debug routes in local environment
+- **Utilities**: Health check at `/api/health`, debug endpoints
 
 ## Development Guidelines
 
@@ -114,33 +126,35 @@ This project follows comprehensive development guidelines including:
 - Database query optimization with Eloquent
 
 ## Important File Locations
-- Backend API routes: `backend/routes/api.php`
-- Frontend API client: `frontend/lib/api.ts`
-- Database schema: `backend/database/migrations/`
-- Component library: `frontend/components/`
-- Type definitions: `frontend/types/`
+- **Production API**: `supabase/functions/laravel-api/index.ts` (main API implementation)
+- **Frontend API client**: `frontend/lib/api.ts`
+- **Vercel config**: `frontend/vercel.json` (API proxy configuration)
+- **Database schema**: `supabase/migrations/` (Supabase migrations)
+- **Component library**: `frontend/components/`
+- **Type definitions**: `frontend/types/`
+- **Local dev only**: `backend/routes/api.php` (not used in production)
 
 ## Common Development Tasks
 
 ### Adding New Features
-1. **Backend API**: Add routes in `backend/routes/api.php`, create controllers in `app/Http/Controllers/`
+1. **Backend API**: Edit `supabase/functions/laravel-api/index.ts` to add new routes/logic
 2. **Frontend Components**: Create in appropriate `frontend/components/` subdirectory
 3. **Types**: Define TypeScript interfaces in `frontend/types/`
-4. **Testing**: Add tests in `tests/` directories for both frontend and backend
+4. **Testing**: Add tests in `frontend/tests/` for frontend functionality
+5. **Deployment**: Use `npx supabase functions deploy laravel-api` to deploy backend changes
 
 ### Database Changes
 ```bash
-# Create migration
-php artisan make:migration create_new_table
+# Supabase database operations
+cd supabase
+npx supabase db reset              # Reset local database
+npx supabase db push               # Push schema to remote
+npx supabase gen types typescript  # Generate TypeScript types
 
-# Create model with migration
-php artisan make:model ModelName -m
-
-# Run migrations
+# For local Laravel development (optional)
+cd backend
 php artisan migrate
-
-# Rollback migrations
-php artisan migrate:rollback
+php artisan migrate:fresh --seed
 ```
 
 ### Component Development
@@ -152,17 +166,20 @@ php artisan migrate:rollback
 
 ### API Integration
 - Use `frontend/lib/api.ts` for all API calls
+- All production API calls go through Vercel proxy to Supabase Functions
+- API endpoints are prefixed with `/api/` and auth uses Supabase JWT tokens
 - Follow existing patterns for error handling and authentication
-- API endpoints are prefixed with `/api/` and some require authentication
 
 ### Deployment
-- Frontend deploys to Vercel automatically via GitHub Actions
-- Backend can be deployed to Supabase Functions
-- Use `scripts/deploy.sh` for automated deployment
-- Environment variables must be set in both frontend and backend
+- **Frontend**: Deploys to Vercel automatically via GitHub Actions
+- **Backend**: Deploys to Supabase Functions via `npx supabase functions deploy laravel-api`
+- **Database**: Managed by Supabase with automatic migrations
+- **Environment variables**: Set in Vercel (frontend) and Supabase (backend functions)
 
 ### Debug and Troubleshooting
-- Check logs: `php artisan pail` (Laravel) or browser devtools (Next.js)
-- Clear caches: `php artisan config:clear && php artisan cache:clear`
-- Reset database: `php artisan migrate:fresh --seed`
-- CORS issues: Check `backend/config/cors.php` and `SANCTUM_STATEFUL_DOMAINS`
+- **Production logs**: Check Supabase Functions logs in Supabase Dashboard
+- **Frontend logs**: Browser devtools and Vercel deployment logs
+- **Local development**: `npx supabase logs` for Supabase or `php artisan pail` for Laravel
+- **API testing**: Use `/api/health` endpoint to verify API connectivity
+- **CORS issues**: Check `frontend/vercel.json` proxy configuration
+- **Database issues**: Check Supabase Dashboard for connection status
