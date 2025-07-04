@@ -8,15 +8,34 @@ import type {
   UpdatePostRequest
 } from './types.ts'
 
-// CORS ヘッダー定義（環境変数から動的に設定）
+// CORS ヘッダー定義（動的Origin対応）
 const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
   'https://rws-ruddy.vercel.app',
+  'https://rws-kentas-projects-9fa01438.vercel.app',
   'http://localhost:3000',
   'https://localhost:3000'
 ]
 
+// 動的CORSヘッダー生成関数
+export function createCorsHeaders(requestOrigin?: string): CorsHeaders {
+  let origin = '*'
+  
+  if (requestOrigin && allowedOrigins.some(allowed => 
+    allowed === requestOrigin || 
+    (allowed.includes('vercel.app') && requestOrigin.includes('vercel.app'))
+  )) {
+    origin = requestOrigin
+  }
+  
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  }
+}
+
 export const corsHeaders: CorsHeaders = {
-  'Access-Control-Allow-Origin': allowedOrigins[0] || '*',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }

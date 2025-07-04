@@ -18,13 +18,17 @@ import {
   createErrorResponse, 
   createSuccessResponse,
   createDebugInfo,
-  parsePath
+  parsePath,
+  createCorsHeaders
 } from './utils.ts'
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests with dynamic origin
+  const requestOrigin = req.headers.get('origin')
+  const dynamicCorsHeaders = requestOrigin ? createCorsHeaders(requestOrigin) : corsHeaders
+  
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: dynamicCorsHeaders })
   }
 
   try {
