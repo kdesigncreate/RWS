@@ -5,8 +5,8 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   // CSPを動的に生成（開発環境では緩和）
   const isDev = process.env.NODE_ENV === "development";
   const csp = isDev
-    ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:*;"
-    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.vercel.app https://vercel.live;";
+    ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
+    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.vercel.app https://*.supabase.co https://vercel.live; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;";
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Frame-Options", "DENY");

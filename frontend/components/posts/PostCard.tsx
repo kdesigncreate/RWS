@@ -334,7 +334,8 @@ export function PostCardList({
   className,
   emptyMessage = "記事が見つかりませんでした",
 }: PostCardListProps) {
-  if (posts.length === 0) {
+  // 安全性チェック: postsがundefined、null、または空配列の場合
+  if (!posts || !Array.isArray(posts) || posts.length === 0) {
     return (
       <div className={cn("text-center py-12 text-gray-500", className)}>
         <p className="text-lg">{emptyMessage}</p>

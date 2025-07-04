@@ -54,14 +54,17 @@ export function PostTable({
   sortDirection,
   className,
 }: PostTableProps) {
+  // 安全性チェック: postsがundefined、null、または空配列の場合のデフォルト処理
+  const safePosts = posts || [];
+  
   const isAllSelected =
-    posts.length > 0 && selectedPosts.length === posts.length;
+    safePosts.length > 0 && selectedPosts.length === safePosts.length;
   const isPartiallySelected =
-    selectedPosts.length > 0 && selectedPosts.length < posts.length;
+    selectedPosts.length > 0 && selectedPosts.length < safePosts.length;
 
   const handleSelectAll = (checked: boolean) => {
     if (onSelectionChange) {
-      onSelectionChange(checked ? posts.map((post) => post.id) : []);
+      onSelectionChange(checked ? safePosts.map((post) => post.id) : []);
     }
   };
 
@@ -197,7 +200,7 @@ export function PostTable({
         </TableHeader>
 
         <TableBody>
-          {posts.map((post) => (
+          {safePosts.map((post) => (
             <TableRow
               key={post.id}
               className={cn(
