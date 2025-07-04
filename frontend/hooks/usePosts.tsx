@@ -98,10 +98,10 @@ export function usePosts(): UsePostsReturn {
             ...prev,
             posts: newPosts,
             pagination: {
-              currentPage: response.data.meta.current_page,
-              lastPage: response.data.meta.last_page,
-              total: response.data.meta.total,
-              perPage: response.data.meta.per_page,
+              currentPage: response.data.meta?.current_page || 1,
+              lastPage: response.data.meta?.last_page || 1,
+              total: response.data.meta?.total || 0,
+              perPage: response.data.meta?.per_page || 10,
             },
             loading: false,
           };
@@ -157,10 +157,10 @@ export function usePosts(): UsePostsReturn {
           ...prev,
           posts: response.data.data,
           pagination: {
-            currentPage: response.data.meta.current_page,
-            lastPage: response.data.meta.last_page,
-            total: response.data.meta.total,
-            perPage: response.data.meta.per_page,
+            currentPage: response.data.meta?.current_page || 1,
+            lastPage: response.data.meta?.last_page || 1,
+            total: response.data.meta?.total || 0,
+            perPage: response.data.meta?.per_page || 10,
           },
           loading: false,
         }));
