@@ -240,8 +240,8 @@ export async function handleCreatePost(request: Request): Promise<Response> {
       const { data: newUser, error: createUserError } = await supabase
         .from('users')
         .insert({
-          email: authValidation.user!.email,
-          name: authValidation.user!.email.split('@')[0], // Use email prefix as default name
+          email: authValidation.user?.email || '',
+          name: authValidation.user?.email?.split('@')[0] || 'defaultName', // Use email prefix as default name
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

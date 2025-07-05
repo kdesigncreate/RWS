@@ -25,7 +25,7 @@ export interface FormattedPost {
   status: 'published' | 'draft';
   status_label: string;
   published_at?: string;
-  published_at_formatted?: string;
+  published_at_formatted: string | null;
   is_published: boolean;
   is_draft: boolean;
   created_at: string;

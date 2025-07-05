@@ -17,7 +17,7 @@ const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [
 ]
 
 // 動的CORSヘッダー生成関数
-export function createCorsHeaders(requestOrigin?: string): CorsHeaders {
+export function createCorsHeaders(requestOrigin?: string): Record<string, string> {
   let origin = '*'
   
   if (requestOrigin && allowedOrigins.some(allowed => 
@@ -34,7 +34,7 @@ export function createCorsHeaders(requestOrigin?: string): CorsHeaders {
   }
 }
 
-export const corsHeaders: CorsHeaders = {
+export const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -50,7 +50,7 @@ export function createErrorResponse(
   message: string, 
   status: number = 500, 
   errors?: Record<string, string[]>,
-  debug?: unknown
+  debug?: Record<string, unknown>
 ): Response {
   return new Response(
     JSON.stringify({ 
