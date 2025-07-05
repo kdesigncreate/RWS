@@ -75,6 +75,34 @@ export function middleware(request: NextRequest) {
     request.headers.get("x-real-ip") ||
     "unknown";
 
+  // 静的ファイルのキャッシュ最適化とMIMEタイプ修正（最優先）
+  if (
+    pathname.startsWith("/_next/static/") ||
+    pathname.startsWith("/images/")
+  ) {
+    const response = NextResponse.next();
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=31536000, immutable",
+    );
+    
+    // CSSファイルの正しいMIMEタイプを設定
+    if (pathname.endsWith(".css")) {
+      response.headers.set("Content-Type", "text/css; charset=utf-8");
+      response.headers.set("X-Content-Type-Options", "nosniff");
+    }
+    if (pathname.endsWith(".js")) {
+      response.headers.set("Content-Type", "application/javascript; charset=utf-8");
+      response.headers.set("X-Content-Type-Options", "nosniff");
+    }
+    if (pathname.endsWith(".json")) {
+      response.headers.set("Content-Type", "application/json; charset=utf-8");
+    }
+    
+    // セキュリティヘッダーは静的ファイルには適用しない（CSP問題回避）
+    return response;
+  }
+
   // ボット用の最適化されたレスポンス
   if (isBot(userAgent)) {
     // ボットには軽量なレスポンスを返す
@@ -175,33 +203,6 @@ export function middleware(request: NextRequest) {
     return addSecurityHeaders(response);
   }
 
-  // 静的ファイルのキャッシュ最適化とMIMEタイプ修正
-  if (
-    pathname.startsWith("/_next/static/") ||
-    pathname.startsWith("/images/")
-  ) {
-    const response = NextResponse.next();
-    response.headers.set(
-      "Cache-Control",
-      "public, max-age=31536000, immutable",
-    );
-    
-    // CSSファイルの正しいMIMEタイプを設定
-    if (pathname.endsWith(".css")) {
-      response.headers.set("Content-Type", "text/css; charset=utf-8");
-      response.headers.set("X-Content-Type-Options", "nosniff");
-    }
-    if (pathname.endsWith(".js")) {
-      response.headers.set("Content-Type", "application/javascript; charset=utf-8");
-      response.headers.set("X-Content-Type-Options", "nosniff");
-    }
-    if (pathname.endsWith(".json")) {
-      response.headers.set("Content-Type", "application/json; charset=utf-8");
-    }
-    
-    // セキュリティヘッダーは静的ファイルには適用しない（CSP問題回避）
-    return response;
-  }
 
   // デフォルトレスポンス
   const response = NextResponse.next();
@@ -212,10 +213,10 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * But include _next/static for proper MIME type handling
      */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/image|favicon.ico).*)",
   ],
 };
