@@ -34,6 +34,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+        port: "",
+        pathname: "/vi/**",
+      },
     ],
 
     // レスポンシブ画像のデバイスサイズ設定（3840を削除）

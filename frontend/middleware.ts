@@ -6,7 +6,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   const isDev = process.env.NODE_ENV === "development";
   const csp = isDev
     ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
-    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com https://*.vercel.app https://*.youtube.com https://*.ytimg.com https://*.googletagmanager.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.vercel.app; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.vercel.app https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
+    : "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.vercel.app; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.vercel.app https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
@@ -175,7 +175,7 @@ export function middleware(request: NextRequest) {
     return addSecurityHeaders(response);
   }
 
-  // 静的ファイルのキャッシュ最適化
+  // 静的ファイルのキャッシュ最適化とMIMEタイプ修正
   if (
     pathname.startsWith("/_next/static/") ||
     pathname.startsWith("/images/")
@@ -188,15 +188,19 @@ export function middleware(request: NextRequest) {
     
     // CSSファイルの正しいMIMEタイプを設定
     if (pathname.endsWith(".css")) {
-      response.headers.set("Content-Type", "text/css");
+      response.headers.set("Content-Type", "text/css; charset=utf-8");
       response.headers.set("X-Content-Type-Options", "nosniff");
     }
     if (pathname.endsWith(".js")) {
-      response.headers.set("Content-Type", "application/javascript");
+      response.headers.set("Content-Type", "application/javascript; charset=utf-8");
       response.headers.set("X-Content-Type-Options", "nosniff");
     }
+    if (pathname.endsWith(".json")) {
+      response.headers.set("Content-Type", "application/json; charset=utf-8");
+    }
     
-    return addSecurityHeaders(response);
+    // セキュリティヘッダーは静的ファイルには適用しない（CSP問題回避）
+    return response;
   }
 
   // デフォルトレスポンス

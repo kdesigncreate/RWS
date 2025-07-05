@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { Play } from "lucide-react";
 
 interface LazyYouTubeProps {
@@ -21,6 +20,7 @@ export function LazyYouTube({
 }: LazyYouTubeProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer for lazy loading
@@ -46,7 +46,18 @@ export function LazyYouTube({
     setIsLoaded(true);
   };
 
-  const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  // Try multiple thumbnail URLs for better reliability
+  const getThumbnailUrl = () => {
+    if (imageError) {
+      return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    }
+    return `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+  };
+
   const aspectRatio = (height / width) * 100;
 
   return (
@@ -59,17 +70,12 @@ export function LazyYouTube({
         <>
           {/* Thumbnail with play button */}
           <div className="absolute inset-0">
-            <Image
-              src={thumbnailUrl}
+            <img
+              src={getThumbnailUrl()}
               alt={title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              onError={(e) => {
-                // Fallback to default YouTube thumbnail
-                const target = e.target as HTMLImageElement;
-                target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-              }}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={handleImageError}
             />
             {/* Play button overlay */}
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-300">
