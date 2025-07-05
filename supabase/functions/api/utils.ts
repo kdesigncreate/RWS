@@ -50,8 +50,10 @@ export function createErrorResponse(
   message: string, 
   status: number = 500, 
   errors?: Record<string, string[]>,
-  debug?: Record<string, unknown>
+  debug?: Record<string, unknown>,
+  requestOrigin?: string
 ): Response {
+  const headers = requestOrigin ? createCorsHeaders(requestOrigin) : corsHeaders
   return new Response(
     JSON.stringify({ 
       message,
@@ -62,7 +64,7 @@ export function createErrorResponse(
     { 
       status,
       headers: { 
-        ...corsHeaders,
+        ...headers,
         'Content-Type': 'application/json' 
       } 
     }
@@ -73,8 +75,10 @@ export function createErrorResponse(
 export function createSuccessResponse<T>(
   data?: T, 
   message?: string, 
-  status: number = 200
+  status: number = 200,
+  requestOrigin?: string
 ): Response {
+  const headers = requestOrigin ? createCorsHeaders(requestOrigin) : corsHeaders
   return new Response(
     JSON.stringify({ 
       ...(data && { data }),
@@ -84,7 +88,7 @@ export function createSuccessResponse<T>(
     { 
       status,
       headers: { 
-        ...corsHeaders,
+        ...headers,
         'Content-Type': 'application/json' 
       } 
     }

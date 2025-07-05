@@ -36,54 +36,14 @@ export async function handleLogin(request: Request): Promise<Response> {
 
       console.log('Login successful for:', email)
       
-      // Get user information from users table, create if not exists
-      let { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('email', email)
-        .maybeSingle()
-      
-      if (userError) {
-        console.error('Database error while looking up user:', userError)
-        return createErrorResponse('Database error', 500)
-      }
-      
-      if (!userData) {
-        console.log('User not found in users table, creating for:', email)
-        // Create new user in users table
-        const { data: newUser, error: createUserError } = await supabase
-          .from('users')
-          .insert({
-            email: email,
-            name: authData.user.user_metadata?.name || email.split('@')[0],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select('id, name, email')
-          .single()
-        
-        if (createUserError || !newUser) {
-          console.error('Failed to create user:', createUserError)
-          // Return auth user data as fallback
-          return createSuccessResponse({
-            message: 'Login successful',
-            user: { 
-              id: authData.user.id, 
-              email: authData.user.email, 
-              name: authData.user.user_metadata?.name || 'Admin User' 
-            },
-            token: authData.session?.access_token || 'no-token'
-          })
-        }
-        
-        userData = newUser
-        console.log('Created new user with ID:', userData.id)
-      }
-      
-      // Return user data from users table and session token
+      // Return user data directly from Supabase Auth (no separate users table needed)
       return createSuccessResponse({
         message: 'Login successful',
-        user: userData,
+        user: { 
+          id: authData.user.id, 
+          email: authData.user.email, 
+          name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'Admin User'
+        },
         token: authData.session?.access_token || 'no-token'
       })
     } catch (authException) {

@@ -66,10 +66,10 @@ export async function handlePublicPosts(url: URL): Promise<Response> {
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
   const search = url.searchParams.get('search') || ''
 
-  // Get published posts from database
+  // Get published posts from database with count
   let query = supabase
     .from('posts')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('status', 'published')
     .order('created_at', { ascending: false })
   
@@ -146,10 +146,10 @@ export async function handleAdminPosts(request: Request, url: URL): Promise<Resp
   const page = parseInt(url.searchParams.get('page') || '1')
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
   
-  // Get all posts from database for admin
+  // Get all posts from database for admin with count
   const { data: posts, error, count } = await supabase
     .from('posts')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range((page - 1) * limit, page * limit - 1)
 
