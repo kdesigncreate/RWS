@@ -6,7 +6,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   const isDev = process.env.NODE_ENV === "development";
   const csp = isDev
     ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:*; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
-    : "default-src 'self'; script-src 'self' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
+    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
@@ -74,6 +74,17 @@ export function middleware(request: NextRequest) {
     request.headers.get("x-forwarded-for") ||
     request.headers.get("x-real-ip") ||
     "unknown";
+
+  // Admin pages - より緩いCSP設定
+  if (pathname.startsWith("/admin")) {
+    const response = NextResponse.next();
+    // AdminページではCSPを完全に無効化
+    response.headers.delete("Content-Security-Policy");
+    response.headers.set("X-Frame-Options", "SAMEORIGIN");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    return response;
+  }
 
   // ボット用の最適化されたレスポンス
   if (isBot(userAgent)) {
@@ -157,24 +168,6 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-
-  // 管理画面のアクセス制御強化
-  if (pathname.startsWith("/admin")) {
-    // 開発環境でのデバッグログ
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Admin access: ${pathname} from ${ip}`);
-    }
-
-    // 管理画面の基本的なセキュリティチェック
-    const response = NextResponse.next();
-
-    // 管理画面専用のセキュリティヘッダー
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("X-Admin-Access", "true");
-
-    return addSecurityHeaders(response);
-  }
-
 
   // デフォルトレスポンス
   const response = NextResponse.next();
