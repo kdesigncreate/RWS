@@ -208,47 +208,86 @@ jobs:
         echo "📝 Created project.json:"
         cat .vercel/project.json
         
-        # Vercel CLIで強制的にプロジェクト設定を更新
-        echo "🔄 Updating project settings via CLI..."
-        vercel --token $VERCEL_TOKEN --scope ${{ secrets.VERCEL_ORG_ID }} || true
+        # Vercel API経由でプロジェクト設定を直接更新
+        echo "🔄 Updating project settings via API..."
+        curl -X PATCH \
+          "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}?teamId=${{ secrets.VERCEL_ORG_ID }}" \
+          -H "Authorization: Bearer $VERCEL_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "framework": "nextjs",
+            "buildCommand": null,
+            "outputDirectory": null,
+            "installCommand": null,
+            "rootDirectory": null
+          }' || echo "Failed to update project settings"
+        
+        # 少し待ってからデプロイ実行
+        sleep 5
         
         # 改めてデプロイ実行
         echo "🚀 Starting deployment..."
         if vercel --prod --yes --token $VERCEL_TOKEN --scope ${{ secrets.VERCEL_ORG_ID }} --debug 2>&1; then
           echo "✅ CLI deployment succeeded"
         else
-          echo "❌ CLI deployment failed, trying alternative method..."
+          echo "❌ CLI deployment failed, using GitHub integration..."
           
-          # 方法2: Vercel API直接呼び出し
-          echo "🔄 Using Vercel API deployment..."
+          # 方法2: GitHub Integration経由のデプロイ
+          echo "🔄 Using GitHub integration deployment..."
           
-          # ソースコードをtarで圧縮
-          tar -czf deployment.tar.gz --exclude=node_modules --exclude=.next --exclude=.vercel .
-          
-          # Vercel APIでデプロイメント作成
+          # Vercel APIでGitHub統合デプロイ
           DEPLOY_RESPONSE=$(curl -s -X POST \
             "https://api.vercel.com/v13/deployments" \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{
-              "name": "rws",
+              "name": "rws-frontend",
               "project": "${{ secrets.VERCEL_PROJECT_ID }}",
               "target": "production",
               "gitSource": {
                 "type": "github",
-                "repoId": "${{ github.repository }}",
-                "ref": "${{ github.sha }}"
+                "repo": "${{ github.repository }}",
+                "ref": "${{ github.ref_name }}",
+                "sha": "${{ github.sha }}"
               }
             }')
           
           echo "📡 Deployment response: $DEPLOY_RESPONSE"
           
-          # デプロイメントURLを取得
+          # デプロイメントURLとIDを取得
           DEPLOY_URL=$(echo $DEPLOY_RESPONSE | jq -r '.url // empty')
-          if [ -n "$DEPLOY_URL" ]; then
-            echo "✅ API deployment succeeded: https://$DEPLOY_URL"
+          DEPLOY_ID=$(echo $DEPLOY_RESPONSE | jq -r '.uid // empty')
+          
+          if [ -n "$DEPLOY_URL" ] && [ -n "$DEPLOY_ID" ]; then
+            echo "✅ GitHub integration deployment initiated: https://$DEPLOY_URL"
+            echo "📋 Deployment ID: $DEPLOY_ID"
+            
+            # デプロイメントの完了を待機
+            echo "⏳ Waiting for deployment to complete..."
+            for i in {1..30}; do
+              sleep 10
+              STATUS_RESPONSE=$(curl -s \
+                "https://api.vercel.com/v13/deployments/$DEPLOY_ID" \
+                -H "Authorization: Bearer $VERCEL_TOKEN")
+              
+              STATUS=$(echo $STATUS_RESPONSE | jq -r '.readyState // empty')
+              echo "🔍 Deployment status: $STATUS"
+              
+              if [ "$STATUS" = "READY" ]; then
+                echo "✅ Deployment completed successfully!"
+                break
+              elif [ "$STATUS" = "ERROR" ] || [ "$STATUS" = "CANCELED" ]; then
+                echo "❌ Deployment failed with status: $STATUS"
+                exit 1
+              fi
+              
+              if [ $i -eq 30 ]; then
+                echo "⚠️ Deployment timeout, but may still complete"
+              fi
+            done
           else
-            echo "❌ API deployment failed"
+            echo "❌ GitHub integration deployment failed"
+            echo "Response: $DEPLOY_RESPONSE"
             exit 1
           fi
         fi
