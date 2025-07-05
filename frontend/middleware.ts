@@ -70,7 +70,8 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     const response = NextResponse.next();
     // AdminページでもCSPを適用するが、Next.jsに必要な設定を含める
-    const adminCsp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; form-action 'self';";
+    // 管理者ページでは、より緩和されたCSPを適用（デバッグのため一時的）
+    const adminCsp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss: ws:; object-src 'none'; base-uri 'self'; form-action 'self';";
     response.headers.set("Content-Security-Policy", adminCsp);
     response.headers.set("X-Frame-Options", "SAMEORIGIN");
     response.headers.set("X-Content-Type-Options", "nosniff");

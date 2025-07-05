@@ -10,6 +10,11 @@ import { AppError, ErrorUtils, ErrorType } from "@/lib/errors";
 
 // 環境変数から設定を取得と堅牢なフォールバック戦略
 const getApiBaseUrl = (): string => {
+  // ブラウザ環境では常に相対パスを使用
+  if (typeof window !== "undefined") {
+    return "/api";
+  }
+
   // 1. 直接指定されたAPI URL（最優先）
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
