@@ -82,49 +82,6 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-            // 強制的にSupabaseアクセスをブロック
-            (function() {
-              const originalFetch = window.fetch;
-              const originalXHR = window.XMLHttpRequest;
-              
-              // Fetch API完全ブロック
-              window.fetch = function(input, init) {
-                const url = typeof input === 'string' ? input : 
-                           input instanceof URL ? input.href : 
-                           input instanceof Request ? input.url : String(input);
-                
-                if (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme')) {
-                  console.error('BLOCKED: Supabase direct access prevented:', url);
-                  return Promise.reject(new Error('Supabase access blocked by CSP'));
-                }
-                
-                return originalFetch.apply(this, arguments);
-              };
-              
-              // XMLHttpRequest完全ブロック
-              window.XMLHttpRequest = function() {
-                const xhr = new originalXHR();
-                const originalOpen = xhr.open;
-                
-                xhr.open = function(method, url, ...args) {
-                  if (typeof url === 'string' && (url.includes('supabase.co') || url.includes('ixrwzaasrxoshjnpxnme'))) {
-                    console.error('BLOCKED: Supabase XHR access prevented:', url);
-                    throw new Error('Supabase access blocked by CSP');
-                  }
-                  return originalOpen.apply(this, [method, url, ...args]);
-                };
-                
-                return xhr;
-              };
-              
-              console.log('Supabase access blocker initialized');
-            })();
-          `,
-          }}
-        />
       </head>
       <body
         className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}

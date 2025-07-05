@@ -108,12 +108,13 @@ export default function AdminDashboardPage() {
   //   console.log('Bulk action:', action, 'on posts:', selectedPosts);
   // };
 
-  // 統計データ（モック）
+  // 統計データ（安全な配列チェック付き）
+  const safePosts = Array.isArray(posts) ? posts : [];
   const stats = {
     totalPosts: pagination.total,
-    publishedPosts: posts.filter((p) => p.is_published).length,
-    draftPosts: posts.filter((p) => p.is_draft).length,
-    thisMonth: posts.filter((p) => {
+    publishedPosts: safePosts.filter((p) => p.is_published).length,
+    draftPosts: safePosts.filter((p) => p.is_draft).length,
+    thisMonth: safePosts.filter((p) => {
       const postDate = new Date(p.created_at);
       const now = new Date();
       return (
@@ -326,7 +327,7 @@ export default function AdminDashboardPage() {
               />
             ) : (
               <PostTable
-                posts={posts}
+                posts={safePosts}
                 selectedPosts={selectedPosts}
                 onSelectionChange={handleSelectionChange}
                 onSort={(field, order) =>

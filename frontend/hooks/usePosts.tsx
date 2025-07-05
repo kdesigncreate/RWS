@@ -89,10 +89,11 @@ export function usePosts(): UsePostsReturn {
 
         setState((prev) => {
           // ページが1の場合は記事を置き換え、それ以外は追加
+          const responseData = Array.isArray(response.data.data) ? response.data.data : [];
           const newPosts =
             params?.page === 1 || !params?.page
-              ? response.data.data
-              : [...prev.posts, ...response.data.data];
+              ? responseData
+              : [...prev.posts, ...responseData];
 
           return {
             ...prev,
@@ -155,7 +156,7 @@ export function usePosts(): UsePostsReturn {
 
         setState((prev) => ({
           ...prev,
-          posts: response.data.data,
+          posts: Array.isArray(response.data.data) ? response.data.data : [],
           pagination: {
             currentPage: response.data.meta?.current_page || 1,
             lastPage: response.data.meta?.last_page || 1,

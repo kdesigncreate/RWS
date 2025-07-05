@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
+import { LazyYouTube } from "@/components/common/LazyYouTube";
 import { generateStructuredData } from "@/lib/metadata";
 import {
   Sheet,
@@ -759,42 +760,27 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-                <div className="aspect-w-16 aspect-h-9 w-full">
-                  <iframe
-                    width="100%"
-                    height="315"
-                    src="https://www.youtube.com/embed/DQAt2JC6UsY?si=ku2JFoE0oKayXkR3"
-                    title="YouTube video player 1"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="aspect-w-16 aspect-h-9 w-full">
-                  <iframe
-                    width="100%"
-                    height="315"
-                    src="https://www.youtube.com/embed/f1KGe6Ej5Sw?si=-erOYzlIP55mB3CH"
-                    title="YouTube video player 2"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="aspect-w-16 aspect-h-9 w-full">
-                  <iframe
-                    width="100%"
-                    height="315"
-                    src="https://www.youtube.com/embed/_-et071EvuE?si=eOhRMfFcQXgTZN_c"
-                    title="YouTube video player 3"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
+                <LazyYouTube
+                  videoId="DQAt2JC6UsY"
+                  title="RWSドリブル塾 動画 1"
+                  className="w-full"
+                  width={560}
+                  height={315}
+                />
+                <LazyYouTube
+                  videoId="f1KGe6Ej5Sw"
+                  title="RWSドリブル塾 動画 2"
+                  className="w-full"
+                  width={560}
+                  height={315}
+                />
+                <LazyYouTube
+                  videoId="_-et071EvuE"
+                  title="RWSドリブル塾 動画 3"
+                  className="w-full"
+                  width={560}
+                  height={315}
+                />
               </div>
             </div>
           </section>
