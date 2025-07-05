@@ -182,14 +182,31 @@ jobs:
           echo "⚠️ vercel.json not found, using default settings"
         fi
         
-        # Vercel設定の修正 - .vercelディレクトリを作成して正しい設定を適用
+        # Vercel設定の修正 - 環境変数展開で正しい設定を作成
         mkdir -p .vercel
-        echo '{"projectId":"${{ secrets.VERCEL_PROJECT_ID }}","orgId":"${{ secrets.VERCEL_ORG_ID }}","settings":{"framework":"nextjs","buildCommand":"npm run build","outputDirectory":".next","installCommand":"npm install","rootDirectory":"."}}' > .vercel/project.json
+        cat > .vercel/project.json << EOF
+        {
+          "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+          "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+          "settings": {
+            "framework": "nextjs",
+            "buildCommand": "npm run build", 
+            "outputDirectory": ".next",
+            "installCommand": "npm install",
+            "rootDirectory": null
+          }
+        }
+        EOF
         echo "📝 Created .vercel/project.json with correct settings"
         cat .vercel/project.json
         
-        # デプロイ実行 - 明示的にカレントディレクトリを指定
-        vercel --prod --debug --yes --token $VERCEL_TOKEN --cwd .
+        # 現在のディレクトリを確認
+        echo "📁 Current directory: $(pwd)"
+        echo "📁 Directory contents:"
+        ls -la
+        
+        # デプロイ実行 - シンプルな形式
+        vercel --prod --yes --token $VERCEL_TOKEN
         echo "✅ Vercel deployment completed"
       timeout-minutes: 15
 
