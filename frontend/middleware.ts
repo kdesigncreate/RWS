@@ -179,7 +179,8 @@ export async function middleware(request: NextRequest) {
         return addSecurityHeaders(response);
       } catch (error) {
         console.error("API proxy error:", error);
-        return new NextResponse(`Proxy Error: ${error.message}`, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return new NextResponse(`Proxy Error: ${errorMessage}`, { status: 500 });
       }
     }
   }
