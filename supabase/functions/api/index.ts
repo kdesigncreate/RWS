@@ -24,7 +24,7 @@ import {
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests with dynamic origin
-  const requestOrigin = req.headers.get('origin')
+  const requestOrigin = req.headers.get('origin') ?? undefined
   const dynamicCorsHeaders = requestOrigin ? createCorsHeaders(requestOrigin) : corsHeaders
   
   if (req.method === 'OPTIONS') {

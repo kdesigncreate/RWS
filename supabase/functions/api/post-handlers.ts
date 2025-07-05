@@ -148,7 +148,7 @@ export async function handlePublicPost(postId: number): Promise<Response> {
 
 // 管理者ポスト一覧取得
 export async function handleAdminPosts(request: Request, url: URL): Promise<Response> {
-  const requestOrigin = request.headers.get('origin')
+  const requestOrigin = request.headers.get('origin') ?? undefined
   
   const authValidation = await validateAuthToken(request.headers.get('authorization'))
   if (!authValidation.isValid) {
