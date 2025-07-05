@@ -218,16 +218,39 @@ export async function handleCreatePost(request: Request): Promise<Response> {
   }
 
   try {
-    // Get user ID from users table
-    const { data: user, error: userLookupError } = await supabase
+    // Get user ID from users table, create if not exists
+    let { data: user, error: userLookupError } = await supabase
       .from('users')
       .select('id')
       .eq('email', authValidation.user!.email)
       .maybeSingle()
     
-    if (userLookupError || !user) {
-      console.warn('User not found in users table for:', authValidation.user!.email)
-      return createErrorResponse('User not found in database', 404)
+    if (userLookupError) {
+      console.error('Database error while looking up user:', userLookupError)
+      return createErrorResponse('Database error', 500)
+    }
+    
+    if (!user) {
+      console.log('User not found, creating new user for:', authValidation.user!.email)
+      // Create new user in users table
+      const { data: newUser, error: createUserError } = await supabase
+        .from('users')
+        .insert({
+          email: authValidation.user!.email,
+          name: authValidation.user!.email.split('@')[0], // Use email prefix as default name
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id')
+        .single()
+      
+      if (createUserError || !newUser) {
+        console.error('Failed to create user:', createUserError)
+        return createErrorResponse('Failed to create user', 500)
+      }
+      
+      user = newUser
+      console.log('Created new user with ID:', user.id)
     }
 
     const body: CreatePostRequest = await request.json()
