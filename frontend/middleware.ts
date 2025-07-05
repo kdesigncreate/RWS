@@ -120,7 +120,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // API プロキシ処理（改良版）
+  // API プロキシ処理（fetch-based proxy）
   if (pathname.startsWith("/api/")) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -153,14 +153,33 @@ export async function middleware(request: NextRequest) {
           }
         });
 
-        const response = NextResponse.rewrite(new URL(fullTargetUrl), {
-          request: { headers },
+        // リクエストボディを取得（POSTリクエストの場合）
+        let body = undefined;
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          body = await request.text();
+        }
+
+        // Supabase Functionsにリクエストをプロキシ
+        const proxyResponse = await fetch(fullTargetUrl, {
+          method: request.method,
+          headers: headers,
+          body: body,
+        });
+
+        // レスポンスを作成
+        const responseBody = await proxyResponse.text();
+        const response = new NextResponse(responseBody, {
+          status: proxyResponse.status,
+          statusText: proxyResponse.statusText,
+          headers: {
+            'content-type': proxyResponse.headers.get('content-type') || 'application/json',
+          },
         });
 
         return addSecurityHeaders(response);
       } catch (error) {
         console.error("API proxy error:", error);
-        return new NextResponse("Internal Server Error", { status: 500 });
+        return new NextResponse(`Proxy Error: ${error.message}`, { status: 500 });
       }
     }
   }
