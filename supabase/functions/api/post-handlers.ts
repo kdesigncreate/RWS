@@ -218,12 +218,16 @@ export async function handleCreatePost(request: Request): Promise<Response> {
   }
 
   try {
+    console.log('Starting post creation for user:', authValidation.user!.email)
+    
     // Get user ID from users table, create if not exists
     let { data: user, error: userLookupError } = await supabase
       .from('users')
       .select('id')
       .eq('email', authValidation.user!.email)
       .maybeSingle()
+    
+    console.log('User lookup result:', { user, userLookupError })
     
     if (userLookupError) {
       console.error('Database error while looking up user:', userLookupError)
@@ -244,9 +248,11 @@ export async function handleCreatePost(request: Request): Promise<Response> {
         .select('id')
         .single()
       
+      console.log('User creation result:', { newUser, createUserError })
+      
       if (createUserError || !newUser) {
         console.error('Failed to create user:', createUserError)
-        return createErrorResponse('Failed to create user', 500)
+        return createErrorResponse(`Failed to create user: ${createUserError?.message || 'Unknown error'}`, 500)
       }
       
       user = newUser

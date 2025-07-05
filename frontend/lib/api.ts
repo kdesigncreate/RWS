@@ -32,6 +32,14 @@ const getApiBaseUrl = (): string => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Debug: Log API configuration
+console.log('API Configuration:', {
+  API_BASE_URL,
+  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NODE_ENV: process.env.NODE_ENV
+});
+
 // API エンドポイント定義
 export const apiEndpoints: ApiEndpoints = {
   // 認証
