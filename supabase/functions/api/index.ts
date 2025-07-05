@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
     }
 
     if (path.includes('/posts') && req.method === 'GET' && !path.includes('/admin') && !path.match(/\/posts\/\d+$/)) {
-      return await handlePublicPosts(url)
+      return await handlePublicPosts(url, requestOrigin)
     }
 
     // Default response for unhandled routes

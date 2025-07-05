@@ -21,8 +21,12 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
   const createdAt = new Date(post.created_at)
   const updatedAt = new Date(post.updated_at)
   
-  // Get author information from users table
+  // Get author information (simplified)
   const author = await getUserInfo(post.user_id || 1)
+  
+  // Correctly calculate status fields from database status
+  const isPublished = post.status === 'published'
+  const isDraft = post.status === 'draft'
   
   return {
     id: post.id,
@@ -30,11 +34,11 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
     content: post.content,
     excerpt: post.excerpt || post.content.substring(0, 100) + '...',
     status: post.status,
-    status_label: post.status === 'published' ? '公開済み' : '下書き',
+    status_label: isPublished ? '公開済み' : '下書き',
     published_at: post.published_at,
     published_at_formatted: post.published_at ? new Date(post.published_at).toLocaleDateString('ja-JP') : null,
-    is_published: post.status === 'published',
-    is_draft: post.status === 'draft',
+    is_published: isPublished,
+    is_draft: isDraft,
     created_at: post.created_at,
     updated_at: post.updated_at,
     created_at_formatted: createdAt.toLocaleDateString('ja-JP'),
@@ -61,55 +65,61 @@ export async function formatPosts(posts: DatabasePost[]): Promise<FormattedPost[
 }
 
 // 公開ポスト一覧取得
-export async function handlePublicPosts(url: URL): Promise<Response> {
+export async function handlePublicPosts(url: URL, requestOrigin?: string): Promise<Response> {
   const page = parseInt(url.searchParams.get('page') || '1')
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
   const search = url.searchParams.get('search') || ''
 
-  // Get published posts from database with count
-  let query = supabase
-    .from('posts')
-    .select('*', { count: 'exact' })
-    .eq('status', 'published')
-    .order('created_at', { ascending: false })
-  
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
-  }
-
-  const { data: posts, error, count } = await query
-    .range((page - 1) * limit, page * limit - 1)
-    .returns<DatabasePost[]>()
-
-  if (error) {
-    return createErrorResponse('Database error', 500)
-  }
-
-  const formattedPosts = await formatPosts(posts || [])
-  const total = count || 0
-  const from = total > 0 ? (page - 1) * limit + 1 : null
-  const to = total > 0 ? Math.min(page * limit, total) : null
-  const lastPage = Math.ceil(total / limit)
-
-  const response: PaginatedResponse<FormattedPost> = {
-    data: formattedPosts,
-    meta: {
-      current_page: page,
-      last_page: lastPage,
-      per_page: limit,
-      total: total,
-      from: from,
-      to: to
-    },
-    links: {
-      first: page > 1 ? `/api/posts?page=1` : null,
-      last: page < lastPage ? `/api/posts?page=${lastPage}` : null,
-      prev: page > 1 ? `/api/posts?page=${page - 1}` : null,
-      next: page < lastPage ? `/api/posts?page=${page + 1}` : null
+  try {
+    // Get published posts from database with count
+    let query = supabase
+      .from('posts')
+      .select('*', { count: 'exact' })
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+    
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
     }
-  }
 
-  return createSuccessResponse(response)
+    const { data: posts, error, count } = await query
+      .range((page - 1) * limit, page * limit - 1)
+      .returns<DatabasePost[]>()
+
+    if (error) {
+      console.error('Database error in handlePublicPosts:', error)
+      return createErrorResponse(`Database error: ${error.message}`, 500, undefined, undefined, requestOrigin)
+    }
+
+    const formattedPosts = await formatPosts(posts || [])
+    const total = count || 0
+    const from = total > 0 ? (page - 1) * limit + 1 : null
+    const to = total > 0 ? Math.min(page * limit, total) : null
+    const lastPage = Math.ceil(total / limit)
+
+    const response: PaginatedResponse<FormattedPost> = {
+      data: formattedPosts,
+      meta: {
+        current_page: page,
+        last_page: lastPage,
+        per_page: limit,
+        total: total,
+        from: from,
+        to: to
+      },
+      links: {
+        first: page > 1 ? `/api/posts?page=1` : null,
+        last: page < lastPage ? `/api/posts?page=${lastPage}` : null,
+        prev: page > 1 ? `/api/posts?page=${page - 1}` : null,
+        next: page < lastPage ? `/api/posts?page=${page + 1}` : null
+      }
+    }
+
+    return createSuccessResponse(response, undefined, 200, requestOrigin)
+  } catch (error) {
+    console.error('Error in handlePublicPosts:', error)
+    return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+  }
 }
 
 // 単一公開ポスト取得
@@ -138,50 +148,58 @@ export async function handlePublicPost(postId: number): Promise<Response> {
 
 // 管理者ポスト一覧取得
 export async function handleAdminPosts(request: Request, url: URL): Promise<Response> {
+  const requestOrigin = request.headers.get('origin')
+  
   const authValidation = await validateAuthToken(request.headers.get('authorization'))
   if (!authValidation.isValid) {
-    return createErrorResponse(authValidation.error || 'Unauthorized', 401)
+    return createErrorResponse(authValidation.error || 'Unauthorized', 401, undefined, undefined, requestOrigin)
   }
 
   const page = parseInt(url.searchParams.get('page') || '1')
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
   
-  // Get all posts from database for admin with count
-  const { data: posts, error, count } = await supabase
-    .from('posts')
-    .select('*', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range((page - 1) * limit, page * limit - 1)
+  try {
+    // Get all posts from database for admin with count
+    const { data: posts, error, count } = await supabase
+      .from('posts')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range((page - 1) * limit, page * limit - 1)
 
-  if (error) {
-    return createErrorResponse('Database error', 500)
-  }
-
-  const formattedPosts = await formatPosts(posts || [])
-  const total = count || 0
-  const from = total > 0 ? (page - 1) * limit + 1 : null
-  const to = total > 0 ? Math.min(page * limit, total) : null
-  const lastPage = Math.ceil(total / limit)
-
-  const response: PaginatedResponse<FormattedPost> = {
-    data: formattedPosts,
-    meta: {
-      current_page: page,
-      last_page: lastPage,
-      per_page: limit,
-      total: total,
-      from: from,
-      to: to
-    },
-    links: {
-      first: page > 1 ? `/api/admin/posts?page=1` : null,
-      last: page < lastPage ? `/api/admin/posts?page=${lastPage}` : null,
-      prev: page > 1 ? `/api/admin/posts?page=${page - 1}` : null,
-      next: page < lastPage ? `/api/admin/posts?page=${page + 1}` : null
+    if (error) {
+      console.error('Database error in handleAdminPosts:', error)
+      return createErrorResponse(`Database error: ${error.message}`, 500, undefined, undefined, requestOrigin)
     }
-  }
 
-  return createSuccessResponse(response)
+    const formattedPosts = await formatPosts(posts || [])
+    const total = count || 0
+    const from = total > 0 ? (page - 1) * limit + 1 : null
+    const to = total > 0 ? Math.min(page * limit, total) : null
+    const lastPage = Math.ceil(total / limit)
+
+    const response: PaginatedResponse<FormattedPost> = {
+      data: formattedPosts,
+      meta: {
+        current_page: page,
+        last_page: lastPage,
+        per_page: limit,
+        total: total,
+        from: from,
+        to: to
+      },
+      links: {
+        first: page > 1 ? `/api/admin/posts?page=1` : null,
+        last: page < lastPage ? `/api/admin/posts?page=${lastPage}` : null,
+        prev: page > 1 ? `/api/admin/posts?page=${page - 1}` : null,
+        next: page < lastPage ? `/api/admin/posts?page=${page + 1}` : null
+      }
+    }
+
+    return createSuccessResponse(response, undefined, 200, requestOrigin)
+  } catch (error) {
+    console.error('Error in handleAdminPosts:', error)
+    return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+  }
 }
 
 // 管理者単一ポスト取得
