@@ -91,11 +91,23 @@ jobs:
         SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       run: |
         cd supabase
-        npx supabase secrets set SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-        npx supabase secrets set SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
-        npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        npx supabase secrets set JWT_SECRET=${{ secrets.JWT_SECRET }}
-        npx supabase secrets set ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+        # SUPABASE_で始まる環境変数は設定できないためスキップ
+        # npx supabase secrets set SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+        # npx supabase secrets set SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+        # npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        
+        # アプリケーション固有のシークレットのみ設定
+        if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+          npx supabase secrets set JWT_SECRET="${{ secrets.JWT_SECRET }}"
+        else
+          echo "Warning: JWT_SECRET is empty"
+        fi
+        
+        if [ -n "${{ secrets.ALLOWED_ORIGINS }}" ]; then
+          npx supabase secrets set ALLOWED_ORIGINS="${{ secrets.ALLOWED_ORIGINS }}"
+        else
+          echo "Warning: ALLOWED_ORIGINS is empty"
+        fi
 
     # Note: Laravel migrations removed - using Supabase Functions with direct DB operations
     - name: Verify Supabase Functions Deployment
