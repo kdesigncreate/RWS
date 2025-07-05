@@ -4,44 +4,59 @@
 
 ![R.W.S Logo](frontend/public/images/logo_black_removebg.png)
 
-**Modern, Scalable Blog Platform with Separated Frontend and Backend Architecture**
+**Modern, Serverless Blog Platform with Edge-First Architecture**
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
-[![Laravel](https://img.shields.io/badge/Laravel-12.0-red?style=flat-square&logo=laravel)](https://laravel.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Functions-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Ready-green?style=flat-square&logo=supabase)](https://supabase.com/)
+[![Deno](https://img.shields.io/badge/Deno-Edge-black?style=flat-square&logo=deno)](https://deno.land/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
 </div>
 
 ## 🚀 Project Overview
 
-R.W.S Blog System is a modern, production-ready blog platform built with a completely separated frontend and backend architecture. This design enables independent scaling, deployment flexibility, and the potential for multi-platform support.
+R.W.S Blog System is a modern, serverless blog platform built with **Supabase Functions-centric architecture**. This design provides global edge deployment, automatic scaling, and zero-maintenance infrastructure with complete type safety from database to UI.
 
 ### 🏗️ Architecture
 
 ```mermaid
 graph TB
-    Client[Next.js Frontend] --> API[Laravel API Backend]
-    API --> DB[(SQLite/PostgreSQL)]
-    API --> Auth[Sanctum Authentication]
-    Client --> CDN[Vercel/Static Assets]
-    API --> Supabase[Supabase Functions]
+    Client[Next.js 15 Frontend] --> Middleware[Vercel Edge Middleware]
+    Middleware --> Functions[Supabase Edge Functions]
+    Functions --> DB[(Supabase PostgreSQL)]
+    Functions --> Auth[Supabase Auth + JWT]
+    Client --> CDN[Vercel Global CDN]
+    Functions --> Storage[Supabase Storage]
+    
+    subgraph "Edge Runtime"
+        Functions
+        Auth
+    end
+    
+    subgraph "Global Distribution"
+        Client
+        CDN
+        Middleware
+    end
 ```
 
-**Frontend**: Next.js 15 with TypeScript, Server Components, and shadcn/ui  
-**Backend**: Laravel 12 with PHP 8.2, Sanctum authentication, and SQLite  
-**Deployment**: Vercel (Frontend) + Supabase Functions (Backend)  
-**Architecture**: API-first, fully decoupled, cloud-native
+**Frontend**: Next.js 15 with TypeScript, App Router, and shadcn/ui  
+**Backend**: Supabase Functions (Deno/TypeScript) with Edge Runtime  
+**Database**: Supabase PostgreSQL with real-time capabilities  
+**Authentication**: Supabase Auth with JWT tokens  
+**Deployment**: Vercel (Frontend) + Supabase (Backend & Database)  
+**Architecture**: Serverless, edge-deployed, globally distributed
 
 ## ✨ Key Features
 
 ### 🔐 **Enterprise-Grade Security**
-- Laravel Sanctum SPA authentication with JWT tokens
-- CSRF protection and XSS prevention
-- Content Security Policy (CSP) implementation
-- Rate limiting and request validation
-- SQL injection protection via Eloquent ORM
+- Supabase Auth with JWT token validation
+- Content Security Policy (CSP) with dynamic configuration
+- Input sanitization and XSS prevention via Zod schemas
+- Rate limiting with IP-based protection
+- SQL injection prevention via Supabase client
+- Edge-level security with Vercel middleware
 
 ### 📝 **Content Management**
 - **Public Interface**: Homepage, post listings, individual post pages, search

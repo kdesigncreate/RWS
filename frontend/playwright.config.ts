@@ -78,24 +78,12 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: [
-    {
-      command: "npm run dev",
-      url: "http://localhost:3000",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    },
-    {
-      command: "cd ../backend && php artisan serve --port=8000",
-      url: "http://localhost:8000",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    },
-  ],
-
-  /* Global setup and teardown */
-  globalSetup: require.resolve("./tests/e2e/global-setup.ts"),
-  globalTeardown: require.resolve("./tests/e2e/global-teardown.ts"),
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
 
   /* Test timeout */
   timeout: 60 * 1000,

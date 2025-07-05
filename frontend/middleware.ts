@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiRateLimit, adminRateLimit } from "@/lib/rateLimit";
 
 // セキュリティヘッダーの追加
 function addSecurityHeaders(response: NextResponse): NextResponse {
@@ -27,28 +28,18 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
-// レート制限のための簡易チェック（本格的なレート制限にはRedis等が必要）
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-
-function isRateLimited(
+// Supabase-based rate limiting for serverless environment
+async function checkRateLimit(
   ip: string,
-  limit: number = 100,
-  windowMs: number = 60000,
-): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(ip);
-
-  if (!record || now - record.lastReset > windowMs) {
-    rateLimitMap.set(ip, { count: 1, lastReset: now });
-    return false;
-  }
-
-  if (record.count >= limit) {
-    return true;
-  }
-
-  record.count++;
-  return false;
+  endpoint: string,
+  isAdmin: boolean = false
+): Promise<{
+  isLimited: boolean
+  remaining: number
+  resetTime: Date
+}> {
+  const rateLimit = isAdmin ? adminRateLimit : apiRateLimit
+  return await rateLimit.isRateLimited(ip, endpoint)
 }
 
 // ボット検出（簡易版）
@@ -67,7 +58,7 @@ function isBot(userAgent: string): boolean {
   return botPatterns.some((pattern) => pattern.test(userAgent));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const userAgent = request.headers.get("user-agent") || "";
   const ip =
@@ -75,14 +66,16 @@ export function middleware(request: NextRequest) {
     request.headers.get("x-real-ip") ||
     "unknown";
 
-  // Admin pages - より緩いCSP設定
+  // Admin pages - 緩和されたCSP設定（セキュリティ維持）
   if (pathname.startsWith("/admin")) {
     const response = NextResponse.next();
-    // AdminページではCSPを完全に無効化
-    response.headers.delete("Content-Security-Policy");
+    // AdminページでもCSPを適用するが、Next.jsに必要な設定を含める
+    const adminCsp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; form-action 'self';";
+    response.headers.set("Content-Security-Policy", adminCsp);
     response.headers.set("X-Frame-Options", "SAMEORIGIN");
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set("X-Admin-Access", "true");
     return response;
   }
 
@@ -94,31 +87,33 @@ export function middleware(request: NextRequest) {
     return addSecurityHeaders(response);
   }
 
-  // API エンドポイントのレート制限
+  // API エンドポイントのレート制限（Supabase-based）
   if (pathname.startsWith("/api/")) {
-    if (isRateLimited(ip, 200, 60000)) {
-      // API: 1分間に200リクエスト
+    const rateLimitResult = await checkRateLimit(ip, pathname, false);
+    if (rateLimitResult.isLimited) {
       return new NextResponse("Too Many Requests", {
         status: 429,
         headers: {
           "Retry-After": "60",
           "X-RateLimit-Limit": "200",
-          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toISOString(),
         },
       });
     }
   }
 
-  // 管理画面のレート制限（より厳しく）
+  // 管理画面のレート制限（より厳しく、Supabase-based）
   if (pathname.startsWith("/admin/")) {
-    if (isRateLimited(`admin-${ip}`, 50, 60000)) {
-      // 管理画面: 1分間に50リクエスト
+    const rateLimitResult = await checkRateLimit(ip, pathname, true);
+    if (rateLimitResult.isLimited) {
       return new NextResponse("Too Many Requests", {
         status: 429,
         headers: {
           "Retry-After": "60",
           "X-RateLimit-Limit": "50",
-          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toISOString(),
         },
       });
     }

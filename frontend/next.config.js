@@ -102,46 +102,57 @@ const nextConfig = {
   // gzip圧縮の有効化
   compress: true,
 
-  // Webpack設定のカスタマイズ（最適化されたキャッシュ戦略）
-  webpack: (config, { isServer, dev }) => {
-    // エイリアス設定を強化
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@": require("path").resolve(__dirname),
-    };
+  // Bundle analyzer configuration
+  ...(process.env.ANALYZE === 'true' && {
+    webpack: (config, { isServer, dev }) => {
+      // Bundle analyzer
+      if (process.env.ANALYZE === 'true') {
+        const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: isServer ? '../analyze/server.html' : './analyze/client.html',
+            openAnalyzer: false,
+          })
+        );
+      }
 
-    // 本番環境でのみ最適化を適用
-    if (!dev && !isServer) {
-      // contenthashを使用した効率的なキャッシュ戦略
-      // Next.jsのデフォルトのハッシュ戦略を使用（カスタマイズ不要）
+      // エイリアス設定を強化
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "@": require("path").resolve(__dirname),
+      };
 
-      // バンドルサイズ最適化
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          ...config.optimization.splitChunks,
-          cacheGroups: {
-            ...config.optimization.splitChunks.cacheGroups,
-            // 大きなライブラリを別チャンクに分離
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              chunks: "all",
-              minSize: 20000,
-            },
-            common: {
-              name: "common",
-              minChunks: 2,
-              chunks: "all",
-              enforce: true,
+      // 本番環境でのみ最適化を適用
+      if (!dev && !isServer) {
+        // バンドルサイズ最適化
+        config.optimization = {
+          ...config.optimization,
+          splitChunks: {
+            ...config.optimization.splitChunks,
+            cacheGroups: {
+              ...config.optimization.splitChunks.cacheGroups,
+              // 大きなライブラリを別チャンクに分離
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: "vendors",
+                chunks: "all",
+                minSize: 20000,
+              },
+              common: {
+                name: "common",
+                minChunks: 2,
+                chunks: "all",
+                enforce: true,
+              },
             },
           },
-        },
-      };
-    }
+        };
+      }
 
-    return config;
-  },
+      return config;
+    },
+  }),
 };
 
 module.exports = nextConfig;
