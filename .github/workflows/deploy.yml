@@ -160,7 +160,7 @@ jobs:
       run: npm install -g vercel@latest
       timeout-minutes: 5
     
-    - name: Deploy to Vercel
+    - name: Deploy to Vercel (Alternative: Direct API)
       working-directory: ./frontend
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -168,11 +168,6 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       run: |
         echo "🚀 Starting Vercel deployment..."
-        # より詳細なデバッグ情報を出力
-        echo "🔍 Vercel environment check:"
-        echo "  - VERCEL_TOKEN: ${VERCEL_TOKEN:0:10}..."
-        echo "  - VERCEL_ORG_ID: $VERCEL_ORG_ID"
-        echo "  - VERCEL_PROJECT_ID: $VERCEL_PROJECT_ID"
         
         # プロジェクト設定を確認
         if [ -f "vercel.json" ]; then
@@ -182,32 +177,59 @@ jobs:
           echo "⚠️ vercel.json not found, using default settings"
         fi
         
-        # Vercel設定の修正 - 環境変数展開で正しい設定を作成
-        mkdir -p .vercel
-        cat > .vercel/project.json << EOF
-        {
-          "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
-          "orgId": "${{ secrets.VERCEL_ORG_ID }}",
-          "settings": {
-            "framework": "nextjs",
-            "buildCommand": "npm run build", 
-            "outputDirectory": ".next",
-            "installCommand": "npm install",
-            "rootDirectory": null
-          }
-        }
-        EOF
-        echo "📝 Created .vercel/project.json with correct settings"
-        cat .vercel/project.json
-        
         # 現在のディレクトリを確認
         echo "📁 Current directory: $(pwd)"
         echo "📁 Directory contents:"
         ls -la
         
-        # デプロイ実行 - シンプルな形式
-        vercel --prod --yes --token $VERCEL_TOKEN
-        echo "✅ Vercel deployment completed"
+        # 方法1: 従来のCLI方式を試行
+        echo "🔄 Attempting CLI deployment..."
+        mkdir -p .vercel
+        cat > .vercel/project.json << EOF
+        {
+          "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+          "orgId": "${{ secrets.VERCEL_ORG_ID }}"
+        }
+        EOF
+        
+        if vercel --prod --yes --token $VERCEL_TOKEN --debug 2>&1; then
+          echo "✅ CLI deployment succeeded"
+        else
+          echo "❌ CLI deployment failed, trying alternative method..."
+          
+          # 方法2: Vercel API直接呼び出し
+          echo "🔄 Using Vercel API deployment..."
+          
+          # ソースコードをtarで圧縮
+          tar -czf deployment.tar.gz --exclude=node_modules --exclude=.next --exclude=.vercel .
+          
+          # Vercel APIでデプロイメント作成
+          DEPLOY_RESPONSE=$(curl -s -X POST \
+            "https://api.vercel.com/v13/deployments" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "rws",
+              "project": "${{ secrets.VERCEL_PROJECT_ID }}",
+              "target": "production",
+              "gitSource": {
+                "type": "github",
+                "repoId": "${{ github.repository }}",
+                "ref": "${{ github.sha }}"
+              }
+            }')
+          
+          echo "📡 Deployment response: $DEPLOY_RESPONSE"
+          
+          # デプロイメントURLを取得
+          DEPLOY_URL=$(echo $DEPLOY_RESPONSE | jq -r '.url // empty')
+          if [ -n "$DEPLOY_URL" ]; then
+            echo "✅ API deployment succeeded: https://$DEPLOY_URL"
+          else
+            echo "❌ API deployment failed"
+            exit 1
+          fi
+        fi
       timeout-minutes: 15
 
   health-check:
