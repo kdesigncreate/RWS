@@ -3,9 +3,13 @@ export interface DatabasePost {
   id: number;
   title: string;
   content: string;
-  excerpt?: string;
+  excerpt?: string | null;
+  slug?: string | null;
+  featured_image?: string | null;
   status: 'published' | 'draft';
-  published_at?: string;
+  is_published: boolean;
+  is_draft: boolean;
+  published_at?: string | null;
   created_at: string;
   updated_at: string;
   user_id: number;
@@ -22,9 +26,11 @@ export interface FormattedPost {
   title: string;
   content: string;
   excerpt: string;
+  slug?: string | null;
+  featured_image?: string | null;
   status: 'published' | 'draft';
   status_label: string;
-  published_at?: string;
+  published_at?: string | null;
   published_at_formatted: string | null;
   is_published: boolean;
   is_draft: boolean;

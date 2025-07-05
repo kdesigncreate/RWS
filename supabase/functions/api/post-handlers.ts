@@ -24,7 +24,7 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
   // Get author information (simplified)
   const author = await getUserInfo(post.user_id || 1)
   
-  // Correctly calculate status fields from database status
+  // Correctly calculate status fields from database status (override database values)
   const isPublished = post.status === 'published'
   const isDraft = post.status === 'draft'
   
@@ -33,6 +33,8 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
     title: post.title,
     content: post.content,
     excerpt: post.excerpt || post.content.substring(0, 100) + '...',
+    slug: post.slug,
+    featured_image: post.featured_image,
     status: post.status,
     status_label: isPublished ? '公開済み' : '下書き',
     published_at: post.published_at,
