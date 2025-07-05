@@ -70,6 +70,15 @@ Deno.serve(async (req) => {
       return await handleLogin(req)
     }
     
+    if (path.includes('/login') && req.method === 'GET') {
+      return createErrorResponse(
+        'Login endpoint requires POST method',
+        405,
+        undefined,
+        createDebugInfo(req, path)
+      )
+    }
+    
     if (path.includes('/user') && req.method === 'GET') {
       return await handleUserInfo(req)
     }
