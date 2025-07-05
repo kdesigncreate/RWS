@@ -65,6 +65,48 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Fix database status fields endpoint (admin only)
+    if (path.includes('/fix-status-fields') && req.method === 'POST') {
+      const authValidation = await validateAuthToken(req.headers.get('authorization'))
+      if (!authValidation.isValid) {
+        return createErrorResponse('Unauthorized', 401, undefined, undefined, requestOrigin)
+      }
+
+      try {
+        // Update all posts to have correct is_published and is_draft based on status
+        const { data: updatePublished, error: errorPublished } = await supabase
+          .from('posts')
+          .update({ 
+            is_published: true, 
+            is_draft: false 
+          })
+          .eq('status', 'published')
+          .select('id')
+
+        const { data: updateDraft, error: errorDraft } = await supabase
+          .from('posts')
+          .update({ 
+            is_published: false, 
+            is_draft: true 
+          })
+          .eq('status', 'draft')
+          .select('id')
+
+        if (errorPublished || errorDraft) {
+          return createErrorResponse('Database update error', 500, undefined, undefined, requestOrigin)
+        }
+
+        return createSuccessResponse({
+          message: 'Status fields fixed successfully',
+          publishedUpdated: updatePublished?.length || 0,
+          draftUpdated: updateDraft?.length || 0
+        }, undefined, 200, requestOrigin)
+      } catch (error) {
+        console.error('Fix status fields error:', error)
+        return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+      }
+    }
+
     // Authentication endpoints
     if (path.includes('/login') && req.method === 'POST') {
       return await handleLogin(req)
