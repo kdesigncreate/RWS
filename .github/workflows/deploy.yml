@@ -160,14 +160,16 @@ jobs:
       run: npm install -g vercel@latest
       timeout-minutes: 5
     
-    - name: Deploy to Vercel (Alternative: Direct API)
-      working-directory: ./frontend
+    - name: Deploy to Vercel (Root Directory Fix)
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       run: |
-        echo "🚀 Starting Vercel deployment..."
+        echo "🚀 Starting Vercel deployment from root directory..."
+        
+        # フロントエンドディレクトリに移動
+        cd frontend
         
         # プロジェクト設定を確認
         if [ -f "vercel.json" ]; then
@@ -182,17 +184,37 @@ jobs:
         echo "📁 Directory contents:"
         ls -la
         
-        # 方法1: 従来のCLI方式を試行
-        echo "🔄 Attempting CLI deployment..."
+        # Vercel設定を完全にリセット
+        echo "🔄 Resetting Vercel configuration..."
+        rm -rf .vercel
         mkdir -p .vercel
-        cat > .vercel/project.json << EOF
-        {
-          "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
-          "orgId": "${{ secrets.VERCEL_ORG_ID }}"
-        }
-        EOF
         
-        if vercel --prod --yes --token $VERCEL_TOKEN --debug 2>&1; then
+        # プロジェクト設定を明示的に上書き
+        cat > .vercel/project.json << EOF
+{
+  "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+  "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+  "settings": {
+    "framework": "nextjs",
+    "buildCommand": "npm run build",
+    "outputDirectory": ".next",
+    "installCommand": "npm install",
+    "rootDirectory": null,
+    "sourceFilesOutsideRootDirectory": false
+  }
+}
+EOF
+
+        echo "📝 Created project.json:"
+        cat .vercel/project.json
+        
+        # Vercel CLIで強制的にプロジェクト設定を更新
+        echo "🔄 Updating project settings via CLI..."
+        vercel --token $VERCEL_TOKEN --scope ${{ secrets.VERCEL_ORG_ID }} || true
+        
+        # 改めてデプロイ実行
+        echo "🚀 Starting deployment..."
+        if vercel --prod --yes --token $VERCEL_TOKEN --scope ${{ secrets.VERCEL_ORG_ID }} --debug 2>&1; then
           echo "✅ CLI deployment succeeded"
         else
           echo "❌ CLI deployment failed, trying alternative method..."
