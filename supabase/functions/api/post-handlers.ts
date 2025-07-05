@@ -295,7 +295,7 @@ export async function handleCreatePost(request: Request): Promise<Response> {
     return createSuccessResponse({
       data: formattedPost,
       message: 'Post created successfully'
-    }, 201)
+    }, undefined, 201)
   } catch (error) {
     console.error('Create post error:', error)
     return createErrorResponse('Create post processing error', 500)
