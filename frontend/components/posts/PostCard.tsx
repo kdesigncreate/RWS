@@ -74,7 +74,7 @@ export function PostCard({
               </Link>
 
               <p className="text-xs text-gray-600 mt-1.5 line-clamp-2">
-                {post.excerpt || stringUtils.stripHtml(post.content)}
+                {post.excerpt || (post.content ? stringUtils.stripHtml(post.content) : "")}
               </p>
 
               <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
@@ -164,7 +164,7 @@ export function PostCard({
 
         <CardContent className="pb-4">
           <p className="text-gray-700 leading-relaxed line-clamp-3">
-            {post.excerpt || stringUtils.stripHtml(post.content)}
+            {post.excerpt || (post.content ? stringUtils.stripHtml(post.content) : "")}
           </p>
         </CardContent>
 
@@ -248,7 +248,7 @@ export function PostCard({
 
       <CardContent className="pb-4">
         <p className="text-gray-600 leading-relaxed line-clamp-3">
-          {post.excerpt || stringUtils.stripHtml(post.content)}
+          {post.excerpt || (post.content ? stringUtils.stripHtml(post.content) : "")}
         </p>
       </CardContent>
 

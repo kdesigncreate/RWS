@@ -62,7 +62,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         data: {
           title: post.title,
           description:
-            post.excerpt || post.content.replace(/<[^>]*>/g, "").slice(0, 160),
+            post.excerpt || (post.content && typeof post.content === 'string' ? post.content.replace(/<[^>]*>/g, "").slice(0, 160) : ""),
           author: post.author?.name,
           publishedTime: post.published_at,
           modifiedTime: post.updated_at,
@@ -173,7 +173,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                   <div className="prose prose-gray max-w-none">
                     <div
                       className="text-gray-800 leading-relaxed text-sm sm:text-base"
-                      dangerouslySetInnerHTML={{ __html: post.content }}
+                      dangerouslySetInnerHTML={{ __html: post.content || "" }}
                     />
                   </div>
 

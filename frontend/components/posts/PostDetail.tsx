@@ -29,7 +29,7 @@ export function PostDetail({
         await navigator.share({
           title: post.title,
           text:
-            post.excerpt || stringUtils.stripHtml(post.content).slice(0, 160),
+            post.excerpt || (post.content ? stringUtils.stripHtml(post.content).slice(0, 160) : ""),
           url: window.location.href,
         });
       } catch (error) {
@@ -120,7 +120,7 @@ export function PostDetail({
       <div className="prose prose-lg max-w-none mb-8">
         <div
           className="prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900"
-          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          dangerouslySetInnerHTML={{ __html: formatContent(post.content || "") }}
         />
       </div>
 
@@ -154,6 +154,11 @@ export function PostDetail({
  * 本文コンテンツのフォーマット
  */
 function formatContent(content: string): string {
+  // contentが空またはundefinedの場合は空文字列を返す
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
   // 改行をpタグに変換
   const paragraphs = content.split("\n\n").filter((p) => p.trim());
 
@@ -221,7 +226,7 @@ export function PostDetailSimple({
       <div className="prose max-w-none">
         <div
           className="prose-p:text-gray-700 prose-headings:text-gray-900"
-          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          dangerouslySetInnerHTML={{ __html: formatContent(post.content || "") }}
         />
       </div>
     </article>

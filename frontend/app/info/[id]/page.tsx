@@ -23,6 +23,7 @@ export async function generateMetadata({
     return generatePostMetadata({
       post: {
         ...post,
+        content: post.content || "",
         excerpt: post.excerpt || undefined,
         published_at: post.published_at || undefined,
         updated_at: post.updated_at || undefined,

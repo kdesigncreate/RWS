@@ -7,7 +7,7 @@ export type PostStatus = "draft" | "published";
 export interface Post {
   id: number;
   title: string;
-  content: string;
+  content: string | null;
   excerpt: string | null;
   status: PostStatus;
   status_label: string;
@@ -32,7 +32,7 @@ export interface Post {
 // 記事作成・更新用の型
 export interface CreatePostData {
   title: string;
-  content: string;
+  content: string | null;
   excerpt?: string;
   status: PostStatus;
   published_at?: string;
@@ -83,7 +83,7 @@ export interface PostResponse {
 // フォーム用の型
 export interface PostFormData {
   title: string;
-  content: string;
+  content: string | null;
   excerpt: string;
   status: PostStatus;
   published_at?: Date | null;

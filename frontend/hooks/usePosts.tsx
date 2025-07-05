@@ -85,28 +85,25 @@ export function usePosts(): UsePostsReturn {
       setError(null);
 
       try {
-        const response = await api.get<PostsResponse>("/posts", { params });
+        const response = await api.get<{ data: PostsResponse }>("/posts", { params });
+        const postsData = response.data.data; // ← { data, meta, links }
+        const responseData = Array.isArray(postsData.data) ? postsData.data : [];
+        const newPosts =
+          params?.page === 1 || !params?.page
+            ? responseData
+            : [...state.posts, ...responseData];
 
-        setState((prev) => {
-          // ページが1の場合は記事を置き換え、それ以外は追加
-          const responseData = Array.isArray(response.data.data) ? response.data.data : [];
-          const newPosts =
-            params?.page === 1 || !params?.page
-              ? responseData
-              : [...prev.posts, ...responseData];
-
-          return {
-            ...prev,
-            posts: newPosts,
-            pagination: {
-              currentPage: response.data.meta?.current_page || 1,
-              lastPage: response.data.meta?.last_page || 1,
-              total: response.data.meta?.total || 0,
-              perPage: response.data.meta?.per_page || 10,
-            },
-            loading: false,
-          };
-        });
+        setState((prev) => ({
+          ...prev,
+          posts: newPosts,
+          pagination: {
+            currentPage: postsData.meta?.current_page || 1,
+            lastPage: postsData.meta?.last_page || 1,
+            total: postsData.meta?.total || 0,
+            perPage: postsData.meta?.per_page || 10,
+          },
+          loading: false,
+        }));
       } catch (error) {
         const apiError = handleApiError(error);
         setError(apiError.message);
