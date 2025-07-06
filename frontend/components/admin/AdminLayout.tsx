@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { AdminHeader } from "@/components/common/Header";
 import { SimpleFooter } from "@/components/common/Footer";
 import { AdminNav } from "@/components/admin/AdminNav";
@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { withAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -26,10 +27,11 @@ function AdminLayoutComponent({
   error = null,
   className,
 }: AdminLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader title={title} />
+        <AdminHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
         <LoadingSpinner fullScreen text="読み込み中..." className="pt-16" />
       </div>
     );
@@ -38,7 +40,7 @@ function AdminLayoutComponent({
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader title={title} />
+        <AdminHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
         <div className="pt-16">
           <ErrorDisplay
             title="エラーが発生しました"
@@ -53,17 +55,29 @@ function AdminLayoutComponent({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <AdminHeader title={title} />
+      <AdminHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
 
       {/* メインコンテンツ */}
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
         {/* サイドバー */}
         {sidebar && (
-          <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-full">
-            <div className="sticky top-16">
-              <AdminNav />
-            </div>
-          </aside>
+          <>
+            {/* デスクトップサイドバー */}
+            <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-full">
+              <div className="sticky top-16">
+                <AdminNav />
+              </div>
+            </aside>
+
+            {/* モバイルサイドバー */}
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetContent side="left" className="w-64 p-0">
+                <div className="pt-6">
+                  <AdminNav />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </>
         )}
 
         {/* コンテンツエリア */}
@@ -101,7 +115,7 @@ function AdminLayoutWithMobileSidebarComponent({
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader title={title} />
+        <AdminHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
         <LoadingSpinner fullScreen text="読み込み中..." className="pt-16" />
       </div>
     );
@@ -110,7 +124,7 @@ function AdminLayoutWithMobileSidebarComponent({
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminHeader title={title} />
+        <AdminHeader title={title} onMenuClick={() => setSidebarOpen(true)} />
         <div className="pt-16">
           <ErrorDisplay
             title="エラーが発生しました"
