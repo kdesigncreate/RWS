@@ -7,7 +7,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   const isDev = process.env.NODE_ENV === "development";
   const csp = isDev
     ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:* https://*.youtube.com https://*.googlevideo.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com;"
-    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com https://*.vercel.app https://rws-kentas-projects-9fa01438.vercel.app https://rws-ruddy.vercel.app; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
+    : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com https://www.youtube.com https://*.youtube.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://i.ytimg.com https://*.ytimg.com; connect-src 'self' https://*.supabase.co https://vercel.live https://va.vercel-scripts.com https://*.youtube.com https://*.googlevideo.com https://*.googleapis.com https://*.vercel.app https://rws-kentas-projects-9fa01438.vercel.app https://rws-ruddy.vercel.app; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://*.googlevideo.com https://*.youtube.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';";
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
@@ -15,7 +15,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), autoplay=(), fullscreen=*",
+    "camera=(), microphone=(), geolocation=(), autoplay=*, fullscreen=*",
   );
 
   if (!isDev) {
