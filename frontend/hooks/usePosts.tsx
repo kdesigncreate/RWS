@@ -145,6 +145,8 @@ export function usePosts(): UsePostsReturn {
     async (params?: PostSearchParams) => {
       setLoading(true);
       setError(null);
+      
+      console.log('fetchAdminPosts called with params:', params);
 
       try {
         const response = await api.get<{ data: PostsResponse }>("/admin/posts", {
