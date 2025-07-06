@@ -150,11 +150,10 @@ export async function handlePublicPost(postId: number): Promise<Response> {
 
 // 管理者ポスト一覧取得
 export async function handleAdminPosts(request: Request, url: URL): Promise<Response> {
-  const  = request.headers.get('origin') ?? undefined
   
   const authValidation = await validateAuthToken(request.headers.get('authorization'))
   if (!authValidation.isValid) {
-    return createErrorResponse(authValidation.error || 'Unauthorized', 401, undefined, undefined, )
+    return createErrorResponse(authValidation.error || 'Unauthorized', 401)
   }
 
   const page = parseInt(url.searchParams.get('page') || '1')
