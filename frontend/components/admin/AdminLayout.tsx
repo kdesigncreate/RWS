@@ -137,29 +137,28 @@ function AdminLayoutWithMobileSidebarComponent({
         </div>
       )}
 
-      {/* サイドバー */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="sticky top-16 pt-16 lg:pt-0">
-          <AdminNav onItemClick={() => setSidebarOpen(false)} />
-        </div>
-      </aside>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
+        {/* サイドバー */}
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:static lg:inset-0 lg:translate-x-0",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            "hidden lg:block"
+          )}
+        >
+          <div className="sticky top-16 pt-16 lg:pt-0">
+            <AdminNav onItemClick={() => setSidebarOpen(false)} />
+          </div>
+        </aside>
 
-      {/* メインコンテンツ */}
-      <div className="lg:pl-64">
-        <main className={cn("p-6", className)}>
-          <div className="max-w-7xl mx-auto">{children}</div>
+        {/* メインコンテンツ */}
+        <main className={cn("flex-1 p-6 w-full", className)}>
+          <div className="w-full">{children}</div>
         </main>
       </div>
 
       {/* フッター */}
-      <div className="lg:pl-64">
-        <SimpleFooter />
-      </div>
+      <SimpleFooter />
     </div>
   );
 }

@@ -124,14 +124,13 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* 戻るボタン */}
             <div className="mb-6 sm:mb-8">
-              <Button
-                variant="ghost"
-                onClick={() => window.history.back()}
-                className="flex items-center text-gray-600 hover:text-gray-900"
+              <a
+                href="/#news"
+                className="flex items-center text-gray-600 hover:text-gray-900 text-sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 戻る
-              </Button>
+              </a>
             </div>
 
             {/* 記事詳細 */}

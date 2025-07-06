@@ -160,7 +160,18 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
       <div className="space-y-6">
         {/* ページヘッダー */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="mb-2 sm:mb-0">
+            <Button variant="ghost" size="sm" asChild>
+              <Link
+                href="/admin/dashboard"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                ダッシュボードに戻る
+              </Link>
+            </Button>
+          </div>
+          <div className="sm:ml-auto">
             <h1 className="text-2xl font-bold text-gray-900">
               {isCreating ? "新しい記事を作成" : "記事を編集"}
             </h1>
@@ -171,17 +182,6 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
                 最終更新: {new Date(currentPost.updated_at).toLocaleDateString("ja-JP")}
               </div>
             )}
-          </div>
-          <div className="mt-2 sm:mt-0 sm:ml-auto">
-            <Button variant="ghost" size="sm" asChild>
-              <Link
-                href="/admin/dashboard"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                ダッシュボードに戻る
-              </Link>
-            </Button>
           </div>
         </div>
 
