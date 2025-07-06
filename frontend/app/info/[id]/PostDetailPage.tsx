@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Calendar, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 // import { Badge } from '@/components/ui/badge'; // 将来の拡張用にコメントアウト
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -124,13 +124,13 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* 戻るボタン */}
             <div className="mb-6 sm:mb-8">
-              <a
+              <Link
                 href="/#news"
                 className="flex items-center text-gray-600 hover:text-gray-900 text-sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 戻る
-              </a>
+              </Link>
             </div>
 
             {/* 記事詳細 */}
