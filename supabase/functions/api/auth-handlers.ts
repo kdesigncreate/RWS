@@ -1,4 +1,4 @@
-// Authentication Handlers
+// Authentication Handlers using Supabase Auth
 import type { LoginRequest } from './types.ts'
 import { supabase, createErrorResponse, createSuccessResponse, validateAuthToken } from './utils.ts'
 
@@ -41,30 +41,40 @@ export async function handleLogin(request: Request): Promise<Response> {
       )
     }
 
-    // Simplified authentication for Edge Functions
+    // Use Supabase Auth for authentication
     try {
-      // For now, use hardcoded admin credentials since this is a single-user admin system
-      if (email === 'admin@rws.com' && password === 'password123!!') {
-        console.log('Login successful for admin user')
-        
-        // Generate a simple token (in production, use proper JWT)
-        const token = `admin-token-${Date.now()}`
-        
-        return createSuccessResponse({
-          user: { 
-            id: 'admin-user-id', 
-            email: 'admin@rws.com', 
-            name: 'Kamura'
-          },
-          access_token: token
-        })
-      } else {
-        console.log('Invalid credentials provided')
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        console.log('Supabase Auth error:', error.message)
         return createErrorResponse(
-          'Invalid credentials',
+          error.message || 'Invalid credentials',
           401
         )
       }
+
+      if (!data.user || !data.session) {
+        console.log('No user or session returned from Supabase Auth')
+        return createErrorResponse(
+          'Authentication failed',
+          401
+        )
+      }
+
+      console.log('Login successful for user:', data.user.email)
+      
+      return createSuccessResponse({
+        user: { 
+          id: data.user.id, 
+          email: data.user.email!, 
+          name: data.user.user_metadata?.name || 'Admin User'
+        },
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token
+      })
     } catch (authException) {
       console.error('Authentication exception:', authException)
       return createErrorResponse(
@@ -78,6 +88,31 @@ export async function handleLogin(request: Request): Promise<Response> {
       'Login processing error',
       500
     )
+  }
+}
+
+// ログアウトハンドラー
+export async function handleLogout(request: Request): Promise<Response> {
+  try {
+    const authValidation = await validateAuthToken(request.headers.get('authorization'))
+    if (!authValidation.isValid) {
+      return createErrorResponse('Unauthorized', 401)
+    }
+
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || ''
+    
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut()
+    
+    if (error) {
+      console.error('Logout error:', error)
+      return createErrorResponse('Logout failed', 500)
+    }
+
+    return createSuccessResponse({ message: 'Logged out successfully' })
+  } catch (error) {
+    console.error('Logout handler error:', error)
+    return createErrorResponse('Logout processing error', 500)
   }
 }
 

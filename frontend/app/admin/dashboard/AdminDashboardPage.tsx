@@ -84,22 +84,6 @@ export default function AdminDashboardPage() {
     }));
   };
 
-  // 記事の編集（将来の拡張用）
-  // const handleEdit = (postId: number) => {
-  //   router.push(`/admin/dashboard/info/${postId}`);
-  // };
-
-  // 記事の削除（将来の拡張用）
-  // const handleDelete = async (postId: number) => {
-  //   if (confirm('この記事を削除しますか？')) {
-  //     const result = await deletePost(postId);
-  //     if (result.success) {
-  //       // 選択からも除外
-  //       setSelectedPosts(prev => prev.filter(id => id !== postId));
-  //     }
-  //   }
-  // };
-
   // 選択状態の管理
   const handleSelectionChange = (postIds: number[]) => {
     setSelectedPosts(postIds);

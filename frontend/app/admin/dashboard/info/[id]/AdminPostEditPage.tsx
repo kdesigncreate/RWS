@@ -275,23 +275,6 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
           </Card>
         )}
 
-        {/* 開発用情報（開発モードでのみ表示） */}
-        {process.env.NODE_ENV === "development" && (
-          <Card className="border-dashed border-gray-300">
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-500">
-                開発用情報
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs text-gray-500 space-y-1">
-              <p>Mode: {isCreating ? "Create" : "Edit"}</p>
-              <p>Post ID: {postId || "N/A"}</p>
-              <p>Loading: {loading ? "Yes" : "No"}</p>
-              <p>Has Post: {currentPost ? "Yes" : "No"}</p>
-              <p>Error: {error || "None"}</p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </AdminLayout>
   );

@@ -155,7 +155,7 @@ export function validatePostData(data: CreatePostRequest | UpdatePostRequest): V
   }
 }
 
-// 認証ヘルパー
+// 認証ヘルパー - Supabase Auth JWT validation
 export async function validateAuthToken(authHeader: string | null) {
   if (!authHeader || !authHeader.includes('Bearer')) {
     return { isValid: false, user: null, error: 'Unauthorized' }
@@ -164,20 +164,23 @@ export async function validateAuthToken(authHeader: string | null) {
   try {
     const token = authHeader.replace('Bearer ', '')
     
-    // For simplified admin authentication, check if token starts with 'admin-token-'
-    if (token.startsWith('admin-token-')) {
-      return { 
-        isValid: true, 
-        user: { 
-          id: 'admin-user-id', 
-          email: 'admin@rws.com',
-          name: 'Kamura' 
-        }, 
-        error: null 
-      }
+    // Use Supabase to validate JWT token
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+    
+    if (error || !user) {
+      console.log('Token validation failed:', error?.message)
+      return { isValid: false, user: null, error: 'Invalid token' }
     }
     
-    return { isValid: false, user: null, error: 'Invalid token' }
+    return { 
+      isValid: true, 
+      user: { 
+        id: user.id, 
+        email: user.email!,
+        name: user.user_metadata?.name || 'Admin User' 
+      }, 
+      error: null 
+    }
   } catch (error) {
     console.error('Token validation error:', error)
     return { isValid: false, user: null, error: 'Token validation failed' }

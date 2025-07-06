@@ -73,6 +73,7 @@ export const metadata: Metadata = {
 };
 
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { SkipToMainContent } from "@/components/common/SkipLink";
 
 export default function RootLayout({
   children,
@@ -83,13 +84,19 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="color-scheme" content="light dark" />
       </head>
       <body
         className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}
       >
+        <SkipToMainContent />
         <ErrorBoundary>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <div id="root" role="application" aria-label="R.W.Sドリブル塾">
+                {children}
+              </div>
+            </AuthProvider>
           </QueryProvider>
         </ErrorBoundary>
       </body>

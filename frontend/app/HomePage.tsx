@@ -305,7 +305,7 @@ export default function HomePage() {
           <section
             id="posts"
             className="py-12 sm:py-16 lg:py-20"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -354,7 +354,7 @@ export default function HomePage() {
           <section
             id="about"
             className="py-12 sm:py-16 lg:py-20 bg-gray-50"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -429,7 +429,7 @@ export default function HomePage() {
           <section
             id="staff"
             className="py-12 sm:py-16 lg:py-20"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -516,7 +516,7 @@ export default function HomePage() {
           <section
             id="price"
             className="py-12 sm:py-16 lg:py-20 bg-gray-50"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -671,7 +671,7 @@ export default function HomePage() {
           <section
             id="schoolList"
             className="py-12 sm:py-16 lg:py-20"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -748,7 +748,7 @@ export default function HomePage() {
           <section
             id="videos"
             className="py-12 sm:py-16 lg:py-20 bg-white"
-            style={{ scrollMarginTop: "5rem" }}
+            style={{ scrollMarginTop: "4rem" }}
           >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-12 lg:mb-16">

@@ -1,17 +1,13 @@
 // Supabase Edge Functions Main Handler
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
-// Import handlers and utilities
-import { handleLogin, handleUserInfo } from './auth-handlers.ts'
-import { 
-  handlePublicPosts, 
-  handlePublicPost, 
-  handleAdminPosts, 
-  handleAdminPost,
-  handleCreatePost,
-  handleUpdatePost,
-  handleDeletePost
-} from './post-handlers.ts'
+// Import modular components
+import { createCorsMiddleware, handlePreflightRequest } from './middleware/cors.ts'
+import { createAuthMiddleware } from './middleware/auth.ts'
+import { createRateLimitMiddleware } from './middleware/rateLimit.ts'
+import { AuthRoutes } from './routes/auth.ts'
+import { PostRoutes } from './routes/posts.ts'
+import { AdminRoutes } from './routes/admin.ts'
 import { 
   corsHeaders, 
   supabase, 
@@ -23,13 +19,53 @@ import {
   validateAuthToken
 } from './utils.ts'
 
+// Initialize middleware and routes
+const corsMiddleware = createCorsMiddleware({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+})
+
+const authMiddleware = createAuthMiddleware(
+  Deno.env.get('SUPABASE_URL') || '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+)
+
+const rateLimitMiddleware = createRateLimitMiddleware({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 100 // 100 requests per window
+})
+
+// Initialize route handlers
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+
+const authRoutes = new AuthRoutes(supabaseUrl, supabaseServiceKey)
+const postRoutes = new PostRoutes(supabaseUrl, supabaseServiceKey)
+const adminRoutes = new AdminRoutes(supabaseUrl, supabaseServiceKey)
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests with dynamic origin
-  const requestOrigin = req.headers.get('origin') ?? undefined
-  const dynamicCorsHeaders = requestOrigin ? createCorsHeaders(requestOrigin) : corsHeaders
+  // CORS処理
+  const corsHeaders = corsMiddleware(req)
   
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: dynamicCorsHeaders })
+    return handlePreflightRequest(corsHeaders)
+  }
+
+  // Rate limiting
+  const rateLimitResult = rateLimitMiddleware(req)
+  if (!rateLimitResult.allowed) {
+    return new Response(
+      JSON.stringify({ message: rateLimitResult.error }),
+      { 
+        status: 429,
+        headers: { 
+          ...Object.fromEntries(corsHeaders.entries()),
+          ...Object.fromEntries(rateLimitResult.headers.entries()),
+          'Content-Type': 'application/json'
+        }
+      }
+    )
   }
 
   try {
@@ -110,20 +146,36 @@ Deno.serve(async (req) => {
 
     // Authentication endpoints
     if (path.includes('/login') && req.method === 'POST') {
-      return await handleLogin(req)
+      const response = await authRoutes.login(req)
+      const responseHeaders = new Headers(response.headers)
+      corsHeaders.forEach((value, key) => responseHeaders.set(key, value))
+      rateLimitResult.headers.forEach((value, key) => responseHeaders.set(key, value))
+      return new Response(response.body, { 
+        status: response.status, 
+        headers: responseHeaders 
+      })
     }
     
-    if (path.includes('/login') && req.method === 'GET') {
-      return createErrorResponse(
-        'Login endpoint requires POST method',
-        405,
-        undefined,
-        createDebugInfo(req, path)
-      )
+    if (path.includes('/logout') && req.method === 'POST') {
+      const authContext = await authMiddleware(req, false)
+      const response = await authRoutes.logout(req, authContext)
+      const responseHeaders = new Headers(response.headers)
+      corsHeaders.forEach((value, key) => responseHeaders.set(key, value))
+      return new Response(response.body, { 
+        status: response.status, 
+        headers: responseHeaders 
+      })
     }
     
     if (path.includes('/user') && req.method === 'GET') {
-      return await handleUserInfo(req)
+      const authContext = await authMiddleware(req, true)
+      const response = await authRoutes.getUser(req, authContext)
+      const responseHeaders = new Headers(response.headers)
+      corsHeaders.forEach((value, key) => responseHeaders.set(key, value))
+      return new Response(response.body, { 
+        status: response.status, 
+        headers: responseHeaders 
+      })
     }
 
     // Post endpoints - Admin (require authentication)

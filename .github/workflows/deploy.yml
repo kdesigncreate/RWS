@@ -109,7 +109,6 @@ jobs:
           echo "Warning: ALLOWED_ORIGINS is empty"
         fi
 
-    # Note: Laravel migrations removed - using Supabase Functions with direct DB operations
     - name: Verify Supabase Functions Deployment
       run: |
         echo "✅ Supabase Functions deployment verification completed"

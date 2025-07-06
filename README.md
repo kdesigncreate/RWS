@@ -9,16 +9,18 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Functions-green?style=flat-square&logo=supabase)](https://supabase.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Deno](https://img.shields.io/badge/Deno-Edge-black?style=flat-square&logo=deno)](https://deno.land/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=flat-square&logo=vercel)](https://vercel.com/)
+
+**🌐 Live Site: [https://rws-ruddy.vercel.app](https://rws-ruddy.vercel.app)**
 
 </div>
 
 ## 🚀 Project Overview
 
-R.W.S Blog System is a modern, serverless blog platform built with **Supabase Functions-centric architecture**. This design provides global edge deployment, automatic scaling, and zero-maintenance infrastructure with complete type safety from database to UI.
+R.W.S Blog System は現代的なサーバーレスブログプラットフォームで、**Supabase Functions 中心のアーキテクチャ**で構築されています。グローバルエッジデプロイメント、自動スケーリング、メンテナンスフリーのインフラストラクチャを提供し、データベースからUIまで完全な型安全性を実現しています。
 
-### 🏗️ Architecture
+### 🏗️ アーキテクチャ
 
 ```mermaid
 graph TB
@@ -27,7 +29,6 @@ graph TB
     Functions --> DB[(Supabase PostgreSQL)]
     Functions --> Auth[Supabase Auth + JWT]
     Client --> CDN[Vercel Global CDN]
-    Functions --> Storage[Supabase Storage]
     
     subgraph "Edge Runtime"
         Functions
@@ -41,565 +42,538 @@ graph TB
     end
 ```
 
-**Frontend**: Next.js 15 with TypeScript, App Router, and shadcn/ui  
-**Backend**: Supabase Functions (Deno/TypeScript) with Edge Runtime  
-**Database**: Supabase PostgreSQL with real-time capabilities  
-**Authentication**: Supabase Auth with JWT tokens  
-**Deployment**: Vercel (Frontend) + Supabase (Backend & Database)  
-**Architecture**: Serverless, edge-deployed, globally distributed
+**フロントエンド**: Next.js 15 + TypeScript + App Router + shadcn/ui  
+**バックエンド**: Supabase Functions (Deno/TypeScript) + Edge Runtime  
+**データベース**: Supabase PostgreSQL + リアルタイム機能  
+**認証**: Supabase Auth + JWT トークン  
+**デプロイ**: Vercel (フロントエンド) + Supabase (バックエンド・DB)  
+**アーキテクチャ**: サーバーレス、エッジデプロイ、グローバル分散
 
-## ✨ Key Features
+## ✨ 主要機能
 
-### 🔐 **Enterprise-Grade Security**
-- Supabase Auth with JWT token validation
-- Content Security Policy (CSP) with dynamic configuration
-- Input sanitization and XSS prevention via Zod schemas
-- Rate limiting with IP-based protection
-- SQL injection prevention via Supabase client
-- Edge-level security with Vercel middleware
+### 🔐 **エンタープライズグレードセキュリティ**
+- Supabase Auth による JWT トークン認証
+- 動的設定対応 Content Security Policy (CSP)
+- Zod スキーマによる入力サニタイゼーション・XSS防止
+- IP ベースレート制限
+- Supabase クライアントによる SQL インジェクション防止
+- Row Level Security (RLS) によるデータベースレベルセキュリティ
+- Vercel ミドルウェアによるエッジレベルセキュリティ
 
-### 📝 **Content Management**
-- **Public Interface**: Homepage, post listings, individual post pages, search
-- **Admin Dashboard**: Full CRUD operations for posts
-- **Rich Editor**: Markdown support with live preview
-- **Draft System**: Save and publish workflow
-- **Search & Filter**: Multi-field search across title, content, and excerpt
+### 📝 **コンテンツ管理**
+- **パブリックインターフェース**: ホームページ、記事一覧、個別記事ページ、検索機能
+- **管理ダッシュボード**: 記事の完全CRUD操作
+- **リッチエディタ**: Markdown サポート + ライブプレビュー
+- **下書きシステム**: 保存・公開ワークフロー
+- **検索・フィルタ**: タイトル、本文、要約での複合検索
+- **YouTube 統合**: 自動プレイ対応 iframe 埋め込み
 
-### 🎨 **Modern UI/UX**
-- Responsive design with Tailwind CSS
-- Dark/Light mode support
-- Server-side rendering for SEO optimization
-- Optimized image loading with Next.js Image
-- Component-based architecture with shadcn/ui
+### 🎨 **モダン UI/UX**
+- Tailwind CSS による完全レスポンシブデザイン
+- 🖥️ デスクトップ・📱 モバイル最適化済み管理画面
+- Server Components による SEO 最適化
+- Next.js Image による画像最適化
+- shadcn/ui コンポーネントベースアーキテクチャ
+- アクセシビリティ対応（label-input関連付け等）
 
-### 🚀 **Performance & Scalability**
-- Next.js App Router with Server Components
-- Database query optimization
-- Caching strategies for improved performance
-- CDN integration for static assets
-- Edge function deployment support
+### 🚀 **パフォーマンス・スケーラビリティ**
+- Next.js App Router + Server Components
+- 動的サイトマップ生成 (ISR対応)
+- データベースクエリ最適化
+- キャッシュ戦略による性能向上
+- エッジファンクションデプロイ対応
+- Core Web Vitals 最適化
 
-## 📋 Prerequisites
+## 📋 前提条件
 
-- **Node.js**: v20.0.0 or higher
-- **PHP**: v8.2 or higher
-- **Composer**: Latest version
-- **SQLite**: v3.8 or higher (or PostgreSQL for production)
-- **Git**: Latest version
+- **Node.js**: v20.0.0 以上
+- **Supabase CLI**: 最新版
+- **Git**: 最新版
 
-## 🛠️ Installation & Setup
+## 🛠️ インストール・セットアップ
 
-### 1. Clone the Repository
+### 1. リポジトリクローン
 
 ```bash
 git clone https://github.com/your-username/RWS.git
 cd RWS
 ```
 
-### 2. Backend Setup (Laravel)
+### 2. フロントエンドセットアップ (Next.js)
 
 ```bash
-cd backend
+cd frontend
 
-# Install PHP dependencies
-composer install
-
-# Copy environment file
-cp .env.example .env
-
-# Generate application key
-php artisan key:generate
-
-# Create SQLite database
-touch database/database.sqlite
-
-# Run database migrations
-php artisan migrate
-
-# Seed the database (optional)
-php artisan db:seed
-
-# Install Node.js dependencies for development
-npm install
-```
-
-### 3. Frontend Setup (Next.js)
-
-```bash
-cd ../frontend
-
-# Install dependencies
+# 依存関係インストール
 npm install
 
-# Copy environment file
+# 環境変数ファイルコピー
 cp .env.example .env.local
 
-# Configure environment variables
-# Edit .env.local with your backend API URL
+# 環境変数設定
+# .env.local を編集してSupabase設定を追加
 ```
 
-### 4. Environment Configuration
+### 3. バックエンドセットアップ (Supabase Functions)
 
-#### Backend (.env)
-```env
-APP_NAME="R.W.S Blog"
-APP_ENV=local
-APP_KEY=base64:your-generated-key
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=sqlite
-DB_DATABASE=/absolute/path/to/database.sqlite
-
-SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000
-SESSION_DOMAIN=localhost
-```
-
-#### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NEXT_PUBLIC_APP_NAME="R.W.S Blog"
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-## 🚀 Development Workflow
-
-### Start Development Servers
-
-#### Option 1: All Services (Recommended)
 ```bash
-# From backend directory
-composer dev
-# This starts: Laravel server, queue worker, logs, and Vite
+cd ../supabase
 
-# From frontend directory (separate terminal)
-npm run dev
-```
-
-#### Option 2: Individual Services
-```bash
-# Backend only
-cd backend
-php artisan serve
-
-# Frontend only
-cd frontend
-npm run dev
-```
-
-### 📝 Development URLs
-
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000/api
-- **Admin Dashboard**: http://localhost:3000/admin
-
-### 🧪 Testing
-
-#### Backend Tests
-```bash
-cd backend
-php artisan test
-# or
-composer test
-```
-
-#### Frontend Tests
-```bash
-cd frontend
-
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Coverage report
-npm run test:coverage
-```
-
-### 🔍 Code Quality
-
-#### Backend
-```bash
-cd backend
-
-# Format code
-./vendor/bin/pint
-
-# Static analysis (if installed)
-./vendor/bin/phpstan analyse
-```
-
-#### Frontend
-```bash
-cd frontend
-
-# Linting
-npm run lint
-
-# Type checking
-npm run type-check
-
-# Fix linting issues
-npm run lint:fix
-```
-
-## 📊 API Documentation
-
-### Authentication Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/login` | Admin login | No |
-| POST | `/api/logout` | Admin logout | Yes |
-| GET | `/api/user` | Get current user | Yes |
-| GET | `/api/auth/check` | Check auth status | Yes |
-
-### Public Post Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/posts` | List published posts | No |
-| GET | `/api/posts/{id}` | Get post details | No |
-
-### Admin Post Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/admin/posts` | List all posts | Yes |
-| POST | `/api/admin/posts` | Create new post | Yes |
-| GET | `/api/admin/posts/{id}` | Get post for editing | Yes |
-| PUT | `/api/admin/posts/{id}` | Update post | Yes |
-| DELETE | `/api/admin/posts/{id}` | Delete post | Yes |
-
-### Utility Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/health` | Health check | No |
-| GET | `/api/cors-test` | CORS test | No |
-| GET | `/api/debug/routes` | Debug routes (local) | No |
-
-### 📋 Request/Response Examples
-
-#### Login Request
-```json
-POST /api/login
-{
-  "email": "admin@example.com",
-  "password": "password"
-}
-```
-
-#### Login Response
-```json
-{
-  "user": {
-    "id": 1,
-    "name": "Admin User",
-    "email": "admin@example.com",
-    "role": "admin"
-  },
-  "token": "your-jwt-token"
-}
-```
-
-#### Create Post Request
-```json
-POST /api/admin/posts
-Authorization: Bearer your-jwt-token
-{
-  "title": "My New Post",
-  "content": "Post content here...",
-  "excerpt": "Short description",
-  "status": "published"
-}
-```
-
-## 🌐 Deployment
-
-### Production Deployment Options
-
-#### Option 1: Vercel + Supabase (Recommended)
-
-1. **Prepare Supabase**
-```bash
-# Initialize Supabase project
+# Supabase プロジェクト初期化
 npx supabase init
 
-# Deploy functions
-npx supabase functions deploy api
+# ローカル Supabase 開始
+npx supabase start
 
-# Set environment variables
+# Functions をローカルでサーブ
+npx supabase functions serve
+```
+
+### 4. 環境変数設定
+
+#### フロントエンド (.env.local)
+```env
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://rws-ruddy.vercel.app
+
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=/api
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Service Role Key (for server-side operations)
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+```
+
+#### バックエンド (Supabase Secrets)
+```bash
+# JWT Secret設定
 npx supabase secrets set JWT_SECRET="your-jwt-secret"
 ```
 
-2. **Deploy Frontend to Vercel**
+## 🚀 開発ワークフロー
+
+### 開発サーバー起動
+
 ```bash
-# Install Vercel CLI
+# フロントエンド (ターミナル1)
+cd frontend
+npm run dev
+
+# バックエンド (ターミナル2)
+cd supabase
+npx supabase start
+npx supabase functions serve
+```
+
+### 📝 開発URL
+
+- **フロントエンド**: http://localhost:3000
+- **バックエンド API**: http://localhost:54321/functions/v1/api
+- **管理ダッシュボード**: http://localhost:3000/admin/dashboard
+- **Supabase Studio**: http://localhost:54323
+
+### 🧪 テスト
+
+#### フロントエンドテスト
+```bash
+cd frontend
+
+# ユニットテスト
+npm run test
+
+# E2Eテスト
+npm run test:e2e
+
+# カバレッジレポート
+npm run test:coverage
+
+# E2Eテスト（ヘッド付き）
+npm run test:e2e:headed
+```
+
+#### バックエンドテスト
+```bash
+cd supabase
+
+# Functions のローカルテスト
+npx supabase functions serve
+
+# API ヘルスチェック
+curl http://localhost:54321/functions/v1/api/health
+```
+
+### 🔍 コード品質
+
+#### フロントエンド
+```bash
+cd frontend
+
+# リンティング
+npm run lint
+
+# 型チェック
+npm run type-check
+
+# リンティング問題修正
+npm run lint:fix
+
+# ビルド
+npm run build
+```
+
+#### バックエンド
+```bash
+cd supabase
+
+# データベースリンティング
+npx supabase db lint
+
+# マイグレーション適用
+npx supabase db push
+```
+
+## 📊 API ドキュメント
+
+### 認証エンドポイント
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/login` | 管理者ログイン | No |
+| POST | `/api/logout` | 管理者ログアウト | Yes |
+| GET | `/api/user` | 現在のユーザー取得 | Yes |
+
+### パブリック記事エンドポイント
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/posts` | 公開記事一覧取得 | No |
+| GET | `/api/posts/{id}` | 記事詳細取得 | No |
+
+### 管理記事エンドポイント
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/admin/posts` | 全記事一覧取得 | Yes |
+| POST | `/api/admin/posts` | 新規記事作成 | Yes |
+| GET | `/api/admin/posts/{id}` | 編集用記事取得 | Yes |
+| PUT | `/api/admin/posts/{id}` | 記事更新 | Yes |
+| DELETE | `/api/admin/posts/{id}` | 記事削除 | Yes |
+
+### ユーティリティエンドポイント
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/health` | ヘルスチェック | No |
+
+### 📋 リクエスト・レスポンス例
+
+#### ログインリクエスト
+```json
+POST /api/login
+{
+  "email": "admin@rws.com",
+  "password": "password123!!"
+}
+```
+
+#### ログインレスポンス
+```json
+{
+  "user": {
+    "id": "admin-user-id",
+    "name": "Kamura",
+    "email": "admin@rws.com"
+  },
+  "access_token": "admin-token-xxx"
+}
+```
+
+## 🌐 デプロイメント
+
+### 本番デプロイ手順
+
+#### 1. Supabase 設定
+
+```bash
+# Supabase プロジェクト作成・設定
+npx supabase login
+npx supabase init
+npx supabase link --project-ref your-project-ref
+
+# Functions デプロイ
+npx supabase functions deploy api
+
+# Secrets 設定
+npx supabase secrets set JWT_SECRET="your-production-jwt-secret"
+```
+
+#### 2. Vercel デプロイ
+
+```bash
+# Vercel CLI インストール
 npm i -g vercel
 
-# Deploy
+# フロントエンドデプロイ
 cd frontend
 vercel --prod
 ```
 
-#### Option 2: Traditional Hosting
+#### 3. 自動デプロイスクリプト使用
 
-**Backend**: Deploy to any PHP hosting provider (DigitalOcean, AWS, etc.)
-**Frontend**: Deploy to Vercel, Netlify, or any static hosting
-
-#### Option 3: Automated Deployment
-
-Use the provided deployment script:
 ```bash
-# Set environment variables
+# 環境変数設定
 export SUPABASE_URL="your-supabase-url"
 export SUPABASE_ANON_KEY="your-anon-key"
 export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 export JWT_SECRET="your-jwt-secret"
 
-# Run deployment
-./scripts/deploy.sh all
+# デプロイ実行
+./scripts/deploy.sh
 ```
 
-### 🔧 Production Configuration
+### 🔧 本番環境設定
 
-#### Environment Variables (Production)
+#### 環境変数 (本番)
 ```env
-# Backend
-APP_ENV=production
-APP_DEBUG=false
-DB_CONNECTION=pgsql
-SANCTUM_STATEFUL_DOMAINS=yourdomain.com
-
-# Frontend
-NEXT_PUBLIC_API_URL=https://your-api-domain.com/api
-NEXT_PUBLIC_APP_NAME="R.W.S Blog"
+# Vercel Environment Variables
+NEXT_PUBLIC_SITE_URL=https://rws-ruddy.vercel.app
+NEXT_PUBLIC_API_BASE_URL=/api
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
 ```
 
-#### Security Checklist
-- [ ] Update default admin credentials
-- [ ] Configure CORS for production domains
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure rate limiting
-- [ ] Set up monitoring and logging
-- [ ] Enable database backups
+#### セキュリティチェックリスト
+- [x] 管理者認証情報設定済み（admin@rws.com）
+- [x] CORS 本番ドメイン設定済み
+- [x] SSL/TLS 証明書設定済み（Vercel自動）
+- [x] レート制限設定済み
+- [x] Row Level Security (RLS) 有効化済み
+- [x] セキュリティヘッダー設定済み
+- [x] Content Security Policy 設定済み
 
-## 🏗️ Project Structure
+## 🏗️ プロジェクト構造
 
 ```
 RWS/
-├── 📁 backend/                 # Laravel API Backend
-│   ├── 📁 app/
-│   │   ├── 📁 Http/
-│   │   │   ├── 📁 Controllers/  # API Controllers
-│   │   │   ├── 📁 Middleware/   # Custom Middleware
-│   │   │   ├── 📁 Requests/     # Form Validation
-│   │   │   └── 📁 Resources/    # API Resources
-│   │   └── 📁 Models/          # Eloquent Models
-│   ├── 📁 database/
-│   │   ├── 📁 migrations/      # Database Migrations
-│   │   └── 📁 seeders/         # Database Seeders
-│   ├── 📁 routes/
-│   │   └── 📄 api.php          # API Routes
-│   └── 📁 tests/               # Backend Tests
-├── 📁 frontend/                # Next.js Frontend
+├── 📁 frontend/                # Next.js フロントエンド
 │   ├── 📁 app/                 # App Router
-│   │   ├── 📁 admin/           # Admin Dashboard
-│   │   ├── 📁 info/            # Post Detail Pages
-│   │   └── 📄 page.tsx         # Homepage
-│   ├── 📁 components/          # React Components
-│   │   ├── 📁 admin/           # Admin Components
-│   │   ├── 📁 common/          # Shared Components
-│   │   ├── 📁 posts/           # Post Components
-│   │   └── 📁 ui/              # shadcn/ui Components
-│   ├── 📁 hooks/               # Custom React Hooks
-│   ├── 📁 lib/                 # Utilities & API Client
-│   ├── 📁 types/               # TypeScript Definitions
-│   └── 📁 tests/               # Frontend Tests
-├── 📁 supabase/                # Supabase Configuration
+│   │   ├── 📁 admin/           # 管理ダッシュボード
+│   │   ├── 📁 info/            # 記事詳細ページ
+│   │   ├── 📁 news/            # ニュース一覧ページ
+│   │   ├── 📄 sitemap.ts       # 動的サイトマップ
+│   │   ├── 📄 robots.ts        # robots.txt
+│   │   └── 📄 page.tsx         # ホームページ
+│   ├── 📁 components/          # React コンポーネント
+│   │   ├── 📁 admin/           # 管理画面コンポーネント
+│   │   ├── 📁 common/          # 共通コンポーネント
+│   │   ├── 📁 posts/           # 記事コンポーネント
+│   │   └── 📁 ui/              # shadcn/ui コンポーネント
+│   ├── 📁 hooks/               # カスタム React フック
+│   ├── 📁 lib/                 # ユーティリティ・API クライアント
+│   ├── 📁 types/               # TypeScript 型定義
+│   ├── 📁 tests/               # フロントエンドテスト
+│   ├── 📄 middleware.ts        # Vercel ミドルウェア
+│   └── 📄 vercel.json          # Vercel 設定
+├── 📁 supabase/                # Supabase 設定
 │   ├── 📁 functions/           # Edge Functions
-│   └── 📄 config.toml          # Supabase Config
-└── 📁 scripts/                 # Deployment Scripts
+│   │   └── 📁 api/             # メイン API ハンドラー
+│   ├── 📁 migrations/          # データベースマイグレーション
+│   └── 📄 config.toml          # Supabase 設定
+└── 📁 scripts/                 # デプロイ・ユーティリティスクリプト
 ```
 
-## 📚 Technology Stack
+## 📚 技術スタック
 
-### Frontend Technologies
-- **Next.js 15**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Modern UI component library
-- **Zod**: Runtime type validation
-- **React Hook Form**: Form handling
-- **Axios**: HTTP client
+### フロントエンド技術
+- **Next.js 15**: App Router による React フレームワーク
+- **TypeScript**: 型安全な開発
+- **Tailwind CSS**: ユーティリティファースト CSS フレームワーク
+- **shadcn/ui**: モダン UI コンポーネントライブラリ
+- **Zod**: ランタイム型バリデーション
+- **React Hook Form**: フォーム処理
+- **Axios**: HTTP クライアント
 
-### Backend Technologies
-- **Laravel 12**: Modern PHP framework
-- **PHP 8.2**: Latest PHP features
-- **Sanctum**: SPA authentication
-- **Eloquent ORM**: Database abstraction
-- **SQLite/PostgreSQL**: Database options
-- **PHPUnit**: Testing framework
+### バックエンド技術
+- **Supabase Functions**: Deno/TypeScript エッジファンクション
+- **Supabase Auth**: JWT トークン認証
+- **Supabase Database**: PostgreSQL + リアルタイム機能
+- **Row Level Security**: データベースレベルセキュリティ
 
-### DevOps & Tools
-- **Vercel**: Frontend deployment
+### DevOps・ツール
+- **Vercel**: フロントエンドデプロイメント
 - **Supabase**: Backend as a Service
-- **GitHub Actions**: CI/CD pipeline
-- **ESLint/Prettier**: Code quality
-- **Playwright**: E2E testing
-- **Jest**: Unit testing
+- **GitHub Actions**: CI/CD パイプライン
+- **ESLint/Prettier**: コード品質
+- **Playwright**: E2E テスト
+- **Jest**: ユニットテスト
 
-## 🔒 Security Features
+## 🔒 セキュリティ機能
 
-### Authentication & Authorization
-- Laravel Sanctum with JWT tokens
-- CSRF protection for state-changing operations
-- Role-based access control
-- Secure session management
+### 認証・認可
+- Supabase Auth による JWT トークン
+- Row Level Security (RLS) ポリシー
+- CSRF 保護
+- セキュアセッション管理
 
-### Input Validation & Sanitization
-- Laravel Form Requests for validation
-- Zod schemas for frontend validation
-- XSS protection through proper escaping
-- SQL injection prevention via ORM
+### 入力バリデーション・サニタイゼーション
+- Zod スキーマによるバリデーション
+- XSS 防止（適切なエスケープ処理）
+- SQL インジェクション防止（Supabase クライアント）
+- レート制限実装
 
-### Security Headers & Policies
+### セキュリティヘッダー・ポリシー
 - Content Security Policy (CSP)
-- HTTP security headers
-- CORS configuration
-- Rate limiting implementation
+- HTTP セキュリティヘッダー
+- CORS 設定
+- Permissions Policy（YouTube autoplay対応）
 
-## 🚨 Troubleshooting
+## 🚨 トラブルシューティング
 
-### Common Development Issues
+### よくある開発時の問題
 
-#### 1. CORS Errors
+#### 1. CORS エラー
 ```bash
-# Check CORS configuration in backend/config/cors.php
-# Ensure frontend URL is in SANCTUM_STATEFUL_DOMAINS
+# Vercel ミドルウェアの CORS 設定を確認
+# frontend/middleware.ts の allowedOrigins を確認
 ```
 
-#### 2. Authentication Issues
+#### 2. 認証問題
 ```bash
-# Clear Laravel cache
-php artisan config:clear
-php artisan cache:clear
+# 環境変数確認
+echo $NEXT_PUBLIC_SUPABASE_URL
+echo $NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-# Check Sanctum configuration
-php artisan sanctum:install
+# Supabase プロジェクト接続確認
+npx supabase status
 ```
 
-#### 3. Database Connection Errors
+#### 3. データベース接続エラー
 ```bash
-# Verify database file exists
-touch database/database.sqlite
+# ローカル Supabase 起動
+npx supabase start
 
-# Run migrations
-php artisan migrate:fresh --seed
+# RLS ポリシー確認
+npx supabase db lint
 ```
 
-#### 4. Frontend Build Errors
+#### 4. フロントエンドビルドエラー
 ```bash
-# Clear Next.js cache
+# Next.js キャッシュクリア
 rm -rf .next
 
-# Reinstall dependencies
+# 依存関係再インストール
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-### Performance Optimization
+### パフォーマンス最適化
 
-#### Backend Optimization
+#### フロントエンド最適化
 ```bash
-# Cache configuration
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# バンドルサイズ分析
+npm run build
 
-# Database optimization
-php artisan migrate --force
-php artisan db:seed --force
-```
-
-#### Frontend Optimization
-```bash
-# Analyze bundle size
-npm run analyze
-
-# Type checking without emit
+# 型チェック
 npm run type-check
+
+# 未使用インポート削除
+npm run lint:fix
 ```
 
-## 📈 Monitoring & Analytics
+#### バックエンド最適化
+```bash
+# RLS ポリシー最適化
+./scripts/optimize-rls.sh
 
-### Health Checks
-- API health endpoint: `/api/health`
-- Database connection monitoring
-- Service availability tracking
+# データベース最適化
+npx supabase db push
+```
 
-### Performance Metrics
-- API response times
-- Database query performance
-- Frontend rendering metrics
-- Core Web Vitals tracking
+## 📈 監視・アナリティクス
 
-## 🤝 Contributing
+### ヘルスチェック
+- API ヘルスエンドポイント: `/api/health`
+- データベース接続監視
+- サービス可用性追跡
 
-### Development Guidelines
-1. Follow the existing code style and patterns
-2. Write comprehensive tests for new features
-3. Update documentation for API changes
-4. Use conventional commit messages
-5. Create feature branches for new development
+### パフォーマンス指標
+- API レスポンス時間
+- データベースクエリパフォーマンス
+- フロントエンドレンダリング指標
+- Core Web Vitals 追跡
 
-### Code Quality Standards
-- **Backend**: Laravel Pint for code formatting
-- **Frontend**: ESLint + Prettier configuration
-- **Testing**: Minimum 80% code coverage
-- **TypeScript**: Strict mode enabled
+## 📊 本番環境ステータス
 
-### Pull Request Process
-1. Create feature branch from `main`
-2. Implement changes with tests
-3. Ensure all checks pass
-4. Update relevant documentation
-5. Submit PR with detailed description
+### ✅ 実装済み機能
+- 完全レスポンシブデザイン（デスクトップ・モバイル）
+- 管理ダッシュボード（記事CRUD操作）
+- YouTube 動画埋め込み対応
+- 動的サイトマップ生成
+- SEO 最適化
+- セキュリティヘッダー設定
+- レート制限実装
+- Row Level Security (RLS) 有効化
 
-## 📞 Support & Contact
+### ⚠️ 最適化推奨事項
+- RLS ポリシーパフォーマンス最適化
+- 未使用インポート削除（94件のESLintエラー）
+- 本番ログ監視サービス統合
+- Google Analytics 設定
 
-### Development Team
-- **Lead Developer**: [Your Name]
-- **Frontend**: Next.js + TypeScript
-- **Backend**: Laravel + PHP
+### 🔧 管理者情報
+- **管理者メール**: admin@rws.com
+- **認証方式**: カスタム JWT トークン
+- **管理ダッシュボード**: https://rws-ruddy.vercel.app/admin/dashboard
+
+## 🤝 コントリビューション
+
+### 開発ガイドライン
+1. 既存のコードスタイル・パターンに従う
+2. 新機能には包括的なテストを記述
+3. API 変更時はドキュメントを更新
+4. 従来のコミットメッセージを使用
+5. 新規開発は機能ブランチで実施
+
+### コード品質基準
+- **フロントエンド**: ESLint + Prettier 設定
+- **バックエンド**: TypeScript strict モード
+- **テスト**: 最低80%のコードカバレッジ
+- **TypeScript**: strict モード有効化
+
+## 📞 サポート・連絡先
+
+### 開発チーム
+- **作成者**: Kamura
+- **フロントエンド**: Next.js + TypeScript
+- **バックエンド**: Supabase Functions + PostgreSQL
 - **DevOps**: Vercel + Supabase
 
-### Getting Help
-- Create an issue on GitHub
-- Check the troubleshooting section
-- Review API documentation
-- Contact the development team
+### ヘルプを得る
+- GitHub で Issue を作成
+- トラブルシューティングセクションを確認
+- API ドキュメントを参照
 
-## 📄 License
+## 📄 ライセンス
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+このプロジェクトは MIT ライセンスの下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
 
-## 🙏 Acknowledgments
+## 🙏 謝辞
 
-- [Laravel](https://laravel.com/) - The PHP framework
-- [Next.js](https://nextjs.org/) - The React framework
-- [Vercel](https://vercel.com/) - Frontend deployment
+- [Next.js](https://nextjs.org/) - React フレームワーク
 - [Supabase](https://supabase.com/) - Backend as a Service
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
+- [Vercel](https://vercel.com/) - フロントエンドデプロイメント
+- [shadcn/ui](https://ui.shadcn.com/) - UI コンポーネント
+- [Tailwind CSS](https://tailwindcss.com/) - CSS フレームワーク
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for the modern web**
+**モダンウェブのために ❤️ で構築**
 
 [![GitHub](https://img.shields.io/github/license/yourusername/RWS?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)

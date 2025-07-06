@@ -81,7 +81,7 @@ export async function handlePublicPosts(url: URL, requestOrigin?: string): Promi
       .order('created_at', { ascending: false })
     
     if (search) {
-      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`)
+      query = query.or(`title.ilike.*${search}*,content.ilike.*${search}*`)
     }
 
     const { data: posts, error, count } = await query
@@ -159,14 +159,39 @@ export async function handleAdminPosts(request: Request, url: URL): Promise<Resp
 
   const page = parseInt(url.searchParams.get('page') || '1')
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
+  const search = url.searchParams.get('search') || ''
+  const status = url.searchParams.get('status') || ''
   
   try {
     // Get all posts from database for admin with count
-    const { data: posts, error, count } = await supabase
+    let query = supabase
       .from('posts')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
+    
+    // Add search filter
+    if (search) {
+      // Use % wildcards for PostgreSQL ilike operator
+      const searchTerm = search.trim()
+      console.log('Admin posts search term:', searchTerm)
+      query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`)
+    }
+    
+    // Add status filter
+    if (status && status !== 'all') {
+      query = query.eq('status', status)
+    }
+    
+    const { data: posts, error, count } = await query
       .range((page - 1) * limit, page * limit - 1)
+
+    console.log('Admin posts query result:', { 
+      posts: posts?.length || 0, 
+      count, 
+      error,
+      searchUsed: !!search,
+      searchTerm: search 
+    })
 
     if (error) {
       console.error('Database error in handleAdminPosts:', error)

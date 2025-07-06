@@ -13,10 +13,7 @@
     "deploy:frontend": "./scripts/deploy.sh frontend",
     "deploy:backend": "./scripts/deploy.sh backend"
   },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.50.3",
-    "@tailwindcss/aspect-ratio": "^0.4.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "supabase": "^1.0.0"
   },

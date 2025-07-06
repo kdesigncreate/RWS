@@ -59,6 +59,12 @@ playwright-report/
 .temp/
 *.tmp
 *.temp
+*.bak
+*.backup
+*.old
+test-*.js
+test-*.md
+fix-*.js
 
 # Cache directories
 .cache/
@@ -89,6 +95,7 @@ storage/framework/views/
 .Trashes
 ehthumbs.db
 Thumbs.db
+*:Zone.Identifier
 
 # TypeScript
 *.tsbuildinfo
