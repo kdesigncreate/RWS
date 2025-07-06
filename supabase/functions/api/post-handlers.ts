@@ -145,7 +145,7 @@ export async function handlePublicPost(postId: number): Promise<Response> {
   }
 
   const formattedPost = await formatPost(post)
-  return createSuccessResponse({ data: formattedPost })
+  return createSuccessResponse(formattedPost)
 }
 
 // 管理者ポスト一覧取得
@@ -240,44 +240,8 @@ export async function handleCreatePost(request: Request): Promise<Response> {
   try {
     console.log('Starting post creation for user:', authValidation.user!.email)
     
-    // Get user ID from users table, create if not exists
-    let { data: user, error: userLookupError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', authValidation.user!.email)
-      .maybeSingle()
-    
-    console.log('User lookup result:', { user, userLookupError })
-    
-    if (userLookupError) {
-      console.error('Database error while looking up user:', userLookupError)
-      return createErrorResponse('Database error', 500)
-    }
-    
-    if (!user) {
-      console.log('User not found, creating new user for:', authValidation.user!.email)
-      // Create new user in users table
-      const { data: newUser, error: createUserError } = await supabase
-        .from('users')
-        .insert({
-          email: authValidation.user?.email || '',
-          name: authValidation.user?.email?.split('@')[0] || 'defaultName', // Use email prefix as default name
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select('id')
-        .single()
-      
-      console.log('User creation result:', { newUser, createUserError })
-      
-      if (createUserError || !newUser) {
-        console.error('Failed to create user:', createUserError)
-        return createErrorResponse(`Failed to create user: ${createUserError?.message || 'Unknown error'}`, 500)
-      }
-      
-      user = newUser
-      console.log('Created new user with ID:', user.id)
-    }
+    // Use hardcoded admin user ID for simplicity
+    const userId = 1
 
     const body: CreatePostRequest = await request.json()
     const { title, content, excerpt, status } = body
@@ -296,7 +260,7 @@ export async function handleCreatePost(request: Request): Promise<Response> {
       excerpt: excerpt || content.substring(0, 100) + '...',
       status: status || 'draft',
       published_at: status === 'published' ? now : null,
-      user_id: user.id,
+      user_id: 1,
       created_at: now,
       updated_at: now
     }

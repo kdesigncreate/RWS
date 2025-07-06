@@ -110,7 +110,7 @@ export async function getUserInfo(userId: number | string): Promise<DatabaseUser
       // フォールバック: 基本的なユーザー情報を返す
       return {
         id: typeof userId === 'number' ? userId : parseInt(userId) || 1,
-        name: 'Admin User',
+        name: 'Kamura',
         email: 'admin@rws.com'
       }
     }
@@ -125,7 +125,7 @@ export async function getUserInfo(userId: number | string): Promise<DatabaseUser
     // セキュアなフォールバック
     return {
       id: typeof userId === 'number' ? userId : parseInt(userId) || 1,
-      name: 'Admin User',
+      name: 'Kamura',
       email: 'admin@rws.com'
     }
   }
@@ -171,7 +171,7 @@ export async function validateAuthToken(authHeader: string | null) {
         user: { 
           id: 'admin-user-id', 
           email: 'admin@rws.com',
-          name: 'Admin User' 
+          name: 'Kamura' 
         }, 
         error: null 
       }

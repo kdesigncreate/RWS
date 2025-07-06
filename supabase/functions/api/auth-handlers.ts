@@ -54,7 +54,7 @@ export async function handleLogin(request: Request): Promise<Response> {
           user: { 
             id: 'admin-user-id', 
             email: 'admin@rws.com', 
-            name: 'Admin User'
+            name: 'Kamura'
           },
           access_token: token
         })
