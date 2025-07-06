@@ -36,7 +36,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
         setError(null);
 
         const response = await api.get<ApiResponse>(`/posts/${postId}`);
-        setPost(response.data.data);
+        setPost(response.data.data || response.data);
       } catch (err: unknown) {
         console.error("記事の取得に失敗しました:", err);
         const errorMessage =

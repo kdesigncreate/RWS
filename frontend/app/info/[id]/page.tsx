@@ -18,7 +18,7 @@ export async function generateMetadata({
   try {
     const resolvedParams = await params;
     const response = await api.get<ApiResponse>(`/posts/${resolvedParams.id}`);
-    const post = response.data.data;
+    const post = response.data.data || response.data;
 
     return generatePostMetadata({
       post: {
