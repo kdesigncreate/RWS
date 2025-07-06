@@ -123,6 +123,13 @@ export class SupabaseRateLimit {
 
     } catch (error) {
       console.error('Rate limit error:', error)
+      
+      // Check if the error is due to missing table
+      if (error instanceof Error && error.message.includes('relation "rate_limits" does not exist')) {
+        console.warn('Rate limits table does not exist. Consider creating it for production use.')
+        console.warn('SQL: CREATE TABLE rate_limits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), ip VARCHAR(45) NOT NULL, endpoint VARCHAR(255) NOT NULL, requests INTEGER NOT NULL DEFAULT 0, window_start TIMESTAMP WITH TIME ZONE NOT NULL, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());')
+      }
+      
       // Fail open on any error
       return {
         isLimited: false,
