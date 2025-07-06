@@ -152,13 +152,20 @@ export function Header({ navigationItems = [] }: HeaderProps) {
               {/* メニュー：左寄せ・太字・ホバーで青下線 */}
               <nav className="flex-1 flex flex-col gap-2 px-6 py-8">
                 {items.map((item) => (
-                  <a
+                  <button
                     key={item.label}
-                    href={item.href}
-                    className="text-lg font-bold py-2 px-2 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                    onClick={() => {
+                      setIsOpen(false);
+                      if (item.href.startsWith("/#")) {
+                        router.push(item.href);
+                      } else {
+                        router.push(item.href);
+                      }
+                    }}
+                    className="text-lg font-bold py-2 px-2 rounded hover:bg-blue-50 hover:text-blue-700 transition-colors text-left bg-transparent border-none cursor-pointer w-full"
                   >
                     {item.label}
-                  </a>
+                  </button>
                 ))}
               </nav>
               {/* SNSアイコン：下部・横並び・大きめ */}

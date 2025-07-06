@@ -34,7 +34,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PostDetailSimple } from "@/components/posts/PostDetail";
 import { ButtonSpinner } from "@/components/common/LoadingSpinner";
-import { useAutoSave } from "@/hooks/useDebounce";
 import {
   postFormSchema,
   type PostFormInput,
@@ -130,25 +129,56 @@ export function PostForm({
     );
   }, [watchedValues.content]);
 
-  // 自動保存機能
-  const { isSaving, lastSaved, saveError, hasChanges, forceSave } = useAutoSave(
-    watchedValues,
-    async (data) => {
-      if (!onSave || !isEditing) return;
+  // 手動保存機能（自動保存を無効化）
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState(watchedValues);
+  
+  // 変更検知
+  const hasChanges = JSON.stringify(watchedValues) !== JSON.stringify(initialValues);
+  
+  // 手動保存機能
+  const handleManualSave = async () => {
+    if (!onSave || !isEditing || !hasChanges) return;
 
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
       const formData = {
-        ...data,
-        published_at: data.published_at?.toISOString() || null,
+        ...watchedValues,
+        published_at: watchedValues.published_at?.toISOString() || null,
       };
 
       const result = await onSave(formData as UpdatePostData);
       if (!result.success) {
         throw new Error(result.error || "保存に失敗しました");
       }
-    },
-    2000, // 2秒後に自動保存
-    isEditing && !!onSave, // 編集時かつonSaveが提供されている場合のみ有効
-  );
+      
+      setLastSaved(new Date());
+      setInitialValues(watchedValues);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "保存に失敗しました";
+      setSaveError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 初期値を設定（編集時）
+  useEffect(() => {
+    if (isEditing && post) {
+      setInitialValues({
+        title: post.title || "",
+        content: post.content || "",
+        excerpt: post.excerpt || "",
+        status: post.status || "draft",
+        published_at: post.published_at ? new Date(post.published_at) : null,
+        user_id: post.user_id || null,
+      });
+    }
+  }, [isEditing, post]);
 
   // フォーム送信
   const onFormSubmit = async (data: PostFormInput) => {
@@ -533,7 +563,7 @@ export function PostForm({
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={forceSave}
+                        onClick={handleManualSave}
                         disabled={!hasChanges || isSaving}
                         className="w-full"
                       >
@@ -542,7 +572,7 @@ export function PostForm({
                         ) : (
                           <Save className="h-4 w-4 mr-2" />
                         )}
-                        手動保存
+                        更新
                       </Button>
                     </CardContent>
                   </Card>
