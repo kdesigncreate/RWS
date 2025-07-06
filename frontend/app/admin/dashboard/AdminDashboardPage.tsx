@@ -73,7 +73,7 @@ export default function AdminDashboardPage() {
       search: debouncedSearch,
     };
     fetchAdminPosts(params);
-  }, [debouncedSearch, searchParams, fetchAdminPosts]);
+  }, [debouncedSearch, searchParams.status, searchParams.page, searchParams.limit, searchParams.sort, searchParams.order]);
 
   // 検索パラメータの更新
   const updateSearchParams = (updates: Partial<PostSearchParams>) => {

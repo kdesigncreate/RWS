@@ -58,16 +58,6 @@ export function PostTable({
   // 安全性チェック: postsがundefined、null、または空配列の場合のデフォルト処理
   const safePosts = posts || [];
   
-  const isAllSelected =
-    safePosts.length > 0 && selectedPosts.length === safePosts.length;
-  const isPartiallySelected =
-    selectedPosts.length > 0 && selectedPosts.length < safePosts.length;
-
-  const handleSelectAll = (checked: boolean) => {
-    if (onSelectionChange) {
-      onSelectionChange(checked ? safePosts.map((post) => post.id) : []);
-    }
-  };
 
   const handleSelectPost = (postId: number, checked: boolean) => {
     if (onSelectionChange) {
@@ -143,11 +133,7 @@ export function PostTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">
-              <Checkbox
-                checked={isAllSelected}
-                indeterminate={isPartiallySelected}
-                onCheckedChange={handleSelectAll}
-              />
+              選択
             </TableHead>
 
             <TableHead>
@@ -317,28 +303,6 @@ export function PostTable({
 
       {/* モバイルカード表示 */}
       <div className="lg:hidden space-y-4">
-        {/* 選択操作ヘッダー */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={isAllSelected}
-              indeterminate={isPartiallySelected}
-              onCheckedChange={handleSelectAll}
-            />
-            <span className="text-sm font-medium">
-              {selectedPosts.length > 0 ? `${selectedPosts.length}件選択中` : "全て選択"}
-            </span>
-          </div>
-          {selectedPosts.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSelectAll(false)}
-            >
-              選択をクリア
-            </Button>
-          )}
-        </div>
 
         {/* カード一覧 */}
         {safePosts.map((post) => (
