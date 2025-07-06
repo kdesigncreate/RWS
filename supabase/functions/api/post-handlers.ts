@@ -90,7 +90,7 @@ export async function handlePublicPosts(url: URL): Promise<Response> {
 
     if (error) {
       console.error('Database error in handlePublicPosts:', error)
-      return createErrorResponse(`Database error: ${error.message}`, 500, undefined, undefined, requestOrigin)
+      return createErrorResponse(`Database error: ${error.message}`, 500)
     }
 
     const formattedPosts = await formatPosts(posts || [])
@@ -117,10 +117,10 @@ export async function handlePublicPosts(url: URL): Promise<Response> {
       }
     }
 
-    return createSuccessResponse(response, undefined, 200, requestOrigin)
+    return createSuccessResponse(response, undefined, 200)
   } catch (error) {
     console.error('Error in handlePublicPosts:', error)
-    return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+    return createErrorResponse('Internal server error', 500)
   }
 }
 
@@ -150,11 +150,11 @@ export async function handlePublicPost(postId: number): Promise<Response> {
 
 // 管理者ポスト一覧取得
 export async function handleAdminPosts(request: Request, url: URL): Promise<Response> {
-  const requestOrigin = request.headers.get('origin') ?? undefined
+  const  = request.headers.get('origin') ?? undefined
   
   const authValidation = await validateAuthToken(request.headers.get('authorization'))
   if (!authValidation.isValid) {
-    return createErrorResponse(authValidation.error || 'Unauthorized', 401, undefined, undefined, requestOrigin)
+    return createErrorResponse(authValidation.error || 'Unauthorized', 401, undefined, undefined, )
   }
 
   const page = parseInt(url.searchParams.get('page') || '1')
@@ -195,7 +195,7 @@ export async function handleAdminPosts(request: Request, url: URL): Promise<Resp
 
     if (error) {
       console.error('Database error in handleAdminPosts:', error)
-      return createErrorResponse(`Database error: ${error.message}`, 500, undefined, undefined, requestOrigin)
+      return createErrorResponse(`Database error: ${error.message}`, 500)
     }
 
     const formattedPosts = await formatPosts(posts || [])
@@ -222,10 +222,10 @@ export async function handleAdminPosts(request: Request, url: URL): Promise<Resp
       }
     }
 
-    return createSuccessResponse(response, undefined, 200, requestOrigin)
+    return createSuccessResponse(response, undefined, 200)
   } catch (error) {
     console.error('Error in handleAdminPosts:', error)
-    return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+    return createErrorResponse('Internal server error', 500)
   }
 }
 
