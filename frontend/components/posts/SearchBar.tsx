@@ -156,7 +156,7 @@ export function SearchBar({
               {/* ステータスフィルター */}
               {showStatusFilter && (
                 <div className="p-2">
-                  <label className="text-sm font-medium mb-2 block">
+                  <label htmlFor="status-filter" className="text-sm font-medium mb-2 block">
                     ステータス
                   </label>
                   <Select
@@ -167,7 +167,7 @@ export function SearchBar({
                       })
                     }
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger id="status-filter" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -183,7 +183,7 @@ export function SearchBar({
               {showSortOptions && (
                 <>
                   <div className="p-2">
-                    <label className="text-sm font-medium mb-2 block">
+                    <label htmlFor="sort-filter" className="text-sm font-medium mb-2 block">
                       並び順
                     </label>
                     <Select
@@ -197,7 +197,7 @@ export function SearchBar({
                         })
                       }
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id="sort-filter" className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -209,7 +209,7 @@ export function SearchBar({
                   </div>
 
                   <div className="p-2">
-                    <label className="text-sm font-medium mb-2 block">
+                    <label htmlFor="order-filter" className="text-sm font-medium mb-2 block">
                       順序
                     </label>
                     <div className="flex space-x-1">

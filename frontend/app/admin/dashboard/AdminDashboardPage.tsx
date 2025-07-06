@@ -247,7 +247,7 @@ export default function AdminDashboardPage() {
                     })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -267,7 +267,7 @@ export default function AdminDashboardPage() {
                     updateSearchParams({ limit: Number(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="limit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
