@@ -125,7 +125,7 @@ function AdminLayoutWithMobileSidebarComponent({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <AdminHeader title={title} />
+      <AdminHeader title={title} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
       {/* モバイルサイドバーオーバーレイ */}
       {sidebarOpen && (

@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminLayoutWithMobileSidebar } from "@/components/admin/AdminLayout";
 import { PostTable } from "@/components/admin/PostTable";
 // import { SearchBar } from '@/components/posts/SearchBar'; // 未使用のため一時的にコメントアウト
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -46,6 +46,9 @@ export default function AdminDashboardPage() {
     fetchAdminPosts,
     // deletePost, // 将来の拡張用にコメントアウト
   } = usePosts();
+
+  // モバイルサイドバーの状態
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // 検索パラメータの状態
   const [searchParams, setSearchParams] = useState<PostSearchParams>({
@@ -125,7 +128,11 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <AdminLayout title="ダッシュボード">
+    <AdminLayoutWithMobileSidebar 
+      title="ダッシュボード" 
+      sidebarOpen={sidebarOpen} 
+      setSidebarOpen={setSidebarOpen}
+    >
       <div className="space-y-6">
         {/* ページヘッダー */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -219,7 +226,7 @@ export default function AdminDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* キーワード検索 */}
               <div className="space-y-2">
                 <Label htmlFor="search">キーワード</Label>
@@ -378,6 +385,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </AdminLayoutWithMobileSidebar>
   );
 }

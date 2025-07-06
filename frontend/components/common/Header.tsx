@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -208,11 +208,13 @@ export function Header({ navigationItems = [] }: HeaderProps) {
 interface AdminHeaderProps {
   title?: string;
   className?: string;
+  onMenuClick?: () => void;
 }
 
 export function AdminHeader({
   title = "管理画面",
   className,
+  onMenuClick,
 }: AdminHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -230,6 +232,18 @@ export function AdminHeader({
         <div className="flex h-16 items-center justify-between">
           {/* タイトルとパンくずリスト */}
           <div className="flex items-center space-x-4">
+            {/* モバイルメニューボタン */}
+            {onMenuClick && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMenuClick}
+                className="lg:hidden"
+                aria-label="メニューを開く"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
             <Link
               href="/"
               className="text-sm text-gray-500 hover:text-gray-700"

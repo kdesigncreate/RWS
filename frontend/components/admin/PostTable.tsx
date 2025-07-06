@@ -40,6 +40,7 @@ import type {
 } from "@/types/post";
 import { formatDate, stringUtils } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function PostTable({
   posts,
@@ -135,8 +136,10 @@ export function PostTable({
   }
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden", className)}>
-      <Table>
+    <>
+      {/* デスクトップテーブル表示 */}
+      <div className={cn("hidden lg:block border rounded-lg overflow-hidden", className)}>
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">
@@ -310,7 +313,110 @@ export function PostTable({
           ))}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      {/* モバイルカード表示 */}
+      <div className="lg:hidden space-y-4">
+        {/* 選択操作ヘッダー */}
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={isAllSelected}
+              indeterminate={isPartiallySelected}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm font-medium">
+              {selectedPosts.length > 0 ? `${selectedPosts.length}件選択中` : "全て選択"}
+            </span>
+          </div>
+          {selectedPosts.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSelectAll(false)}
+            >
+              選択をクリア
+            </Button>
+          )}
+        </div>
+
+        {/* カード一覧 */}
+        {safePosts.map((post) => (
+          <Card key={post.id} className="p-4">
+            <CardContent className="p-0">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  checked={selectedPosts.includes(post.id)}
+                  onCheckedChange={(checked) => handleSelectPost(post.id, checked as boolean)}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        {stringUtils.truncate(post.title, 60)}
+                      </h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge
+                          variant={post.status === "published" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {post.status === "published" ? "公開中" : "下書き"}
+                        </Badge>
+                        {post.author && (
+                          <div className="flex items-center text-xs text-gray-500">
+                            <User className="h-3 w-3 mr-1" />
+                            {post.author.name}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">
+                        <div>作成: {formatDate.toJapanese(post.created_at)}</div>
+                        {post.published_at && (
+                          <div>公開: {formatDate.toJapanese(post.published_at)}</div>
+                        )}
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/info/${post.id}`} target="_blank">
+                            <Eye className="h-4 w-4 mr-2" />
+                            表示
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/dashboard/info/${post.id}`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            編集
+                          </Link>
+                        </DropdownMenuItem>
+                        {onDelete && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => onDelete(post)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              削除
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
   );
 }
 
