@@ -67,7 +67,7 @@ export async function formatPosts(posts: DatabasePost[]): Promise<FormattedPost[
 }
 
 // 公開ポスト一覧取得
-export async function handlePublicPosts(url: URL, requestOrigin?: string): Promise<Response> {
+export async function handlePublicPosts(url: URL): Promise<Response> {
   const page = parseInt(url.searchParams.get('page') || '1')
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50)
   const search = url.searchParams.get('search') || ''

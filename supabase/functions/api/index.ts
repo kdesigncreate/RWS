@@ -19,6 +19,17 @@ import {
   validateAuthToken
 } from './utils.ts'
 
+// Import handlers from post-handlers.ts
+import {
+  handleAdminPost,
+  handleAdminPosts,
+  handleCreatePost,
+  handleUpdatePost,
+  handleDeletePost,
+  handlePublicPost,
+  handlePublicPosts
+} from './post-handlers.ts'
+
 // Initialize middleware and routes
 const corsMiddleware = createCorsMiddleware({
   origin: true,
@@ -71,6 +82,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const { cleanPath: path, postId } = parsePath(url)
+    const requestOrigin = req.headers.get('origin') || '*'
     
     // Health check endpoint  
     if (path.includes('/health')) {
@@ -106,7 +118,7 @@ Deno.serve(async (req) => {
     if (path.includes('/fix-status-fields') && req.method === 'POST') {
       const authValidation = await validateAuthToken(req.headers.get('authorization'))
       if (!authValidation.isValid) {
-        return createErrorResponse('Unauthorized', 401, undefined, undefined, requestOrigin)
+        return createErrorResponse('Unauthorized', 401)
       }
 
       try {
@@ -130,17 +142,17 @@ Deno.serve(async (req) => {
           .select('id')
 
         if (errorPublished || errorDraft) {
-          return createErrorResponse('Database update error', 500, undefined, undefined, requestOrigin)
+          return createErrorResponse('Database update error', 500)
         }
 
         return createSuccessResponse({
           message: 'Status fields fixed successfully',
           publishedUpdated: updatePublished?.length || 0,
           draftUpdated: updateDraft?.length || 0
-        }, undefined, 200, requestOrigin)
+        }, undefined, 200)
       } catch (error) {
         console.error('Fix status fields error:', error)
-        return createErrorResponse('Internal server error', 500, undefined, undefined, requestOrigin)
+        return createErrorResponse('Internal server error', 500)
       }
     }
 
@@ -205,7 +217,7 @@ Deno.serve(async (req) => {
     }
 
     if (path.includes('/posts') && req.method === 'GET' && !path.includes('/admin') && !path.match(/\/posts\/\d+$/)) {
-      return await handlePublicPosts(url, requestOrigin)
+      return await handlePublicPosts(url)
     }
 
     // Default response for unhandled routes
