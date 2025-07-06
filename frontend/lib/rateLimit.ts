@@ -16,6 +16,18 @@ interface RateLimitRecord {
   updated_at?: string
 }
 
+// Type for Supabase error responses
+interface SupabaseError {
+  code?: string
+  message?: string
+}
+
+// Type for Supabase query responses
+interface SupabaseResponse<T> {
+  data: T | null
+  error: SupabaseError | null
+}
+
 export interface RateLimitConfig {
   maxRequests: number
   windowMs: number
@@ -39,13 +51,15 @@ export class SupabaseRateLimit {
     
     try {
       // Get or create rate limit record
-      const { data: existing, error: selectError } = await supabase
+      const response = await supabase
         .from('rate_limits')
         .select('*')
         .eq('ip', ip)
         .eq('endpoint', endpoint)
         .gte('window_start', windowStart.toISOString())
-        .maybeSingle()
+        .maybeSingle() as SupabaseResponse<RateLimitRecord>
+
+      const { data: existing, error: selectError } = response
 
       if (selectError && selectError.code !== 'PGRST116') {
         console.error('Rate limit check error:', selectError)

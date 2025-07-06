@@ -8,6 +8,23 @@ interface QueryProviderProps {
   children: ReactNode;
 }
 
+// HTTP Error response type for better type safety
+interface HTTPError {
+  response?: {
+    status?: number;
+  };
+}
+
+// Type guard to check if error has response property
+function isHTTPError(error: unknown): error is HTTPError {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'response' in error &&
+    typeof (error as HTTPError).response === 'object'
+  );
+}
+
 export function QueryProvider({ children }: QueryProviderProps) {
   const [queryClient] = useState(
     () =>
@@ -19,12 +36,13 @@ export function QueryProvider({ children }: QueryProviderProps) {
             // バックグラウンドで1分間キャッシュ
             gcTime: 10 * 60 * 1000,
             // ネットワークエラー時のリトライ設定
-            retry: (failureCount, error: any) => {
+            retry: (failureCount, error: unknown) => {
               // 401, 403, 404の場合はリトライしない
-              if (error?.response?.status === 401 || 
-                  error?.response?.status === 403 || 
-                  error?.response?.status === 404) {
-                return false;
+              if (isHTTPError(error)) {
+                const status = error.response?.status;
+                if (status === 401 || status === 403 || status === 404) {
+                  return false;
+                }
               }
               // その他のエラーは最大2回リトライ
               return failureCount < 2;
@@ -37,10 +55,13 @@ export function QueryProvider({ children }: QueryProviderProps) {
           },
           mutations: {
             // ミューテーションのリトライ設定
-            retry: (failureCount, error: any) => {
+            retry: (failureCount, error: unknown) => {
               // 400番台のエラーはリトライしない
-              if (error?.response?.status >= 400 && error?.response?.status < 500) {
-                return false;
+              if (isHTTPError(error)) {
+                const status = error.response?.status;
+                if (status && status >= 400 && status < 500) {
+                  return false;
+                }
               }
               return failureCount < 1;
             },

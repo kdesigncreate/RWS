@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Play } from "lucide-react";
+import Image from "next/image";
 
 interface LazyYouTubeProps {
   videoId: string;
@@ -34,10 +35,13 @@ export function LazyYouTube({
     >
       {!isLoaded ? (
         <div className="absolute inset-0">
-          <img
+          <Image
             src={`https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`}
             alt={title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
             onError={(e) => {
               (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
             }}
