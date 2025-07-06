@@ -19,8 +19,8 @@ export const login = async (
     const response = await api.post<AuthResponse>("/login", credentials);
 
     // トークンを保存
-    if (response.data.token) {
-      setAuthToken(response.data.token);
+    if (response.data.access_token) {
+      setAuthToken(response.data.access_token);
     }
 
     return response.data;
