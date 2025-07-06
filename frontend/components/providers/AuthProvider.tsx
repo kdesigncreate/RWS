@@ -37,11 +37,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // レスポンスデータの構造を確認
       const responseData = response.data as {
         user?: AuthUser;
-        token?: string;
-        data?: { user?: AuthUser; token?: string };
+        access_token?: string;
+        data?: { user?: AuthUser; access_token?: string };
       };
-      const userData = responseData.user || responseData.data?.user;
-      const authToken = responseData.token || responseData.data?.token;
+      const userData = responseData.data?.user || responseData.user;
+      const authToken = responseData.data?.access_token || responseData.access_token;
 
       if (!userData || !authToken) {
         throw new Error("ログインレスポンスの形式が不正です");

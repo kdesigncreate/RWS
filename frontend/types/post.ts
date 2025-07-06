@@ -1,14 +1,21 @@
-import type { AuthUser } from "./auth";
-
 // 記事のステータス型
 export type PostStatus = "draft" | "published";
+
+// シンプルな作成者情報型（バックエンドと一致）
+export interface PostAuthor {
+  id: number;
+  name: string;
+  email: string;
+}
 
 // 記事の基本型
 export interface Post {
   id: number;
   title: string;
-  content: string | null;
+  content: string;
   excerpt: string | null;
+  slug?: string | null;
+  featured_image?: string | null;
   status: PostStatus;
   status_label: string;
   published_at: string | null;
@@ -19,8 +26,8 @@ export interface Post {
   updated_at: string;
   created_at_formatted: string;
   updated_at_formatted: string;
-  author?: AuthUser;
-  user_id?: number;
+  author: PostAuthor;
+  user_id: number;
   meta: {
     title_length: number;
     content_length: number;
@@ -32,11 +39,11 @@ export interface Post {
 // 記事作成・更新用の型
 export interface CreatePostData {
   title: string;
-  content: string | null;
+  content: string;
   excerpt?: string;
   status: PostStatus;
   published_at?: string;
-  user_id?: number | null;
+  user_id?: number;
 }
 
 export interface UpdatePostData extends CreatePostData {
@@ -83,7 +90,7 @@ export interface PostResponse {
 // フォーム用の型
 export interface PostFormData {
   title: string;
-  content: string | null;
+  content: string;
   excerpt: string;
   status: PostStatus;
   published_at?: Date | null;

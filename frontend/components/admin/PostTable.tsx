@@ -231,12 +231,10 @@ export function PostTable({
                     </p>
                   )}
                   <div className="flex items-center space-x-2 text-xs text-gray-400">
-                    {post.author && (
-                      <span className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        {post.author.name}
-                      </span>
-                    )}
+                    <span className="flex items-center">
+                      <User className="h-3 w-3 mr-1" />
+                      {post.author?.name || 'Admin User'}
+                    </span>
                   </div>
                 </div>
               </TableCell>

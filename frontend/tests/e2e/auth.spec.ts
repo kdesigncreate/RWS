@@ -1,10 +1,10 @@
 import { test, expect, Page } from "@playwright/test";
 
-// テスト用の認証情報
-const ADMIN_EMAIL = "admin@example.com";
-const ADMIN_PASSWORD = "password123";
-const INVALID_EMAIL = "invalid@test.com";
-const INVALID_PASSWORD = "wrongpassword";
+// テスト用の認証情報（環境変数から取得、なければダミー値を使用）
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL || "test.admin@example.com";
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || "TestPassword123!";
+const INVALID_EMAIL = "invalid.test@example.com";
+const INVALID_PASSWORD = "InvalidPassword123!";
 
 // ページURL
 const LOGIN_URL = "/admin";

@@ -209,7 +209,8 @@ export function PostForm({
       excerpt_length: watchedValues.excerpt?.length || 0,
       reading_time_minutes: Math.max(1, Math.ceil(charCount / 400)),
     },
-    author: post?.author,
+    author: post?.author || { id: 1, name: 'Admin User', email: 'admin@example.com' },
+    user_id: post?.user_id || 1,
   };
 
   return (

@@ -10,28 +10,7 @@ import { AppError, ErrorUtils, ErrorType } from "@/lib/errors";
 
 // 環境変数から設定を取得と堅牢なフォールバック戦略
 const getApiBaseUrl = (): string => {
-  // ブラウザ環境では常に相対パスを使用
-  if (typeof window !== "undefined") {
-    return "/api";
-  }
-
-  // 1. 直接指定されたAPI URL（最優先）
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
-  }
-
-  // 2. Supabase URLから構築
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/api`;
-  }
-
-  // 3. 開発環境でのローカル Supabase
-  if (process.env.NODE_ENV === "development") {
-    // ローカル Supabase Functions をチェック
-    return "http://127.0.0.1:54321/functions/v1/api";
-  }
-
-  // 4. 最終フォールバック - Vercel middleware proxy
+  // Vercel proxy経由でアクセス
   return "/api";
 };
 

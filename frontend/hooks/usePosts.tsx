@@ -147,18 +147,25 @@ export function usePosts(): UsePostsReturn {
       setError(null);
 
       try {
-        const response = await api.get<PostsResponse>("/admin/posts", {
+        const response = await api.get<{ data: PostsResponse }>("/admin/posts", {
           params,
         });
 
+        console.log('fetchAdminPosts response:', response.data);
+        
+        // Handle nested response structure correctly
+        // API returns { data: { data: Post[], meta: {...}, links: {...} } }
+        const apiData = response.data.data; // This is the PostsResponse
+        const postsArray = apiData.data || []; // This is the Post[] array
+        
         setState((prev) => ({
           ...prev,
-          posts: Array.isArray(response.data.data) ? response.data.data : [],
+          posts: postsArray,
           pagination: {
-            currentPage: response.data.meta?.current_page || 1,
-            lastPage: response.data.meta?.last_page || 1,
-            total: response.data.meta?.total || 0,
-            perPage: response.data.meta?.per_page || 10,
+            currentPage: apiData.meta?.current_page || 1,
+            lastPage: apiData.meta?.last_page || 1,
+            total: apiData.meta?.total || 0,
+            perPage: apiData.meta?.per_page || 10,
           },
           loading: false,
         }));
@@ -180,11 +187,14 @@ export function usePosts(): UsePostsReturn {
       setError(null);
 
       try {
-        const response = await api.get<PostResponse>(`/admin/posts/${id}`);
+        const response = await api.get<{ data: PostResponse }>(`/admin/posts/${id}`);
+
+        // Handle nested response structure for single post
+        const postData = response.data.data?.data || response.data.data;
 
         setState((prev) => ({
           ...prev,
-          currentPost: response.data.data,
+          currentPost: postData,
           loading: false,
         }));
       } catch (error) {
@@ -207,15 +217,17 @@ export function usePosts(): UsePostsReturn {
       setError(null);
 
       try {
-        const response = await api.post<PostResponse>("/admin/posts", data);
+        const response = await api.post<{ data: PostResponse }>("/admin/posts", data);
+
+        const postData = response.data.data?.data || response.data.data;
 
         setState((prev) => ({
           ...prev,
-          currentPost: response.data.data,
+          currentPost: postData,
           loading: false,
         }));
 
-        return { success: true, post: response.data.data };
+        return { success: true, post: postData };
       } catch (error) {
         const apiError = handleApiError(error);
         setError(apiError.message);
@@ -235,22 +247,24 @@ export function usePosts(): UsePostsReturn {
       setError(null);
 
       try {
-        const response = await api.put<PostResponse>(
+        const response = await api.put<{ data: PostResponse }>(
           `/admin/posts/${id}`,
           data,
         );
 
+        const postData = response.data.data?.data || response.data.data;
+
         setState((prev) => ({
           ...prev,
-          currentPost: response.data.data,
+          currentPost: postData,
           // 一覧にある場合は更新
           posts: prev.posts.map((post) =>
-            post.id === id ? response.data.data : post,
+            post.id === id ? postData : post,
           ),
           loading: false,
         }));
 
-        return { success: true, post: response.data.data };
+        return { success: true, post: postData };
       } catch (error) {
         const apiError = handleApiError(error);
         setError(apiError.message);

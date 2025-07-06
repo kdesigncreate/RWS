@@ -88,8 +88,8 @@ describe("useAuth Hook", () => {
 
     await act(async () => {
       const response = await result.current.login({
-        email: "test@example.com",
-        password: "password123",
+        email: "test.user@example.com",
+        password: "TestPassword123!",
       });
       expect(response.success).toBe(true);
     });
