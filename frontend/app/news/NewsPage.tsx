@@ -12,6 +12,7 @@ import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useRouter } from "next/navigation";
 
 export default function NewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,6 +20,7 @@ export default function NewsPage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   const { posts, loading, error, fetchPublicPosts, pagination } = usePosts();
+  const router = useRouter();
 
   // paginationからhasMoreとtotalCountを計算
   const hasMore = pagination.currentPage < pagination.lastPage;
@@ -70,7 +72,7 @@ export default function NewsPage() {
             <div className="flex items-center mb-6">
               <Button
                 variant="ghost"
-                onClick={() => window.history.back()}
+                onClick={() => router.push('/#news')}
                 className="flex items-center text-gray-600 hover:text-gray-900 mr-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

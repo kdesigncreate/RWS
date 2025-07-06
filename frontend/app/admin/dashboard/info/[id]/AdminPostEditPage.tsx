@@ -159,8 +159,20 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
     >
       <div className="space-y-6">
         {/* ページヘッダー */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isCreating ? "新しい記事を作成" : "記事を編集"}
+            </h1>
+            {isEditing && currentPost && (
+              <div className="text-gray-600 text-sm mt-1">
+                作成日: {new Date(currentPost.created_at).toLocaleDateString("ja-JP")}
+                <br className="sm:hidden" />
+                最終更新: {new Date(currentPost.updated_at).toLocaleDateString("ja-JP")}
+              </div>
+            )}
+          </div>
+          <div className="mt-2 sm:mt-0 sm:ml-auto">
             <Button variant="ghost" size="sm" asChild>
               <Link
                 href="/admin/dashboard"
@@ -170,47 +182,28 @@ export default function AdminPostEditPage({ params }: AdminPostEditPageProps) {
                 ダッシュボードに戻る
               </Link>
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {isCreating ? "新しい記事を作成" : "記事を編集"}
-              </h1>
-              {isEditing && currentPost && (
-                <p className="text-gray-600 text-sm mt-1">
-                  作成日:{" "}
-                  {new Date(currentPost.created_at).toLocaleDateString("ja-JP")}
-                  {currentPost.updated_at !== currentPost.created_at && (
-                    <span className="ml-4">
-                      最終更新:{" "}
-                      {new Date(currentPost.updated_at).toLocaleDateString(
-                        "ja-JP",
-                      )}
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
           </div>
+        </div>
 
-          {/* アクションボタン */}
-          <div className="flex items-center space-x-2">
-            {isEditing && currentPost && (
-              <>
-                <Button variant="outline" size="sm" onClick={handlePreview}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  プレビュー
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  削除
-                </Button>
-              </>
-            )}
-          </div>
+        {/* アクションボタン */}
+        <div className="flex items-center space-x-2">
+          {isEditing && currentPost && (
+            <>
+              <Button variant="outline" size="sm" onClick={handlePreview}>
+                <Eye className="h-4 w-4 mr-2" />
+                プレビュー
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDelete}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                削除
+              </Button>
+            </>
+          )}
         </div>
 
         {/* 保存ステータス表示 */}

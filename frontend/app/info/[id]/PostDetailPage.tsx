@@ -179,26 +179,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
 
                   {/* 記事フッター */}
                   <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex flex-col">
-                        <h1 className="text-xl font-bold">記事を編集</h1>
-                        <div className="text-xs text-gray-500 mt-1">
-                          作成日: {formatDate.toJapanese(post.created_at)}<br className="sm:hidden" />
-                          最終更新: {formatDate.toJapanese(post.updated_at)}
-                        </div>
-                      </div>
-                      {/* PC時は右側、スマホ時は下に */}
-                      <div className="mt-2 sm:mt-0 sm:ml-auto">
-                        <Button
-                          variant="ghost"
-                          onClick={() => window.location.href = "/dashboard/info"}
-                          className="flex items-center text-gray-600 hover:text-gray-900"
-                        >
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                          ダッシュボードに戻る
-                        </Button>
-                      </div>
-                    </div>
+                    {/* 編集UIは公開側では不要なので削除 */}
                   </div>
                 </CardContent>
               </Card>

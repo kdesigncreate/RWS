@@ -56,10 +56,10 @@ function AdminLayoutComponent({
       <AdminHeader title={title} />
 
       {/* メインコンテンツ */}
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
         {/* サイドバー */}
         {sidebar && (
-          <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-screen">
+          <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-full">
             <div className="sticky top-16">
               <AdminNav />
             </div>
@@ -67,8 +67,8 @@ function AdminLayoutComponent({
         )}
 
         {/* コンテンツエリア */}
-        <main className={cn("flex-1 p-6", sidebar ? "lg:ml-0" : "", className)}>
-          <div className="max-w-7xl mx-auto">{children}</div>
+        <main className={cn("flex-1 p-4", sidebar ? "lg:ml-0" : "", className)}>
+          <div className="w-full">{children}</div>
         </main>
       </div>
 
