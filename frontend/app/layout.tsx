@@ -85,6 +85,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="light dark" />
+        <meta name="google-site-verification" content="LcTeuVl0cCqj2qwo-wlonGROzN9gmMf81eNuL70_KGs" />
       </head>
       <body
         className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}
