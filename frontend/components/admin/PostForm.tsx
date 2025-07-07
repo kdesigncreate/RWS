@@ -190,10 +190,18 @@ export function PostForm({
         content: data.content,
         excerpt: data.excerpt || "",
         status: data.status,
-        published_at:
-          data.status === "published"
-            ? data.published_at?.toISOString() || new Date().toISOString()
-            : null,
+        published_at: (() => {
+          if (data.status === "draft") {
+            return null;
+          }
+          if (data.status === "published") {
+            return data.published_at?.toISOString() || new Date().toISOString();
+          }
+          if (data.status === "scheduled") {
+            return data.published_at?.toISOString() || null;
+          }
+          return null;
+        })(),
         user_id: data.user_id || null,
       };
 
@@ -464,7 +472,8 @@ export function PostForm({
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="draft">下書き</SelectItem>
-                              <SelectItem value="published">公開</SelectItem>
+                              <SelectItem value="published">即座に公開</SelectItem>
+                              <SelectItem value="scheduled">予約投稿</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -472,8 +481,8 @@ export function PostForm({
                       )}
                     />
 
-                    {/* 公開日時（公開時のみ表示） */}
-                    {watchedValues.status === "published" && (
+                    {/* 公開日時（公開・予約投稿時のみ表示） */}
+                    {(watchedValues.status === "published" || watchedValues.status === "scheduled") && (
                       <FormField
                         control={form.control}
                         name="published_at"
@@ -497,7 +506,9 @@ export function PostForm({
                               />
                             </FormControl>
                             <FormDescription>
-                              未設定の場合は現在時刻で公開されます
+                              {watchedValues.status === "published" 
+                                ? "未設定の場合は現在時刻で公開されます" 
+                                : "予約投稿の場合は公開日時の設定が必要です"}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -511,11 +522,15 @@ export function PostForm({
                         variant={
                           watchedValues.status === "published"
                             ? "default"
+                            : watchedValues.status === "scheduled"
+                            ? "outline"
                             : "secondary"
                         }
                       >
                         {watchedValues.status === "published"
                           ? "公開"
+                          : watchedValues.status === "scheduled"
+                          ? "予約投稿"
                           : "下書き"}
                       </Badge>
                     </div>

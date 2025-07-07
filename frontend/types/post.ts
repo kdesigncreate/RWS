@@ -1,5 +1,5 @@
 // 記事のステータス型
-export type PostStatus = "draft" | "published";
+export type PostStatus = "draft" | "published" | "scheduled";
 
 // シンプルな作成者情報型（バックエンドと一致）
 export interface PostAuthor {

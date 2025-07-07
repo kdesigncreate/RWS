@@ -233,7 +233,15 @@ export function PostCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between mb-2">
           {showStatus && (
-            <Badge variant={isPublished ? "default" : "secondary"}>
+            <Badge 
+              variant={
+                post.status === "published" 
+                  ? "default" 
+                  : post.status === "scheduled"
+                  ? "outline"
+                  : "secondary"
+              }
+            >
               {post.status_label}
             </Badge>
           )}

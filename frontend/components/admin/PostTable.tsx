@@ -321,10 +321,16 @@ export function PostTable({
                       </h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge
-                          variant={post.status === "published" ? "default" : "secondary"}
+                          variant={
+                            post.status === "published" 
+                              ? "default" 
+                              : post.status === "scheduled"
+                              ? "outline"
+                              : "secondary"
+                          }
                           className="text-xs"
                         >
-                          {post.status === "published" ? "公開中" : "下書き"}
+                          {post.status_label}
                         </Badge>
                         {post.author && (
                           <div className="flex items-center text-xs text-gray-500">

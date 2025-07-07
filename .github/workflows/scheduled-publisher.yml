@@ -1,0 +1,56 @@
+name: Scheduled Post Publisher
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  SUPABASE_PROJECT_ID: ixrwzaasrxoshjnpxnme
+
+jobs:
+  publish-scheduled-posts:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Scheduled Publisher Function
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://${{ env.SUPABASE_PROJECT_ID }}.supabase.co/functions/v1/scheduled-publisher)
+          
+          # Extract HTTP status code (last line)
+          http_code=$(echo "$response" | tail -n1)
+          # Extract response body (all but last line)
+          response_body=$(echo "$response" | head -n -1)
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $response_body"
+          
+          # Check if request was successful
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Scheduled publisher executed successfully"
+            
+            # Parse JSON response to check for published posts
+            published_count=$(echo "$response_body" | grep -o '"published":[0-9]*' | cut -d':' -f2 || echo "0")
+            echo "📝 Published posts: $published_count"
+            
+            # If posts were published, log details
+            if [ "$published_count" -gt 0 ]; then
+              echo "🎉 Successfully published $published_count scheduled posts!"
+              echo "$response_body" | grep -o '"publishedPosts":\[[^]]*\]' || echo "Details not available"
+            else
+              echo "📅 No scheduled posts were ready for publication"
+            fi
+          else
+            echo "❌ Scheduled publisher failed with HTTP $http_code"
+            echo "Error response: $response_body"
+            exit 1
+          fi
+
+      - name: Log Execution Time
+        run: |
+          echo "⏰ Scheduled publisher executed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"

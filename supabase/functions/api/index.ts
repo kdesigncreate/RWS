@@ -156,6 +156,110 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Manual scheduled post publisher endpoint (admin only)
+    if (path.includes('/publish-scheduled') && req.method === 'POST') {
+      const authValidation = await validateAuthToken(req.headers.get('authorization'))
+      if (!authValidation.isValid) {
+        return createErrorResponse('Unauthorized', 401)
+      }
+
+      try {
+        console.log('Manual publish scheduled posts triggered')
+        
+        // Get current time
+        const now = new Date()
+        const nowISO = now.toISOString()
+        console.log(`Current time: ${nowISO}`)
+
+        // Find all scheduled posts that should be published now
+        const { data: scheduledPosts, error: fetchError } = await supabase
+          .from('posts')
+          .select('id, title, status, published_at')
+          .eq('status', 'scheduled')
+          .lte('published_at', nowISO)
+          .order('published_at', { ascending: true })
+
+        if (fetchError) {
+          console.error('Error fetching scheduled posts:', fetchError)
+          return createErrorResponse('Failed to fetch scheduled posts', 500)
+        }
+
+        if (!scheduledPosts || scheduledPosts.length === 0) {
+          return createSuccessResponse({
+            message: 'No scheduled posts to publish',
+            processed: 0,
+            published: 0,
+            publishedPosts: []
+          })
+        }
+
+        console.log(`Found ${scheduledPosts.length} scheduled posts to publish`)
+
+        const publishedPosts = []
+        const errors = []
+
+        // Process each scheduled post
+        for (const post of scheduledPosts) {
+          try {
+            console.log(`Publishing post ${post.id}: "${post.title}"`)
+
+            // Update the post status to 'published'
+            const { error: updateError } = await supabase
+              .from('posts')
+              .update({
+                status: 'published',
+                updated_at: nowISO
+              })
+              .eq('id', post.id)
+              .eq('status', 'scheduled') // Double-check to prevent race conditions
+
+            if (updateError) {
+              console.error(`Error publishing post ${post.id}:`, updateError)
+              errors.push({
+                id: post.id,
+                title: post.title,
+                error: updateError.message
+              })
+              continue
+            }
+
+            publishedPosts.push({
+              id: post.id,
+              title: post.title,
+              publishedAt: post.published_at
+            })
+
+            console.log(`Successfully published post ${post.id}: "${post.title}"`)
+
+          } catch (error) {
+            console.error(`Error processing post ${post.id}:`, error)
+            errors.push({
+              id: post.id,
+              title: post.title,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            })
+          }
+        }
+
+        // Return results
+        const response = {
+          message: `Processed ${scheduledPosts.length} scheduled posts`,
+          processed: scheduledPosts.length,
+          published: publishedPosts.length,
+          failed: errors.length,
+          publishedPosts,
+          errors: errors.length > 0 ? errors : undefined
+        }
+
+        console.log('Manual publish scheduled posts completed:', response)
+        return createSuccessResponse(response)
+
+      } catch (error) {
+        console.error('Manual publish scheduled posts error:', error)
+        return createErrorResponse('Internal server error', 500)
+      }
+    }
+
     // Authentication endpoints
     if (path.includes('/login') && req.method === 'POST') {
       const response = await authRoutes.login(req)

@@ -2,7 +2,7 @@ import { z } from "zod";
 // import type { PostStatus } from '@/types/post'; // 将来の拡張用にコメントアウト
 
 // 記事ステータスのスキーマ
-export const postStatusSchema = z.enum(["draft", "published"] as const);
+export const postStatusSchema = z.enum(["draft", "published", "scheduled"] as const);
 
 // 記事作成用スキーマ
 export const createPostSchema = z.object({
@@ -43,7 +43,7 @@ export const searchPostSchema = z.object({
     .max(100, "検索キーワードは100文字以内で入力してください")
     .optional(),
 
-  status: z.enum(["draft", "published", "all"] as const).optional(),
+  status: z.enum(["draft", "published", "scheduled", "all"] as const).optional(),
 
   page: z
     .number()

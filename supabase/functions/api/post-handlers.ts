@@ -27,6 +27,7 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
   // Correctly calculate status fields from database status (override database values)
   const isPublished = post.status === 'published'
   const isDraft = post.status === 'draft'
+  const isScheduled = post.status === 'scheduled'
   
   return {
     id: post.id,
@@ -36,7 +37,7 @@ export async function formatPost(post: DatabasePost): Promise<FormattedPost> {
     slug: post.slug,
     featured_image: post.featured_image,
     status: post.status,
-    status_label: isPublished ? '公開済み' : '下書き',
+    status_label: isPublished ? '公開済み' : isScheduled ? '予約投稿' : '下書き',
     published_at: post.published_at,
     published_at_formatted: post.published_at ? new Date(post.published_at).toLocaleDateString('ja-JP') : null,
     is_published: isPublished,
@@ -283,7 +284,15 @@ export async function handleCreatePost(request: Request): Promise<Response> {
       content,
       excerpt: excerpt || content.substring(0, 100) + '...',
       status: status || 'draft',
-      published_at: status === 'published' ? now : null,
+      published_at: (() => {
+        if (status === 'published') {
+          return published_at || now;
+        }
+        if (status === 'scheduled') {
+          return published_at || null;
+        }
+        return null;
+      })(),
       user_id: 1,
       created_at: now,
       updated_at: now
@@ -335,11 +344,14 @@ export async function handleUpdatePost(request: Request, postId: number): Promis
       .single()
 
     const now = new Date().toISOString()
-    let published_at = null
+    let published_at_value = null
     
     if (status === 'published') {
-      // If already published, keep the original published_at; if newly published, set current time
-      published_at = currentPost?.published_at || now
+      // If already published, keep the original published_at; if newly published, set provided time or current time
+      published_at_value = published_at || currentPost?.published_at || now
+    } else if (status === 'scheduled') {
+      // For scheduled posts, use the provided published_at
+      published_at_value = published_at || null
     }
 
     const updateData = {
@@ -347,7 +359,7 @@ export async function handleUpdatePost(request: Request, postId: number): Promis
       content,
       excerpt: excerpt || content.substring(0, 100) + '...',
       status: status || 'draft',
-      published_at,
+      published_at: published_at_value,
       updated_at: now
     }
 

@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 import { AdminLayoutWithMobileSidebar } from "@/components/admin/AdminLayout";
 import { PostTable } from "@/components/admin/PostTable";
 // import { SearchBar } from '@/components/posts/SearchBar'; // 未使用のため一時的にコメントアウト
@@ -21,6 +22,8 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { usePosts } from "@/hooks/usePosts";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useToast } from "@/hooks/useToast";
+import { api } from "@/lib/api";
 import {
   Plus,
   Search,
@@ -47,6 +50,8 @@ export default function AdminDashboardPage() {
     // deletePost, // 将来の拡張用にコメントアウト
   } = usePosts();
 
+  const { toast } = useToast();
+
   // モバイルサイドバーの状態
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -65,6 +70,39 @@ export default function AdminDashboardPage() {
 
   // 検索デバウンス
   const debouncedSearch = useDebounce(searchParams.search, 500);
+
+  // 予約投稿を手動実行する関数
+  const handlePublishScheduled = async () => {
+    try {
+      const response = await api.post('/api/publish-scheduled');
+      
+      if (response.data) {
+        const { published, publishedPosts, message } = response.data;
+        
+        if (published > 0) {
+          toast({
+            title: "予約投稿実行完了",
+            description: `${published}件の予約投稿を公開しました`,
+          });
+          
+          // 記事一覧を再読み込み
+          await fetchAdminPosts(searchParams);
+        } else {
+          toast({
+            title: "予約投稿なし",
+            description: "現在公開可能な予約投稿はありません",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('予約投稿実行エラー:', error);
+      toast({
+        title: "エラー",
+        description: "予約投稿の実行に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
 
   // 初期読み込みと検索パラメータ変更時のデータ取得
   useEffect(() => {
@@ -244,6 +282,7 @@ export default function AdminDashboardPage() {
                   <SelectContent>
                     <SelectItem value="all">すべて</SelectItem>
                     <SelectItem value="published">公開中</SelectItem>
+                    <SelectItem value="scheduled">予約投稿</SelectItem>
                     <SelectItem value="draft">下書き</SelectItem>
                   </SelectContent>
                 </Select>
@@ -295,7 +334,19 @@ export default function AdminDashboardPage() {
         {/* 記事一覧テーブル */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">記事一覧</CardTitle>
+            <div className="flex items-center space-x-4">
+              <CardTitle className="text-lg font-semibold">記事一覧</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePublishScheduled}
+                disabled={loading}
+                className="hidden sm:inline-flex"
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                予約投稿を手動実行
+              </Button>
+            </div>
             <Badge variant="outline">
               {pagination.total}件中{" "}
               {(pagination.currentPage - 1) * pagination.perPage + 1}-

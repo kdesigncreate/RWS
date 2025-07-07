@@ -154,7 +154,7 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
                       )}
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate.toJapanese(
+                        {formatDate.toJapaneseDateTime(
                           post.published_at || post.created_at,
                         )}
                       </span>
