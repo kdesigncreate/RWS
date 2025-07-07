@@ -269,7 +269,7 @@ export async function handleCreatePost(request: Request): Promise<Response> {
     const userId = 1
 
     const body: CreatePostRequest = await request.json()
-    const { title, content, excerpt, status } = body
+    const { title, content, excerpt, status, published_at } = body
 
     // バリデーション
     const validation = validatePostData(body)
@@ -328,7 +328,7 @@ export async function handleUpdatePost(request: Request, postId: number): Promis
 
   try {
     const body: UpdatePostRequest = await request.json()
-    const { title, content, excerpt, status } = body
+    const { title, content, excerpt, status, published_at } = body
 
     // バリデーション
     const validation = validatePostData(body)

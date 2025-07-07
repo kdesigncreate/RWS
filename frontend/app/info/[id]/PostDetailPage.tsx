@@ -90,14 +90,31 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
     );
   }
 
-  if (error || !post) {
+  if (error) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
         <div className="pt-16 sm:pt-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <ErrorDisplay
-              message={error || "記事が見つかりませんでした"}
+              message={error}
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="pt-16 sm:pt-20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <ErrorDisplay
+              message="記事が見つかりませんでした"
               onRetry={() => window.location.reload()}
             />
           </div>

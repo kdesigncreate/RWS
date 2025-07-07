@@ -6,7 +6,7 @@ export interface DatabasePost {
   excerpt?: string | null;
   slug?: string | null;
   featured_image?: string | null;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'scheduled';
   is_published: boolean;
   is_draft: boolean;
   published_at?: string | null;
@@ -28,7 +28,7 @@ export interface FormattedPost {
   excerpt: string;
   slug?: string | null;
   featured_image?: string | null;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'scheduled';
   status_label: string;
   published_at?: string | null;
   published_at_formatted: string | null;
@@ -88,14 +88,16 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   excerpt?: string;
-  status?: 'published' | 'draft';
+  status?: 'published' | 'draft' | 'scheduled';
+  published_at?: string;
 }
 
 export interface UpdatePostRequest {
   title: string;
   content: string;
   excerpt?: string;
-  status?: 'published' | 'draft';
+  status?: 'published' | 'draft' | 'scheduled';
+  published_at?: string;
 }
 
 // ヘルスチェックレスポンス型
