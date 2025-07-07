@@ -5,6 +5,9 @@ on:
     # Run every 5 minutes
     - cron: '*/5 * * * *'
   workflow_dispatch: # Allow manual triggering
+  push:
+    paths:
+      - '.github/workflows/scheduled-publisher.yml' # Trigger on workflow changes
 
 env:
   SUPABASE_PROJECT_ID: ixrwzaasrxoshjnpxnme
@@ -14,6 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Debug Workflow Trigger
+        run: |
+          echo "🚀 Scheduled Publisher Workflow Started"
+          echo "⏰ Current Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "🔧 Trigger Event: ${{ github.event_name }}"
+          echo "📁 Repository: ${{ github.repository }}"
+          echo "🌐 Supabase Project: ${{ env.SUPABASE_PROJECT_ID }}"
       - name: Trigger Scheduled Publisher Function
         run: |
           response=$(curl -s -w "\n%{http_code}" \
