@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-lg font-semibold text-gray-900">
+            <h1 className="text-lg font-semibold text-gray-900 sm:block hidden">
               管理者ログイン
             </h1>
             <div className="w-24"> {/* スペーサー */}</div>

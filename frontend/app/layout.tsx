@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -86,6 +87,19 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="light dark" />
         <meta name="google-site-verification" content="LcTeuVl0cCqj2qwo-wlonGROzN9gmMf81eNuL70_KGs" />
+        {/* Google Analytics gtag.js */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-7LBT7MWKRX"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-7LBT7MWKRX');
+          `}
+        </Script>
       </head>
       <body
         className={`${inter.className} ${notoSansJP.className} font-sans antialiased`}

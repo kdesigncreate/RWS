@@ -231,7 +231,7 @@ export function AdminHeader({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* タイトルとパンくずリスト */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 sm:flex">
             {/* モバイルメニューボタン */}
             {onMenuClick && (
               <Button
@@ -244,14 +244,16 @@ export function AdminHeader({
                 <Menu className="h-5 w-5" />
               </Button>
             )}
-            <Link
-              href="/"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              サイトトップ
-            </Link>
-            <span className="text-gray-300">/</span>
-            <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+            <div className="hidden sm:flex items-center space-x-4">
+              <Link
+                href="/"
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                サイトトップ
+              </Link>
+              <span className="text-gray-300">/</span>
+              <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+            </div>
           </div>
 
           {/* ユーザー情報とログアウト */}

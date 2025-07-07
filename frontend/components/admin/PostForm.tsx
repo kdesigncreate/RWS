@@ -555,28 +555,6 @@ export function PostForm({
                     )}
                   </CardContent>
                 </Card>
-
-                {/* 手動保存ボタン（編集時） */}
-                {isEditing && onSave && (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleManualSave}
-                        disabled={!hasChanges || isSaving}
-                        className="w-full"
-                      >
-                        {isSaving ? (
-                          <ButtonSpinner />
-                        ) : (
-                          <Save className="h-4 w-4 mr-2" />
-                        )}
-                        更新
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             </div>
 
