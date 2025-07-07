@@ -388,13 +388,27 @@ ALTER TABLE ONLY "public"."personal_access_tokens"
 
 
 
-ALTER TABLE ONLY "public"."posts"
-    ADD CONSTRAINT "posts_pkey" PRIMARY KEY ("id");
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'posts_pkey' AND conrelid = 'public.posts'::regclass
+    ) THEN
+        ALTER TABLE ONLY "public"."posts"
+            ADD CONSTRAINT "posts_pkey" PRIMARY KEY ("id");
+    END IF;
+END $$;
 
 
 
-ALTER TABLE ONLY "public"."posts"
-    ADD CONSTRAINT "posts_slug_key" UNIQUE ("slug");
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'posts_slug_key' AND conrelid = 'public.posts'::regclass
+    ) THEN
+        ALTER TABLE ONLY "public"."posts"
+            ADD CONSTRAINT "posts_slug_key" UNIQUE ("slug");
+    END IF;
+END $$;
 
 
 
@@ -408,25 +422,39 @@ ALTER TABLE ONLY "public"."sessions"
 
 
 
-ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_email_key" UNIQUE ("email");
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'users_email_key' AND conrelid = 'public.users'::regclass
+    ) THEN
+        ALTER TABLE ONLY "public"."users"
+            ADD CONSTRAINT "users_email_key" UNIQUE ("email");
+    END IF;
+END $$;
 
 
 
-ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'users_pkey' AND conrelid = 'public.users'::regclass
+    ) THEN
+        ALTER TABLE ONLY "public"."users"
+            ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+    END IF;
+END $$;
 
 
 
-CREATE INDEX "idx_posts_published_at" ON "public"."posts" USING "btree" ("published_at");
+CREATE INDEX IF NOT EXISTS "idx_posts_published_at" ON "public"."posts" USING "btree" ("published_at");
 
 
 
-CREATE INDEX "idx_posts_status" ON "public"."posts" USING "btree" ("status");
+CREATE INDEX IF NOT EXISTS "idx_posts_status" ON "public"."posts" USING "btree" ("status");
 
 
 
-CREATE INDEX "idx_posts_user_id" ON "public"."posts" USING "btree" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_posts_user_id" ON "public"."posts" USING "btree" ("user_id");
 
 
 

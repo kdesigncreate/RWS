@@ -80,9 +80,11 @@ jobs:
         echo "📡 Linking to Supabase project..."
         npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
         echo "🗄️ Pushing database schema..."
-        npx supabase db push
+        echo "Y" | npx supabase db push
         echo "⚡ Deploying API function..."
         npx supabase functions deploy api
+        echo "⚡ Deploying scheduled publisher function..."
+        npx supabase functions deploy scheduled-publisher
         echo "✅ Supabase deployment completed"
       timeout-minutes: 20
     
