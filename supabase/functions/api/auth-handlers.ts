@@ -49,11 +49,13 @@ export async function handleLogin(request: Request): Promise<Response> {
       const tempToken = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       
       return createSuccessResponse({
+        message: 'ログインに成功しました',
         user: { 
           id: '1', 
           email: 'admin@rws.com', 
           name: 'Kamura'
         },
+        token: tempToken,
         access_token: tempToken,
         refresh_token: tempToken
       })
@@ -85,11 +87,13 @@ export async function handleLogin(request: Request): Promise<Response> {
       console.log('Login successful for user:', data.user.email)
       
       return createSuccessResponse({
+        message: 'ログインに成功しました',
         user: { 
           id: data.user.id, 
           email: data.user.email!, 
           name: data.user.user_metadata?.name || 'Admin User'
         },
+        token: data.session.access_token,
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token
       })

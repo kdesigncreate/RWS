@@ -34,16 +34,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // 強制的に我々のAPIクライアントを使用
       const response = await api.post("/login", credentials);
 
+      console.log("AuthProvider: Raw response data:", response.data);
+
       // レスポンスデータの構造を確認
       const responseData = response.data as {
         user?: AuthUser;
         access_token?: string;
-        data?: { user?: AuthUser; access_token?: string };
+        token?: string;
+        data?: { user?: AuthUser; access_token?: string; token?: string };
       };
       const userData = responseData.data?.user || responseData.user;
-      const authToken = responseData.data?.access_token || responseData.access_token;
+      const authToken = responseData.data?.access_token || responseData.access_token || responseData.data?.token || responseData.token;
+
+      console.log("AuthProvider: Parsed userData:", userData);
+      console.log("AuthProvider: Parsed authToken:", authToken ? "***TOKEN***" : "null");
 
       if (!userData || !authToken) {
+        console.error("AuthProvider: Missing data - userData:", !!userData, "authToken:", !!authToken);
         throw new Error("ログインレスポンスの形式が不正です");
       }
 
