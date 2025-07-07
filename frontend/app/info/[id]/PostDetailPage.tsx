@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 // import { Badge } from '@/components/ui/badge'; // 将来の拡張用にコメントアウト
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -24,6 +25,7 @@ interface ApiResponse {
 
 export default function PostDetailPage({ params }: PostDetailPageProps) {
   const postId = params.id;
+  const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,13 +126,13 @@ export default function PostDetailPage({ params }: PostDetailPageProps) {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             {/* 戻るボタン */}
             <div className="mb-6 sm:mb-8">
-              <Link
-                href="/#news"
+              <button
+                onClick={() => router.back()}
                 className="flex items-center text-gray-600 hover:text-gray-900 text-sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 戻る
-              </Link>
+              </button>
             </div>
 
             {/* 記事詳細 */}

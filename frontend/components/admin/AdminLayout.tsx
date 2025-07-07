@@ -155,9 +155,9 @@ function AdminLayoutWithMobileSidebarComponent({
         {/* サイドバー */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:static lg:inset-0 lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            "hidden lg:block"
+            "lg:static lg:inset-0 lg:translate-x-0 lg:block"
           )}
         >
           <div className="sticky top-16 pt-16 lg:pt-0">
