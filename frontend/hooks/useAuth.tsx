@@ -24,9 +24,12 @@ export function useAuth() {
   const login = useCallback(
     async (credentials: LoginCredentials) => {
       try {
+        console.log("useAuth: Starting login process");
         await contextLogin(credentials);
+        console.log("useAuth: Login completed successfully");
         return { success: true, error: null };
       } catch (error) {
+        console.error("useAuth: Login failed:", error);
         const errorMessage =
           error instanceof Error ? error.message : "ログインに失敗しました";
         return { success: false, error: errorMessage };

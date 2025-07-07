@@ -64,6 +64,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // APIクライアントにトークンを設定
       api.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
+
+      console.log("AuthProvider: Authentication state updated successfully");
+      console.log("AuthProvider: User set:", !!userData);
+      console.log("AuthProvider: Token set:", !!authToken);
     } catch (error) {
       console.error("AuthProvider: Login error:", error);
       throw new Error("ログインに失敗しました");
