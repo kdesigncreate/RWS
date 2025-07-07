@@ -160,6 +160,15 @@ function AdminLayoutWithMobileSidebarComponent({
             "lg:static lg:inset-0 lg:translate-x-0 lg:block"
           )}
         >
+          {/* モバイル用: 閉じるボタン */}
+          <button
+            type="button"
+            className="absolute top-4 right-4 lg:hidden p-2 rounded hover:bg-gray-200 focus:outline-none"
+            aria-label="メニューを閉じる"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <span className="text-2xl">×</span>
+          </button>
           <div className="sticky top-16 pt-16 lg:pt-0">
             <AdminNav onItemClick={() => setSidebarOpen(false)} />
           </div>
