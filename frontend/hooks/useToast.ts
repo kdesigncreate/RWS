@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { notificationService } from '@/lib/services/notification-service';
 
 export interface ToastOptions {
   title: string;
@@ -11,10 +10,19 @@ export function useToast() {
   const toast = useCallback((options: ToastOptions) => {
     const { title, description, variant = 'default' } = options;
     
+    // Simple console log for now - can be enhanced later with a proper toast UI
+    const message = description ? `${title}: ${description}` : title;
+    
     if (variant === 'destructive') {
-      notificationService.error(title, description);
+      console.error('Toast Error:', message);
     } else {
-      notificationService.success(title, description);
+      console.log('Toast Success:', message);
+    }
+
+    // For now, we can use browser alert as a fallback
+    if (typeof window !== 'undefined') {
+      // Simple notification - can be replaced with a proper toast library later
+      alert(message);
     }
   }, []);
 
