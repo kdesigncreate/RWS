@@ -145,8 +145,8 @@ export function validatePostData(data: CreatePostRequest | UpdatePostRequest): V
     errors.content = ['Content is required']
   }
   
-  if (data.status && !['published', 'draft'].includes(data.status)) {
-    errors.status = ['Status must be either "published" or "draft"']
+  if (data.status && !['published', 'draft', 'scheduled'].includes(data.status)) {
+    errors.status = ['Status must be either "published", "draft", or "scheduled"']
   }
   
   return {
