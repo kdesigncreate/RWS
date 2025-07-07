@@ -22,9 +22,32 @@ export async function generateMetadata({
   try {
     // URLパラメータから記事IDを取得
     const resolvedParams = await params;
-    // APIから記事データを取得
-    const response = await api.get<ApiResponse>(`/posts/${resolvedParams.id}`);
-    const post = response.data.data || response.data;
+    console.log(`[generateMetadata] Fetching post ${resolvedParams.id}`);
+    
+    // サーバーサイドでは完全なURLを使用
+    const apiUrl = process.env.NEXT_PUBLIC_FRONTEND_URL 
+      ? `${process.env.NEXT_PUBLIC_FRONTEND_URL}/api/posts/${resolvedParams.id}`
+      : `https://rws-ruddy.vercel.app/api/posts/${resolvedParams.id}`;
+    
+    console.log(`[generateMetadata] Using API URL: ${apiUrl}`);
+    
+    // fetch を使用してサーバーサイドでAPIアクセス
+    const fetchResponse = await fetch(apiUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'NextJS-SSR'
+      },
+      cache: 'no-store'
+    });
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`API request failed: ${fetchResponse.status} ${fetchResponse.statusText}`);
+    }
+    
+    const responseData = await fetchResponse.json();
+    const post = responseData.data || responseData;
+    
+    console.log(`[generateMetadata] Post fetched successfully:`, post.title);
 
     // 記事データを元にメタデータを生成
     return generatePostMetadata({
@@ -38,13 +61,20 @@ export async function generateMetadata({
       url: `/info/${resolvedParams.id}`,
     });
   } catch (error) {
-    // 記事が見つからない場合のメタデータ
+    const resolvedParams = await params;
+    console.error(`[generateMetadata] Error fetching post ${resolvedParams.id}:`, error);
+    
+    // エラーの詳細を確認
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.log(`[generateMetadata] Error details:`, errorMessage);
+    
+    // 記事が見つからない場合でも、サイト名は表示する
     return {
-      title: "記事が見つかりません | R.W.Sドリブル塾",
-      description: "お探しの記事が見つかりませんでした。",
+      title: "R.W.Sドリブル塾",
+      description: "サッカーのドリブル技術向上を目指すサッカー塾の記事です。",
       robots: {
-        index: false,
-        follow: false,
+        index: true,
+        follow: true,
       },
     };
   }
